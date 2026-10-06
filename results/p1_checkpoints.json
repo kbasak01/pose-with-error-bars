@@ -1,0 +1,53 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "checkpoints",
+  "release_tag": "phase-9-complete",
+  "n_checked": 4,
+  "all_match": true,
+  "checkpoints": [
+    {
+      "run": "detector",
+      "path": "detector/best.pt",
+      "size_bytes": 24706697,
+      "sha256_local": "d254f0174de72b999c9da5dbfabc37509de0d42a41c3511518d531c0d1521e31",
+      "release_name": "detector-best.pt",
+      "sha256_release": "d254f0174de72b999c9da5dbfabc37509de0d42a41c3511518d531c0d1521e31",
+      "match": true
+    },
+    {
+      "run": "keypoint_a1",
+      "path": "keypoint_a1/best.pt",
+      "size_bytes": 246152951,
+      "sha256_local": "46d7faeb8a8b715e24f40ad41115f2520b7000ba89aea3b825b7b95b40257f68",
+      "release_name": "keypoint_a1-best.pt",
+      "sha256_release": "46d7faeb8a8b715e24f40ad41115f2520b7000ba89aea3b825b7b95b40257f68",
+      "match": true
+    },
+    {
+      "run": "keypoint_a2",
+      "path": "keypoint_a2/best.pt",
+      "size_bytes": 246153591,
+      "sha256_local": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+      "release_name": "keypoint_a2-best.pt",
+      "sha256_release": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+      "match": true
+    },
+    {
+      "run": "direct_regression_a1",
+      "path": "direct_regression_a1/best.pt",
+      "size_bytes": 178988733,
+      "sha256_local": "1846218e084099171acf6c70cb365303586ef83cee369eb351e9c09439f2a144",
+      "release_name": "direct_regression_a1-best.pt",
+      "sha256_release": "1846218e084099171acf6c70cb365303586ef83cee369eb351e9c09439f2a144",
+      "match": true
+    }
+  ],
+  "provenance": {
+    "poseconf_git_sha": "976894bda997c742c122d277f1cb712f749379a9",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "p1_commit_expected": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "sums_sha256": "292c17801217abac5caf35721e6b13bafd1edf62ed0ff9fd4b11208605dbc756",
+    "config_sha256": "03c8bea27220e47b52e2b0118b1e7409bce6ad352537e90d890a155d16dbcace",
+    "created_at": "2026-10-06T22:38:01Z"
+  }
+}

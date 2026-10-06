@@ -300,3 +300,20 @@ def test_median_normaliser() -> None:
         median_normaliser(errors, np.zeros(5, bool))
     with pytest.raises(ValueError):
         median_normaliser(np.zeros(3), np.ones(3, bool))
+
+
+def test_contains_alone_is_not_abstain_allowed_coverage() -> None:
+    """Pins the documented semantics: a failed frame is never 'in' a finite set, but under
+    abstain_allowed it is covered (by abstention) — so coverage must go through `outcomes`."""
+    q_id = np.tile([1.0, 0.0, 0.0, 0.0], (2, 1))
+    t_hat = np.array([[0.0, 0.0, 10.0], [np.nan, np.nan, np.nan]])
+    q_hat = np.array([[1.0, 0.0, 0.0, 0.0], [np.nan] * 4])
+    t_gt = np.array([[0.0, 0.0, 10.1], [0.0, 0.0, 10.0]])
+    valid = np.array([True, False])
+    kw = {"c_R": 1.0, "c_t": 1.0}
+    s = score_a1(q_hat, t_hat, q_id, t_gt, valid, **kw, convention="abstain_allowed")
+    st = set_a1(q_hat, t_hat, valid, 1.0, **kw)
+    assert (s <= 1.0).tolist() == [True, True]
+    assert st.contains(q_id, t_gt).tolist() == [True, False]
+    covered, _ = outcomes(s, valid, 1.0, "abstain_allowed")
+    assert covered.tolist() == [True, True] == (st.abstain | st.contains(q_id, t_gt)).tolist()

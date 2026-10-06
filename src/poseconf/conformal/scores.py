@@ -5,8 +5,11 @@ constructor `set_*(predictions, valid, q, ...) -> set` that never takes labels (
 signature test). Sets are evaluated against labels only through their `contains` method.
 
 Exactness: a set stores the same per-frame scales the score divides by, and `contains` recomputes
-the normalised error with the same helper the score uses, so `truth in set(q)` is *bit-for-bit*
-`score <= q` rather than equal up to rounding at the boundary.
+the normalised error with the same helper the score uses, so on valid frames `truth in set(q)` is
+*bit-for-bit* `score <= q` rather than equal up to rounding at the boundary. On failed frames
+`contains` is True only when q = +inf (whole space). That matches `score <= q` under
+`answer_required` but NOT under `abstain_allowed`, where a failure is covered by abstaining.
+Compute coverage with `metrics.outcomes`, never with `contains` alone.
 
 Failures: a frame without a point estimate (`valid = False`) scores `+inf` under `answer_required`
 and `-inf` under `abstain_allowed` (CLAUDE.md invariant 6). Its set is the whole space when
@@ -172,7 +175,11 @@ class PoseSet:
         return out
 
     def contains(self, q_gt: ArrayLike, t_gt: ArrayLike) -> NDArray[np.bool_]:
-        """Evaluation only: whether each true pose lies in its set (== score <= q exactly)."""
+        """Evaluation only: whether each true pose lies in its set.
+
+        Valid frames: exactly `score <= q`. Failed frames: True only when q = +inf. This is not the
+        `abstain_allowed` coverage indicator; use `metrics.outcomes` (or `abstain | contains`).
+        """
         ok = self.valid
         n = ok.shape[0]
         qg = _array(q_gt, "q_gt", (n, 4), ok)
@@ -524,7 +531,10 @@ class KeypointSet:
         return _frame_radius(scale, self.q, self.valid)
 
     def contains(self, y_gt: ArrayLike, include: ArrayLike) -> NDArray[np.bool_]:
-        """Evaluation only: every included true keypoint inside its set (== score <= q exactly).
+        """Evaluation only: every included true keypoint inside its set.
+
+        Valid frames: exactly `score <= q`. Failed frames: True only when q = +inf. This is not the
+        `abstain_allowed` coverage indicator; use `metrics.outcomes` (or `abstain | contains`).
 
         Args:
             y_gt: (n, K, 2) true keypoint projections, full-frame px.

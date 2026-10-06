@@ -15,9 +15,15 @@ One section per score in `IMPLEMENTATION_PLAN.md` §1.3. Code: `src/poseconf/con
   `test_set_functions_take_no_labels`.
 
 A set is checked against the truth only through `set.contains(labels…)`, for evaluation. `contains`
-reuses the score's own normalised-error helper and the per-frame scales stored in the set. That
-makes `truth ∈ set(q)` exactly `score ≤ q`, bit for bit, at every q including ±∞
-(`test_set_inverts_score_exactly`, every score × both conventions).
+reuses the score's own normalised-error helper and the per-frame scales stored in the set. On
+**valid** frames, that makes `truth ∈ set(q)` exactly `score ≤ q`, bit for bit, at every q
+including ±∞. On **failed** frames, `contains` answers the literal question "is the truth in the
+set?": True only when q = +∞ (the set is the whole space). That equals `score ≤ q` under
+`answer_required`. It does **not** equal it under `abstain_allowed`, where a failure scores −∞ and
+counts as covered by abstaining. So `contains` is never the coverage indicator on its own.
+**Coverage must be computed with `metrics.outcomes`** (equivalently, `set.abstain | contains` under
+`abstain_allowed`, and `contains` under `answer_required`). `test_set_inverts_score_exactly` (every
+score × both conventions) and `test_contains_alone_is_not_abstain_allowed_coverage` pin this.
 
 **Quantile.** `q = conformal_quantile(cal_scores, α)` is the ⌈(n+1)(1−α)⌉-th smallest calibration
 score, computed in exact rationals, and `+∞` when that index exceeds n (`split.py`;

@@ -59,25 +59,32 @@ def test_parse_sha256sums_rejects_duplicates() -> None:
         parse_sha256sums(f"{'a' * 64}  x.pt\n{'b' * 64}  x.pt\n")
 
 
+@pytest.mark.parametrize("name", ["keypoint_a2-best.pt", "./keypoint_a2-best.pt"])
+def test_match_release_entry_accepts_release_spelling(name: str) -> None:
+    names = [name, "keypoint_a2.onnx", "keypoint_a2_fp16.onnx", "keypoint_a1-best.pt"]
+    assert match_release_entry("keypoint_a2", names) == name
+
+
 @pytest.mark.parametrize("name", ["keypoint_a2/best.pt", "keypoint_a2_best.pt", "keypoint_a2.pt"])
-def test_match_release_entry_accepts_spellings(name: str) -> None:
-    assert match_release_entry("keypoint_a2", [name, "keypoint_a1_best.pt"]) == name
+def test_match_release_entry_refuses_other_spellings(name: str) -> None:
+    with pytest.raises(KeyError, match="no entry"):
+        match_release_entry("keypoint_a2", [name])
 
 
 def test_match_release_entry_does_not_confuse_prefixes() -> None:
     with pytest.raises(KeyError, match="no entry"):
-        match_release_entry("keypoint_a2", ["keypoint_a2_smoke_best.pt", "keypoint_a20.pt"])
+        match_release_entry("keypoint_a2", ["keypoint_a2_smoke-best.pt", "keypoint_a20-best.pt"])
 
 
 def test_match_release_entry_refuses_ambiguity() -> None:
     with pytest.raises(KeyError, match="2 entries"):
-        match_release_entry("keypoint_a2", ["keypoint_a2.pt", "keypoint_a2_best.pt"])
+        match_release_entry("keypoint_a2", ["keypoint_a2-best.pt", "./keypoint_a2-best.pt"])
 
 
 def test_verify_checkpoints_all_match(tmp_path: Path) -> None:
     digests = _fake_runs(tmp_path / "runs")
     sums = tmp_path / "SHA256SUMS.txt"
-    sums.write_text("".join(f"{d}  {r}_best.pt\n" for r, d in digests.items()), encoding="utf-8")
+    sums.write_text("".join(f"{d}  {r}-best.pt\n" for r, d in digests.items()), encoding="utf-8")
     records = verify_checkpoints(RUNS, tmp_path / "runs", sums)
     assert [r["run"] for r in records] == RUNS
     assert all(r["match"] for r in records)
@@ -88,7 +95,7 @@ def test_verify_checkpoints_reports_mismatch(tmp_path: Path) -> None:
     digests = _fake_runs(tmp_path / "runs")
     digests["detector"] = "0" * 64
     sums = tmp_path / "SHA256SUMS.txt"
-    sums.write_text("".join(f"{d}  {r}.pt\n" for r, d in digests.items()), encoding="utf-8")
+    sums.write_text("".join(f"{d}  {r}-best.pt\n" for r, d in digests.items()), encoding="utf-8")
     records = {r["run"]: r["match"] for r in verify_checkpoints(RUNS, tmp_path / "runs", sums)}
     assert records == {"detector": False, "keypoint_a2": True}
 
@@ -102,7 +109,7 @@ def test_verify_checkpoints_missing_manifest(tmp_path: Path) -> None:
 def test_verify_checkpoints_missing_checkpoint(tmp_path: Path) -> None:
     digests = _fake_runs(tmp_path / "runs")
     sums = tmp_path / "SHA256SUMS.txt"
-    sums.write_text("".join(f"{d}  {r}.pt\n" for r, d in digests.items()), encoding="utf-8")
+    sums.write_text("".join(f"{d}  {r}-best.pt\n" for r, d in digests.items()), encoding="utf-8")
     with pytest.raises(FileNotFoundError, match="keypoint_a1"):
         verify_checkpoints([*RUNS, "keypoint_a1"], tmp_path / "runs", sums)
 

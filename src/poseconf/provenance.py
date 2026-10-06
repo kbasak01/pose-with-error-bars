@@ -169,9 +169,9 @@ def parse_sha256sums(text: str) -> dict[str, str]:
 def match_release_entry(run: str, names: list[str] | set[str] | dict[str, str]) -> str:
     """Find the manifest entry for a run's `best.pt`.
 
-    Release assets cannot contain `/`, and the exact naming of P1's release assets is not recorded
-    in P1's repository, so three spellings are accepted: `<run>/best.pt`, `<run>_best.pt` and
-    `<run>.pt` (a leading `./` is ignored). Anything else is refused rather than guessed.
+    P1's `phase-9-complete` manifest names checkpoints `<run>-best.pt` (read from the release on
+    2026-10-06). Only that spelling is accepted (a leading `./` is ignored); anything else is
+    refused rather than guessed.
 
     Args:
         run: Run name, e.g. `"keypoint_a2"`.
@@ -183,7 +183,7 @@ def match_release_entry(run: str, names: list[str] | set[str] | dict[str, str]) 
     Raises:
         KeyError: If no entry, or more than one entry, matches.
     """
-    accepted = {f"{run}/best.pt", f"{run}_best.pt", f"{run}.pt"}
+    accepted = {f"{run}-best.pt"}
     hits = sorted(name for name in names if name.removeprefix("./") in accepted)
     if len(hits) != 1:
         problem = "no entry" if not hits else f"{len(hits)} entries ({hits})"

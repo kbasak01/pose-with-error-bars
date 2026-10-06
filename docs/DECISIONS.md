@@ -106,3 +106,13 @@ The conditional-coverage-by-IoU slice (§1.5) therefore exists for `predicted_cr
 **Decision.** Marker names are identical to P1 (`slow`, `gpu`, `dataset`); the `dataset` description
 now says "SPEED+ dataset or P1 checkpoints via configs/paths.local.yaml", because here those come
 from local paths, not P1's `data/speedplus` symlink.
+
+## 2026-10-06 — Release manifest naming verified: `<run>-best.pt` only
+
+**Decision.** Supersedes the matching rule in "Release manifest location is a local-paths key".
+P1's `phase-9-complete` `SHA256SUMS.txt` (fetched on request with
+`gh release download phase-9-complete -p SHA256SUMS.txt`, manifest only, no weights) names
+checkpoints `<run>-best.pt` — none of the three provisional spellings. `match_release_entry` now
+accepts exactly `<run>-best.pt`; the guesses were removed rather than kept alongside.
+**Reason.** Once the real naming is known, extra accepted spellings are only ways to match the wrong
+entry.

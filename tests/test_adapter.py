@@ -260,3 +260,13 @@ def test_load_pipeline_on_cpu(local_paths) -> None:
     )
     assert pipeline.detector_model is not None
     assert pipeline.wireframe.shape == (11, 3)
+
+
+# --- pose convention ------------------------------------------------------------------------------
+
+
+def test_pose_quaternion_order_comes_from_p1() -> None:
+    expected = yaml.safe_load(
+        (P1_ROOT / "configs" / "pose_convention.yaml").read_text(encoding="utf-8")
+    )["quaternion_order"]
+    assert p1_adapter.pose_quaternion_order() == expected == "scalar_first"

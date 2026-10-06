@@ -40,6 +40,7 @@ __all__ = [
     "load_sidecar",
     "p1_commit",
     "p1_paths",
+    "pose_quaternion_order",
 ]
 
 #: Where the submodule must live, relative to this repository.
@@ -306,6 +307,25 @@ def load_pipeline(
         dataset_root=paths.speedplus_root,
         device=device,
     )
+
+
+def pose_quaternion_order(run: str = "keypoint_a2") -> str:
+    """P1's quaternion component order, read through P1's own convention loader.
+
+    `poseconf.conformal` cannot import this module, so callers pass the returned string into
+    `poseconf.conformal.so3` functions that need it. No dataset is touched: the convention file is
+    committed in the submodule.
+
+    Args:
+        run: P1 config whose `paths.pose_convention` to read.
+
+    Returns:
+        `"scalar_first"` or `"scalar_last"`.
+    """
+    from speedpose.geometry.conventions import load_convention
+
+    convention_path = load_p1_config(run)["paths"]["pose_convention"]
+    return load_convention(convention_path).quaternion_order
 
 
 def p1_commit() -> str:

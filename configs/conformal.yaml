@@ -8,6 +8,8 @@ p1:
   primary_run: keypoint_a2
   secondary_runs: [keypoint_a1]          # robustness check of the conclusions
   crop_sources: [predicted_crop, gt_crop] # gt_crop is ORACLE on HIL domains
+  # Checkpoints whose SHA-256 Phase 0 verifies against the phase-9-complete release SHA256SUMS.txt.
+  checkpoints: [detector, keypoint_a1, keypoint_a2, direct_regression_a1]
 
 splits:
   seed: 20261006

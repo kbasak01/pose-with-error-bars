@@ -1,0 +1,425 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "validity",
+  "subject": "poseconf.conformal (split, weighted) on synthetic scores with known laws",
+  "data": "synthetic only; no SPEED+, no HIL, no P1",
+  "oracle": false,
+  "design": {
+    "n_resamples": 2000,
+    "band_level": 0.99,
+    "ks_min_pvalue": 0.01,
+    "coverage": "exact conditional coverage from the score CDF, one draw per resample",
+    "reference_law": "Beta(n+1-l, l), l = floor((n+1) alpha)"
+  },
+  "n_cases": 16,
+  "n_valid": 16,
+  "split_beta_law": [
+    {
+      "distribution": "gaussian",
+      "convention": "none (no failures)",
+      "n_cal": 100,
+      "alpha": 0.05,
+      "n_resamples": 2000,
+      "beta_a": 96,
+      "beta_b": 5,
+      "beta_mean": 0.9504950495049505,
+      "mean_coverage": 0.9510959589815065,
+      "mc_se": 0.00047337206438747474,
+      "mean_band": [
+        0.9492579596631224,
+        0.9517321393467785
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.01716549486668084,
+      "ks_pvalue": 0.5913653158610541,
+      "frac_draws_in_band": 0.991,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.95,
+        0.9599009900990099
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "gaussian",
+      "convention": "none (no failures)",
+      "n_cal": 100,
+      "alpha": 0.1,
+      "n_resamples": 2000,
+      "beta_a": 91,
+      "beta_b": 10,
+      "beta_mean": 0.900990099009901,
+      "mean_coverage": 0.8997538821096762,
+      "mc_se": 0.0006443226520987859,
+      "mean_band": [
+        0.8992867591156013,
+        0.9026934389042007
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.031905145494210196,
+      "ks_pvalue": 0.03336141895099387,
+      "frac_draws_in_band": 0.994,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.9,
+        0.9099009900990099
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "gaussian",
+      "convention": "none (no failures)",
+      "n_cal": 1000,
+      "alpha": 0.05,
+      "n_resamples": 2000,
+      "beta_a": 951,
+      "beta_b": 50,
+      "beta_mean": 0.9500499500499501,
+      "mean_coverage": 0.950173650806458,
+      "mc_se": 0.00015523946066996896,
+      "mean_band": [
+        0.9496535721757927,
+        0.9504463279241074
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.02005135490753507,
+      "ks_pvalue": 0.39213706543545945,
+      "frac_draws_in_band": 0.9905,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.95,
+        0.9509990009990009
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "gaussian",
+      "convention": "none (no failures)",
+      "n_cal": 1000,
+      "alpha": 0.1,
+      "n_resamples": 2000,
+      "beta_a": 901,
+      "beta_b": 100,
+      "beta_mean": 0.9000999000999002,
+      "mean_coverage": 0.9002852928354637,
+      "mc_se": 0.0002142207622088447,
+      "mean_band": [
+        0.8995542722380043,
+        0.900645527961796
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.022440077056062213,
+      "ks_pvalue": 0.26228800099331295,
+      "frac_draws_in_band": 0.9875,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.9,
+        0.900999000999001
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "student_t3",
+      "convention": "none (no failures)",
+      "n_cal": 100,
+      "alpha": 0.05,
+      "n_resamples": 2000,
+      "beta_a": 96,
+      "beta_b": 5,
+      "beta_mean": 0.9504950495049505,
+      "mean_coverage": 0.9510218022743296,
+      "mc_se": 0.000471768491595944,
+      "mean_band": [
+        0.9492579596631224,
+        0.9517321393467785
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.014723473283039502,
+      "ks_pvalue": 0.7729825329369256,
+      "frac_draws_in_band": 0.991,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.95,
+        0.9599009900990099
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "student_t3",
+      "convention": "none (no failures)",
+      "n_cal": 100,
+      "alpha": 0.1,
+      "n_resamples": 2000,
+      "beta_a": 91,
+      "beta_b": 10,
+      "beta_mean": 0.900990099009901,
+      "mean_coverage": 0.900522061169301,
+      "mc_se": 0.0006863546465874465,
+      "mean_band": [
+        0.8992867591156013,
+        0.9026934389042007
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.018024546303979427,
+      "ks_pvalue": 0.5283174640052407,
+      "frac_draws_in_band": 0.988,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.9,
+        0.9099009900990099
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "student_t3",
+      "convention": "none (no failures)",
+      "n_cal": 1000,
+      "alpha": 0.05,
+      "n_resamples": 2000,
+      "beta_a": 951,
+      "beta_b": 50,
+      "beta_mean": 0.9500499500499501,
+      "mean_coverage": 0.9497803985486141,
+      "mc_se": 0.0001573249527079018,
+      "mean_band": [
+        0.9496535721757927,
+        0.9504463279241074
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.016128083935085316,
+      "ks_pvalue": 0.6693865926303605,
+      "frac_draws_in_band": 0.9885,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.95,
+        0.9509990009990009
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "student_t3",
+      "convention": "none (no failures)",
+      "n_cal": 1000,
+      "alpha": 0.1,
+      "n_resamples": 2000,
+      "beta_a": 901,
+      "beta_b": 100,
+      "beta_mean": 0.9000999000999002,
+      "mean_coverage": 0.9005495178114513,
+      "mc_se": 0.0002135416219565723,
+      "mean_band": [
+        0.8995542722380043,
+        0.900645527961796
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.02504478590463688,
+      "ks_pvalue": 0.15991737438003428,
+      "frac_draws_in_band": 0.989,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.9,
+        0.900999000999001
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "heteroscedastic",
+      "convention": "none (no failures)",
+      "n_cal": 100,
+      "alpha": 0.05,
+      "n_resamples": 2000,
+      "beta_a": 96,
+      "beta_b": 5,
+      "beta_mean": 0.9504950495049505,
+      "mean_coverage": 0.950421587737313,
+      "mc_se": 0.0004689594090330714,
+      "mean_band": [
+        0.9492579596631224,
+        0.9517321393467785
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.01642616017629417,
+      "ks_pvalue": 0.6469046636682827,
+      "frac_draws_in_band": 0.9925,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.95,
+        0.9599009900990099
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "heteroscedastic",
+      "convention": "none (no failures)",
+      "n_cal": 100,
+      "alpha": 0.1,
+      "n_resamples": 2000,
+      "beta_a": 91,
+      "beta_b": 10,
+      "beta_mean": 0.900990099009901,
+      "mean_coverage": 0.8997794348526139,
+      "mc_se": 0.000663849122396825,
+      "mean_band": [
+        0.8992867591156013,
+        0.9026934389042007
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.02669394771687844,
+      "ks_pvalue": 0.11358132643306407,
+      "frac_draws_in_band": 0.989,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.9,
+        0.9099009900990099
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "heteroscedastic",
+      "convention": "none (no failures)",
+      "n_cal": 1000,
+      "alpha": 0.05,
+      "n_resamples": 2000,
+      "beta_a": 951,
+      "beta_b": 50,
+      "beta_mean": 0.9500499500499501,
+      "mean_coverage": 0.9497584401872684,
+      "mc_se": 0.00015679579104083537,
+      "mean_band": [
+        0.9496535721757927,
+        0.9504463279241074
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.03192989155642856,
+      "ks_pvalue": 0.03315066783252829,
+      "frac_draws_in_band": 0.987,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.95,
+        0.9509990009990009
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "heteroscedastic",
+      "convention": "none (no failures)",
+      "n_cal": 1000,
+      "alpha": 0.1,
+      "n_resamples": 2000,
+      "beta_a": 901,
+      "beta_b": 100,
+      "beta_mean": 0.9000999000999002,
+      "mean_coverage": 0.9003031394216091,
+      "mc_se": 0.00020971703178244275,
+      "mean_band": [
+        0.8995542722380043,
+        0.900645527961796
+      ],
+      "mean_in_band": true,
+      "ks_statistic": 0.015962803289161998,
+      "ks_pvalue": 0.6818304414676124,
+      "frac_draws_in_band": 0.9925,
+      "band_level": 0.99,
+      "theory_interval": [
+        0.9,
+        0.900999000999001
+      ],
+      "mean_in_theory_interval_3se": true,
+      "verdict": "VALID"
+    }
+  ],
+  "failure_conventions": [
+    {
+      "distribution": "gaussian",
+      "convention": "answer_required",
+      "failure_rate": 0.05,
+      "n_cal": 1000,
+      "alpha": 0.1,
+      "n_resamples": 2000,
+      "mean_coverage": 0.9001760939779646,
+      "mc_se": 0.0002114794882538634,
+      "check": "mean >= 1 - alpha - z99 * se (atoms at +/-inf: law is conservative)",
+      "verdict": "VALID"
+    },
+    {
+      "distribution": "gaussian",
+      "convention": "abstain_allowed",
+      "failure_rate": 0.05,
+      "n_cal": 1000,
+      "alpha": 0.1,
+      "n_resamples": 2000,
+      "mean_coverage": 0.9002719954424585,
+      "mc_se": 0.00021049975062142768,
+      "check": "mean >= 1 - alpha - z99 * se (atoms at +/-inf: law is conservative)",
+      "verdict": "VALID"
+    }
+  ],
+  "weighted_covariate_shift": [
+    {
+      "setup": "source x~N(0,1), target x~N(1,1), y=x+exp(x/2)eps, true weights",
+      "n_cal": 500,
+      "n_test_per_resample": 200,
+      "alpha": 0.1,
+      "n_resamples": 2000,
+      "arms": {
+        "weighted": {
+          "mean_coverage": 0.9049647788130292,
+          "mc_se": 0.0007441260606662293,
+          "mean_ess": 192.72648413008426,
+          "mean_max_normalised_weight": 0.026959051317757696,
+          "mean_inf_fraction": 0.000255
+        },
+        "split": {
+          "mean_coverage": 0.7501967183043455,
+          "mc_se": 0.0005619004767402354,
+          "mean_ess": 192.22059845038663,
+          "mean_max_normalised_weight": 0.026956670773722977,
+          "mean_inf_fraction": 0.0
+        }
+      },
+      "verdict": "VALID"
+    },
+    {
+      "setup": "source x~N(0,1), target x~N(1,1), y=x+exp(x/2)eps, true weights",
+      "n_cal": 500,
+      "n_test_per_resample": 200,
+      "alpha": 0.2,
+      "n_resamples": 2000,
+      "arms": {
+        "weighted": {
+          "mean_coverage": 0.8028771906660854,
+          "mc_se": 0.00090756078675266,
+          "mean_ess": 192.57937325800378,
+          "mean_max_normalised_weight": 0.026905606524244733,
+          "mean_inf_fraction": 2.2499999999999998e-05
+        },
+        "split": {
+          "mean_coverage": 0.6134075184623614,
+          "mc_se": 0.0005771976649667283,
+          "mean_ess": 192.60831586987823,
+          "mean_max_normalised_weight": 0.02709384863180714,
+          "mean_inf_fraction": 0.0
+        }
+      },
+      "verdict": "VALID"
+    }
+  ],
+  "provenance": {
+    "poseconf_git_sha": "aca39c6f0fdc3b44f4c41878fcb4bc2181dce1ae",
+    "created_at": "2026-10-06T23:07:11Z",
+    "seed": 1337,
+    "numpy": "2.4.4",
+    "script": "scripts/run_conformal_synthetic_validity.py"
+  }
+}

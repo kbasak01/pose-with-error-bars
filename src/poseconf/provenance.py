@@ -22,6 +22,7 @@ __all__ = [
     "poseconf_git_sha",
     "sha256_file",
     "utc_now_iso",
+    "verify_checkpoints",
     "write_result_json",
 ]
 
@@ -191,3 +192,54 @@ def match_release_entry(run: str, names: list[str] | set[str] | dict[str, str]) 
             f"Manifest lists: {sorted(names)}"
         )
     return hits[0]
+
+
+def verify_checkpoints(
+    runs: list[str], runs_root: str | Path, sums_path: str | Path
+) -> list[dict[str, Any]]:
+    """Hash `<runs_root>/<run>/best.pt` for each run and compare with a SHA256SUMS manifest.
+
+    Args:
+        runs: Run names to check.
+        runs_root: Directory holding `<run>/best.pt`.
+        sums_path: The release manifest.
+
+    Returns:
+        One record per run: `run`, `path` (relative to `runs_root`, so no machine path is
+        committed), `size_bytes`, `sha256_local`, `release_name`, `sha256_release`, `match`.
+
+    Raises:
+        FileNotFoundError: If the manifest or a checkpoint is missing.
+        KeyError: If the manifest has no unambiguous entry for a run.
+        ValueError: If `runs` is empty or the manifest is malformed.
+    """
+    if not runs:
+        raise ValueError("no runs to verify")
+    sums_path, runs_root = Path(sums_path), Path(runs_root)
+    if not sums_path.is_file():
+        raise FileNotFoundError(
+            f"release manifest {sums_path} not found. Place the phase-9-complete SHA256SUMS.txt "
+            "there, or set p1_release_sums in configs/paths.local.yaml."
+        )
+    manifest = parse_sha256sums(sums_path.read_text(encoding="utf-8"))
+    missing = [run for run in runs if not (runs_root / run / "best.pt").is_file()]
+    if missing:
+        raise FileNotFoundError(f"checkpoint(s) missing under {runs_root}: {missing}")
+
+    records = []
+    for run in runs:
+        checkpoint = runs_root / run / "best.pt"
+        name = match_release_entry(run, manifest)
+        local = sha256_file(checkpoint)
+        records.append(
+            {
+                "run": run,
+                "path": f"{run}/best.pt",
+                "size_bytes": checkpoint.stat().st_size,
+                "sha256_local": local,
+                "release_name": name,
+                "sha256_release": manifest[name],
+                "match": local == manifest[name],
+            }
+        )
+    return records

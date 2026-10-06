@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "poseconf"
+version = "0.1.0"
+description = "Distribution-free (split-conformal) pose and keypoint sets for a monocular spacecraft pose pipeline, and how their coverage degrades under the SPEED+ synthetic-to-HIL shift."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Kumardip Basak" }]
+keywords = ["conformal-prediction", "uncertainty", "pose-estimation", "spacecraft", "speed-plus", "distribution-shift"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Private :: Do Not Upload",
+]
+# Runtime dependencies come from P1's pinned requirements (external/spacecraft-pose-baseline/
+# requirements.txt, or requirements-ci.txt on CI) plus requirements-extra.txt. Not duplicated here.
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "scripts", "tests"]
+extend-exclude = ["external"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501", # line length is enforced by the formatter, not the linter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["poseconf"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+markers = [
+    "slow: tests that take more than a few seconds (excluded in CI)",
+    "gpu: tests that require a CUDA device (excluded in CI)",
+    "dataset: tests that require the SPEED+ dataset or P1 checkpoints via configs/paths.local.yaml (excluded in CI)",
+]

@@ -1,0 +1,9 @@
+# This repo's additions on top of P1's pinned stack. Install with P1's pins as constraints so
+# nothing here can move torch/numpy/scipy (see docs/DECISIONS.md, docs/ENVIRONMENT.md).
+# Exact versions resolved 2026-10-06 against P1's requirements.txt / requirements-ci.txt.
+scikit-learn==1.9.1   # logistic domain classifier, isotonic fit of g(conf)
+statsmodels==0.15.0   # Clopper–Pearson intervals (cross-check of scipy.stats.beta)
+mapie==1.5.0          # TEST ORACLE ONLY — never imported from src/ (v1 API: SplitConformalRegressor)
+# torchcp is deliberately absent: every release's top-level __init__ imports its graph and llm
+# subpackages (torch_geometric, transformers), and transformers resolves only with numpy<2 —
+# incompatible with P1's numpy==2.4.4. See docs/DECISIONS.md (2026-10-06).

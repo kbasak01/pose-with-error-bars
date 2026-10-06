@@ -1,0 +1,4 @@
+# Copy to configs/paths.local.yaml (gitignored) and edit. Never commit real paths.
+speedplus_root: /home/YOU/datasets/speedplusv2          # existing SPEED+ tree, read-only
+p1_runs: /home/YOU/code/spacecraft-pose-baseline/runs   # P1 checkpoints: <run>/best.pt
+dumps_root: dumps

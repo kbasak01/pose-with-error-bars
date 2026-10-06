@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make lint)",
+      "Bash(make test)",
+      "Bash(make smoke)",
+      "Bash(make splits)",
+      "Bash(make level-a)",
+      "Bash(make level-b)",
+      "Bash(make parity-p1)",
+      "Bash(make tables)",
+      "Bash(make figures)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)"
+    ],
+    "deny": [
+      "Edit(./external/**)",
+      "Write(./external/**)",
+      "Read(./.env)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard_paths.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/ruff_on_edit.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

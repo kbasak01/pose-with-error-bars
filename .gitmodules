@@ -1,0 +1,3 @@
+[submodule "external/spacecraft-pose-baseline"]
+	path = external/spacecraft-pose-baseline
+	url = https://github.com/kbasak01/spacecraft-pose-baseline

@@ -1,0 +1,69 @@
+# Conformal study configuration — DRAFT from the starter kit.
+# Phase 1 finalises it; any later change gets a docs/DECISIONS.md entry.
+
+p1:
+  submodule: external/spacecraft-pose-baseline
+  tag: phase-9-complete
+  commit: 0f81b426e0a7a7ec26369fb31ad1ea19161434a1
+  primary_run: keypoint_a2
+  secondary_runs: [keypoint_a1]          # robustness check of the conclusions
+  crop_sources: [predicted_crop, gt_crop] # gt_crop is ORACLE on HIL domains
+
+splits:
+  seed: 20261006
+  synthetic_validation:
+    val_tune: 0.20
+    val_cal: 0.40
+    val_test: 0.40
+  hil:
+    pool_a: 0.50     # unlabeled images for weighted CP; labels only for oracle_* arms
+    pool_b: 0.50     # evaluation only, every arm, forever
+  manifest_dir: splits
+
+alpha_grid: [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30, 0.50]
+headline_alpha: 0.10
+
+conventions: [abstain_allowed, answer_required]
+
+repeated_splits:
+  n_resplits: 1000          # random re-splits of val_cal ∪ val_test for coverage distributions
+  seed: 1337
+
+scores:
+  A1: {level: pose, normalisers: [c_R, c_t]}
+  A2: {level: pose, normalisers: [c_R, c_z, c_xy]}
+  A3: {level: pose, normalisers: [c_R, c_t], difficulty: isotonic_mean_confidence}
+  B1: {level: keypoint, normaliser: predicted_box_diagonal}
+  B2: {level: keypoint, covariance: heatmap_second_moment}
+  C1: {level: keypoint, covariance: variance_head}
+  C2: {level: pose, normaliser: linearised_pose_std_from_C1}
+  keypoint_inclusion: gt_projection_in_full_frame   # same rule at calibration and evaluation
+  normaliser_statistic: median_on_val_tune_solved
+
+arms:
+  split: {}
+  mondrian:
+    groups: [predicted_range_tertile, mean_confidence_tertile]
+    edges_fit_on: val_tune
+  weighted_unlabeled_target:
+    features: p1_encoder_global_avgpool   # 512-d, from the dump
+    classifier: logistic_regression
+    cv_folds: 5
+    weight_clip_quantile: null            # chosen on val_tune only, if at all; record the choice
+  oracle_target_labels:
+    n_values: [25, 50, 100, 250, 500, 1000]
+    draws_per_n: 5
+  aci_online:                             # stretch
+    gamma: 0.005
+    order_seed: 7
+
+propagation:
+  linearised: {enabled: true}
+  sampled: {enabled: true, samples: 256, offline_only: true}
+
+reporting:
+  confidence_interval: clopper_pearson_95
+  conditional_slices:
+    gt_range_tertiles: true
+    gt_bbox_iou_bins: [0.0, 0.5, 0.8, 1.0]
+    confidence_quintiles: true

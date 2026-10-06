@@ -1,0 +1,12 @@
+/dumps/
+/runs/
+/exports/
+configs/paths.local.yaml
+*.pt
+*.pth
+*.onnx
+*.engine
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/

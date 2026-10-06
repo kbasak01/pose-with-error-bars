@@ -193,3 +193,30 @@ kind under `results/validity/<score>_<convention>.json`.
 inferred from the data.
 **Reason.** An inferred radix can encode the same (range, confidence) tuple differently in
 calibration and test batches, which silently assigns test frames to the wrong group's quantile.
+
+## 2026-10-06 — Phase 1 audit: carried items (Should-consider, not fixed in Phase 1)
+
+The `conformal-validity-auditor` returned SOUND at `0243839`. These items are deferred on purpose,
+each to the phase where it starts to matter.
+- **S1 (before `make level-a`).** On SPEED+ re-splits, coverage is measured on a finite `val_test`
+  of size m. It therefore follows Beta-Binomial(m; n+1−l, l)/m, which is wider than the Beta law
+  (about 1.4× at n = m ≈ 2400). Re-splits of a single pool are also not independent draws. When
+  failure atoms make q = +∞, coverage is identically 1. Phase 2 must state the reference law and
+  how it handles atoms before it runs.
+- **S2.** At n ∈ {100, 1000} the Beta-law study cannot tell `np.quantile(..., method="higher")` apart
+  from the correct index. The brute-force test (n = 4798, random α) does catch it. Add an n where
+  the two differ (e.g. 101).
+- **S3.** The weighted-CP equal-weight reduction is exact only up to n ≲ 5e4. Above that it is off
+  by one order statistic, in the conservative direction. Use `cum[-1] + w_test` or `fsum` for the
+  total if larger n ever occurs.
+- **S4.** `rational_alpha` rounds α < 5e-7 to 0 and α > 1 − 5e-7 to 1. α = 1 then yields the max
+  score, which is wrong. Unreachable from the config grid; it should raise instead.
+- **S5 (before Phase 6).** `set_*` and `metrics.outcomes` accept only a scalar q. Weighted and
+  Mondrian arms need per-frame q.
+- **S6 (Phase 2 onwards).** Every SPEED+/HIL result JSON must carry its arm tag. Synthetic
+  true-weight rows must never be labelled `weighted_unlabeled_target`.
+- **Correction.** The TorchCP entry above says MAPIE "refuses `n ≤ 1/α`". MAPIE's actual rule is
+  `n < max(1/α, 1/(1−α))`, evaluated in floats (`mapie/utils.py`). For example, n = 100 at α = 0.01
+  is answered. The oracle test's acceptance condition is looser than this, which is harmless.
+- **Reporting note.** A keypoint frame with no included keypoint scores 0 and is vacuously covered.
+  Phase 4 tables report how many such frames there are.

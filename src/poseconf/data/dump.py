@@ -56,6 +56,8 @@ __all__ = [
     "load_dump_labels",
     "p1_reference_arm",
     "run_dump",
+    "run_variance_dump",
+    "variance_dump_file",
     "subset_rows",
     "write_dump",
     "write_labels",
@@ -110,6 +112,11 @@ def dump_file(dumps_root: Path, run: str, domain: str, crop_source: str, *, subs
     """Path of a prediction (or subset) dump."""
     suffix = "_subset" if subset else ""
     return Path(dumps_root) / run / f"{domain}_{crop_source}{suffix}.npz"
+
+
+def variance_dump_file(dumps_root: Path, run: str, domain: str, crop_source: str) -> Path:
+    """Path of the Phase 5 variance-head sidecar of a prediction dump."""
+    return Path(dumps_root) / run / f"{domain}_{crop_source}_vhead.npz"
 
 
 def labels_file(dumps_root: Path, run: str, domain: str, pool: str) -> Path:
@@ -467,6 +474,99 @@ def run_dump(
         "timings_s": {key: round(value, 2) for key, value in timings.items()},
     }
     return DumpOutput(fields=fields, subset=subset_fields, info=info)
+
+
+def run_variance_dump(
+    pipeline: Any,
+    frames: p1.EvalFrames,
+    head: torch.nn.Module,
+    dump: dict[str, NDArray[Any]],
+    *,
+    batch_size: int,
+    decode_threads: int,
+    log: Callable[[str], None] = print,
+    log_every: int = 50,
+) -> dict[str, NDArray[Any]]:
+    """Phase 5 sidecar: the variance head's covariance for every frame of an existing dump.
+
+    Re-runs only the keypoint stage, on the dump's own boxes, in the dump's batch order and size,
+    with the head reading P1's decoder features and heatmaps through `keypoint_hooks` under the
+    pipeline's autocast. P1's path is untouched; the affine and coordinates must equal the
+    Phase 3 dump bit for bit, otherwise this raises (the covariance would describe another point).
+
+    Args:
+        pipeline: P1 `PosePipeline` for the dump's arm.
+        frames: The domain's evaluation frames, in the dump's order.
+        head: A trained `VarianceHead` (on the pipeline's device, eval mode).
+        dump: The Phase 3 prediction-dump arrays for this domain x arm.
+        batch_size: The dump's batch size (P1's `train.batch_size`).
+        decode_threads: Threads decoding JPEGs ahead of the network.
+        log: Progress sink.
+        log_every: Batches between progress lines.
+
+    Returns:
+        `filename, kp_pred_crop, vhead_chol_crop (n, K, 3), vhead_cov_crop, vhead_cov_full`.
+
+    Raises:
+        RuntimeError: If an affine or coordinate differs from the dump.
+    """
+    from poseconf.models.variance_head import chol_to_cov
+
+    n = len(frames)
+    if list(np.asarray(dump["filename"]).astype(str)) != [str(f) for f in frames.filenames]:
+        raise RuntimeError("frames are not in the dump's order")
+    model = pipeline.keypoint_model
+    crop_size = int(pipeline.crop_size)
+    boxes = np.asarray(dump["bbox_used"], dtype=np.float64)
+    croppable = np.asarray(dump["croppable"], dtype=bool)
+    placeholder = np.zeros((crop_size, crop_size), dtype=np.uint8)
+    coords = np.empty((n, int(model.num_keypoints), 2))
+    chol = np.empty((n, int(model.num_keypoints), 3))
+    device = pipeline.device
+    with (
+        ThreadPoolExecutor(max_workers=decode_threads) as pool,
+        p1.keypoint_hooks(pipeline, keep_decoder=True) as capture,
+    ):
+        for batch_index, (start, images) in enumerate(
+            _image_batches(frames.image_paths, batch_size, pool)
+        ):
+            stop = start + len(images)
+            tensors = []
+            for offset, image in enumerate(images):
+                row = start + offset
+                if croppable[row]:
+                    crop, affine = pipeline.crop_one(image, boxes[row])
+                else:
+                    crop, affine = placeholder, np.eye(2, 3, dtype=np.float64)
+                if not np.array_equal(affine, dump["affine"][row]):
+                    raise RuntimeError(f"frame {row}: affine differs from the dump")
+                tensors.append(pipeline.normalise_crop(crop))
+            batch_coords, _ = pipeline.keypoints(torch.stack(tensors))
+            with (
+                torch.no_grad(),
+                torch.autocast(
+                    device_type=device.type,
+                    dtype=pipeline.amp_dtype,
+                    enabled=device.type == "cuda",
+                ),
+            ):
+                batch_chol = head(capture.decoder, capture.heatmaps, model.head)
+            coords[start:stop] = batch_coords
+            chol[start:stop] = batch_chol.double().cpu().numpy()
+            if batch_index % log_every == 0:
+                log(f"  vhead {stop}/{n}")
+    expected = np.asarray(dump["kp_pred_crop"], dtype=np.float64)
+    if not np.array_equal(coords, expected):
+        bad = int(np.flatnonzero((coords != expected).any(axis=(1, 2)))[0])
+        raise RuntimeError(f"frame {bad}: P1 coordinates differ from the Phase 3 dump")
+    cov_crop = chol_to_cov(torch.from_numpy(chol)).numpy()
+    return {
+        "filename": np.asarray(frames.filenames).astype(np.str_),
+        "kp_pred_crop": coords,
+        "vhead_chol_crop": chol,
+        "vhead_cov_crop": cov_crop,
+        "vhead_cov_full": crop_cov_to_full(cov_crop, np.asarray(dump["affine"], dtype=np.float64)),
+    }
 
 
 def write_dump(

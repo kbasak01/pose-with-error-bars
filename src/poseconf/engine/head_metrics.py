@@ -56,6 +56,13 @@ def global_scale(cov: NDArray[np.float64], residual: NDArray[np.float64]) -> flo
     return float(np.mean(mahalanobis_sq(cov, residual)) / 2.0)
 
 
+def _rank_corr(a: NDArray[np.float64], b: NDArray[np.float64]) -> float | None:
+    """Spearman correlation, or None when undefined (fewer than 3 points or a constant input)."""
+    if a.size < 3 or np.all(a == a[0]) or np.all(b == b[0]):
+        return None
+    return float(spearmanr(a, b).statistic)
+
+
 def head_quality(
     cov: NDArray[np.float64],
     residual: NDArray[np.float64],
@@ -98,8 +105,7 @@ def head_quality(
     per_keypoint = []
     for k in range(cov.shape[1]):
         chosen = keypoints == k
-        rho = spearmanr(sigma[chosen], error[chosen]).statistic if chosen.sum() > 2 else math.nan
-        per_keypoint.append(None if math.isnan(rho) else float(rho))
+        per_keypoint.append(_rank_corr(sigma[chosen], error[chosen]))
     out: dict[str, Any] = {
         "n_keypoints": int(mask.sum()),
         "n_frames": int(mask.any(axis=1).sum()),
@@ -119,10 +125,10 @@ def head_quality(
             "p95": float(np.quantile(sigma, 0.95)),
         },
         "error_px_median": float(np.median(error)),
-        "spearman_sigma_vs_error": float(spearmanr(sigma, error).statistic),
+        "spearman_sigma_vs_error": _rank_corr(sigma, error),
         "spearman_sigma_vs_error_per_keypoint": per_keypoint,
     }
     if confidence is not None:
         conf = np.asarray(confidence)[mask]
-        out["spearman_neg_confidence_vs_error"] = float(spearmanr(-conf, error).statistic)
+        out["spearman_neg_confidence_vs_error"] = _rank_corr(-conf, error)
     return out

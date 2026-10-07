@@ -1,4 +1,4 @@
-.PHONY: lint test smoke splits level-a dump parity-p1 level-b train-var-smoke train-var shift-matrix tables figures export bench verify-p1
+.PHONY: lint test smoke splits level-a dump parity-p1 level-b train-var-smoke train-var dump-var level-c shift-matrix tables figures export bench verify-p1
 
 # Use the project venv when it exists, otherwise whatever is on PATH (CI has no .venv).
 VENV   := $(wildcard .venv/bin)
@@ -25,6 +25,10 @@ train-var-smoke: ; $(PY) scripts/train_variance_head.py --config configs/varianc
 train-var:
 	@echo "Run this yourself (GPU):"
 	@echo "  $(PY) scripts/train_variance_head.py --config configs/variance_head.yaml"
+dump-var:
+	@echo "GPU; writes dumps_root/keypoint_a2/<domain>_<arm>_vhead.npz (gitignored):"
+	@echo "  $(PY) scripts/dump_variance.py --variance-head runs/vhead_a2_s1337/best.pt --all-domains --all-arms --device cuda --tf32 off"
+level-c: ; $(PY) scripts/run_level_c.py --config configs/conformal.yaml
 shift-matrix: ; $(PY) scripts/run_shift_matrix.py --config configs/conformal.yaml
 tables:  ; $(PY) scripts/make_tables.py
 figures: ; $(PY) scripts/make_figures.py --figure all

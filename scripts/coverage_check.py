@@ -1,6 +1,8 @@
-"""`/coverage-check`: repeated-split validity of one Level A score under one convention.
+"""`/coverage-check`: repeated-split validity of one score under one convention.
 
-Reads the committed Level A result and its per-draw arrays (no recomputation), compares each alpha's
+Reads the committed Level A, B or C result holding the score (A1-A3: `results/level_a/`, B1/B2:
+`results/level_b/`, C1/C2: `results/level_c/`) and its per-draw arrays (no recomputation),
+compares each alpha's
 R re-split coverages with the exact atom-aware re-split law and with Beta(n+1-l, l), and writes
 `results/validity/<score>_<convention>.json` (kind `validity`) plus
 `assets/validity_<score>_<convention>.png`. Exits 1 if any alpha DEVIATES.
@@ -40,18 +42,29 @@ _INK, _MUTED, _GRID = "#0b0b0b", "#52514e", "#e4e3df"
 _X_SPAN_SD = 5.0
 _HIST_BINS = 30
 
+#: Committed result holding each score's rows and re-split arrays.
+_STEM = "keypoint_a2_predicted_crop_synthetic.json"
+RESULT_FOR_SCORE = {
+    **{s: Path("results/level_a") / _STEM for s in ("A1", "A2", "A3")},
+    **{s: Path("results/level_b") / _STEM for s in ("B1", "B2")},
+    **{s: Path("results/level_c") / _STEM for s in ("C1", "C2")},
+}
+
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--score", required=True, choices=["A1", "A2", "A3"])
+    parser.add_argument("--score", required=True, choices=sorted(RESULT_FOR_SCORE))
     parser.add_argument(
         "--convention", default="abstain_allowed", choices=["abstain_allowed", "answer_required"]
     )
     parser.add_argument(
+        "--result",
         "--level-a",
+        dest="result",
         type=Path,
-        default=Path("results/level_a/keypoint_a2_predicted_crop_synthetic.json"),
+        default=None,
+        help="result JSON holding the score (default: by score level)",
     )
     parser.add_argument("--out-dir", type=Path, default=Path("results/validity"))
     parser.add_argument("--fig-dir", type=Path, default=Path("assets"))
@@ -171,13 +184,14 @@ def figure(rows: list[dict[str, Any]], counts: np.ndarray, title: str, path: Pat
 def main(argv: list[str] | None = None) -> int:
     """Write the validity JSON and figure; return 1 if any alpha deviates."""
     args = parse_args(argv)
-    level_a = json.loads(args.level_a.read_text(encoding="utf-8"))
-    npz_path = args.level_a.parent / level_a["resplit_protocol"]["arrays"]
-    if sha256_file(npz_path) != level_a["provenance"]["resplits_npz_sha256"]:
-        raise ValueError(f"{npz_path} does not match the hash recorded in {args.level_a}")
+    source = args.result or RESULT_FOR_SCORE[args.score]
+    record = json.loads(source.read_text(encoding="utf-8"))
+    npz_path = source.parent / record["resplit_protocol"]["arrays"]
+    if sha256_file(npz_path) != record["provenance"]["resplits_npz_sha256"]:
+        raise ValueError(f"{npz_path} does not match the hash recorded in {source}")
     rows = [
         row
-        for row in level_a["rows"]
+        for row in record["rows"]
         if row["score"] == args.score and row["convention"] == args.convention
     ]
     with np.load(npz_path) as arrays:
@@ -231,20 +245,20 @@ def main(argv: list[str] | None = None) -> int:
         "convention": args.convention,
         "domain": "synthetic",
         "subset": "synthetic_val_cal+synthetic_val_test re-splits",
-        "crop_source": level_a["crop_source"],
+        "crop_source": record["crop_source"],
         "oracle": False,
         "n_cal": rows[0]["resplits"]["n_cal"],
         "n_test": rows[0]["resplits"]["n_test"],
-        "reference_law": level_a["resplit_protocol"]["reference_law"],
+        "reference_law": record["resplit_protocol"]["reference_law"],
         "cases": cases,
         "n_valid": sum(c["verdict"] == "VALID" for c in cases),
         "n_degenerate": sum(c["verdict"] == "DEGENERATE" for c in cases),
         "n_deviates": sum(c["verdict"] == "DEVIATES" for c in cases),
         "figure": str(fig_path),
         "provenance": {
-            **level_a["provenance"],
-            "source_result": str(args.level_a),
-            "source_result_sha256": sha256_file(args.level_a),
+            **record["provenance"],
+            "source_result": str(source),
+            "source_result_sha256": sha256_file(source),
             "poseconf_git_sha": poseconf_git_sha(),
             "created_at": utc_now_iso(),
         },

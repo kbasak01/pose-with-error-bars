@@ -54,6 +54,22 @@ level_b:                    # Phase 4: in-distribution only, synthetic val_test;
     mean_band_se: 3                      # mean within this many MC s.e.
     purse_agreement: 1.0                 # PURSE(label pose) == joint coverage on every frame
 
+level_c:                    # Phase 5: in-distribution only, synthetic val_test; no HIL
+  scores: [C1, C2]
+  run: keypoint_a2
+  crop_source: predicted_crop
+  fit_split: synthetic_val_tune          # head selection + the head-quality NLL rescaling only
+  calibration_split: synthetic_val_cal
+  test_split: synthetic_val_test
+  valid_mask: pnp_success                # C2 additionally needs a defined linearised sigma
+  label_projection_max_px: 0.01
+  cov_mapping_rtol: 1.0e-9               # vhead_cov_full vs propagate.crop_cov_to_full
+  level_a_result: results/level_a/keypoint_a2_predicted_crop_synthetic.json
+  level_b_result: results/level_b/keypoint_a2_predicted_crop_synthetic.json
+  gate:
+    ks_min_p: 0.01                       # KS against the atom-aware re-split law
+    mean_band_se: 3                      # mean within this many MC s.e.
+
 dump:                       # Phase 3: per-frame prediction dump + P1 parity gate
   run: keypoint_a2
   domains: [synthetic, lightbox, sunlamp]

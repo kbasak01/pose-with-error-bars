@@ -43,6 +43,7 @@ from poseconf.conformal.scores import SCORES, KeypointSet
 from poseconf.conformal.so3 import geodesic_distance, quat_to_matrix
 
 __all__ = [
+    "KEYPOINT_SCORES",
     "LEVEL_B_SCORES",
     "KeypointFrames",
     "check_cov_mapping",
@@ -61,8 +62,11 @@ __all__ = [
     "worker_count",
 ]
 
-#: The keypoint scores this module handles.
+#: The Level B scores (`run_level_b.py`).
 LEVEL_B_SCORES = ("B1", "B2")
+
+#: Every keypoint score these functions handle; C1 is B2's code on the variance head's Σ̂.
+KEYPOINT_SCORES = ("B1", "B2", "C1")
 
 _RAD_TO_DEG = 180.0 / math.pi
 
@@ -148,6 +152,8 @@ def join_dump(
     names: Sequence[str],
     geometry: CameraGeometry,
     order: str,
+    *,
+    cov_key: str = "heatmap_cov_full",
 ) -> tuple[KeypointFrames, dict[str, Any]]:
     """Select `names` from a prediction dump and its label file; project the label poses.
 
@@ -157,6 +163,8 @@ def join_dump(
         names: Filenames to select (a split manifest).
         geometry: P1's camera and wireframe.
         order: P1's quaternion order.
+        cov_key: Full-frame covariance column for `frames.cov`: the heatmap moment (B2) or, in
+            Level C, the variance head's (`vhead_cov_full`, C1).
 
     Returns:
         `(frames, check)`. `check` records the label-product cross-check: P1's visibility mask
@@ -185,7 +193,7 @@ def join_dump(
     frames = KeypointFrames(
         filenames=np.asarray(names),
         y_hat=np.asarray(dump["kp_pred_full"], dtype=np.float64)[d],
-        cov=np.asarray(dump["heatmap_cov_full"], dtype=np.float64)[d],
+        cov=np.asarray(dump[cov_key], dtype=np.float64)[d],
         unconstrained=np.asarray(dump["heatmap_empty"], dtype=bool)[d],
         d_hat=d_hat,
         valid=valid,
@@ -209,9 +217,10 @@ def join_dump(
 def _kwargs(score_id: str, frames: KeypointFrames) -> dict[str, Any]:
     if score_id == "B1":
         return {"d_hat": frames.d_hat, "unconstrained": frames.unconstrained}
-    if score_id == "B2":
+    if score_id in ("B2", "C1"):
+        # Same Mahalanobis code; C1 differs only in where `frames.cov` came from (`cov_key`).
         return {"cov": frames.cov, "unconstrained": frames.unconstrained}
-    raise ValueError(f"not a Level B score: {score_id!r}; expected one of {LEVEL_B_SCORES}")
+    raise ValueError(f"not a keypoint score: {score_id!r}; expected one of {KEYPOINT_SCORES}")
 
 
 def score_frames(score_id: str, frames: KeypointFrames, convention: str) -> NDArray[np.float64]:

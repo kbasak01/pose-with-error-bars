@@ -34,6 +34,7 @@ from poseconf.engine.level_a import resplit_draws, summarise_draws
 from poseconf.engine.level_b import (
     LEVEL_B_SCORES,
     check_cov_mapping,
+    estimate_in_purse,
     join_dump,
     keypoint_set,
     linearised_frames,
@@ -71,25 +72,36 @@ _RAD_TO_DEG = 180.0 / math.pi
 DEFINITIONS = {
     "purse": (
         "poses whose keypoints visible under the pose (P1's rule) and constrained lie in their "
-        "sets; the label pose is a member iff the joint keypoint score <= q"
+        "sets; the label pose is a member iff the joint keypoint score <= q. The PURSE is "
+        "unbounded: a pose projecting no constrained keypoint into the frame is a member at any "
+        "q >= 0, so its global extent is pi / infinite. Every radius below describes the PURSE "
+        "near the PnP estimate"
     ),
     "linearised_inner": (
-        "q * sqrt(lambda_max((H^-1)_block)), H = sum_k J_k^T S_k^-1 J_k over keypoints visible "
-        "under the PnP estimate; largest extent of an ellipsoid inside the linearised PURSE. "
-        "Approximation (linearisation, PnP residual ignored), not a bound"
+        "first order about the PnP estimate over keypoints U visible under it, residual-aware: "
+        "sqrt(||o||^2 + (q^2 - c) lambda), o = block of delta* = -H^-1 g, c = residual floor, "
+        "lambda = lambda_max of the (H^-1) block; attained by a point of the inner ellipsoid "
+        "(sum_k Mahalanobis^2 <= q^2) inside the linearised PURSE. NaN when c > q^2. "
+        "Approximation (linearisation, fixed U), not a bound"
     ),
     "linearised_outer": (
-        "sqrt(|U|) * linearised_inner; the ellipsoid it defines contains the linearised PURSE. "
-        "Approximation, not a bound"
+        "||o|| + sqrt((|U| q^2 - c) lambda): the extent of the ellipsoid sum_k Mahalanobis^2 <= "
+        "|U| q^2, which contains the linearised PURSE. NaN when c > |U| q^2 (linearised PURSE "
+        "empty). Approximation, not a bound"
     ),
     "sampled": (
         "M keypoint configurations uniform in the sets, cv2.solvePnP ITERATIVE warm-started at the "
-        "estimate, PURSE members kept; max deviation. Inner approximation: a lower bound on the "
-        "PURSE extent about the estimate"
+        "estimate, PURSE members kept; max deviation from the estimate. Inner approximation of "
+        "the PURSE's extent near the estimate: a lower bound on how far the members local PnP "
+        "reaches lie from it. NaN when no sample is accepted (n_nan)"
     ),
     "measured_ball_coverage": (
         "fraction of answered val_test frames with E_R <= rotation radius and ||t - t_hat|| <= "
-        "translation radius; measured, no guarantee"
+        "translation radius, Clopper-Pearson 95 %; measured, no guarantee"
+    ),
+    "estimate_in_purse": (
+        "fraction of answered frames whose PnP estimate lies in its own PURSE; where it does not, "
+        "the PnP residual exceeds the set on some keypoint"
     ),
 }
 
@@ -214,6 +226,7 @@ def main(argv: list[str] | None = None) -> int:
                 covered, answered = outcomes(s_test, test.valid, q, convention)
                 summary = coverage_summary(covered, answered)
                 kset = keypoint_set(score_id, test, q)
+                bounded = test.include & ~test.unconstrained
                 rows.append(
                     {
                         "score": score_id,
@@ -229,6 +242,7 @@ def main(argv: list[str] | None = None) -> int:
                         "set_size": set_size_report(kset, answered),
                         "quantile": q,
                         "n_cal": n_cal,
+                        "n_vacuous": int((test.valid & ~bounded.any(axis=1)).sum()),
                         "purse_agreement": purse_agreement(kset, test, s_test, order, geometry),
                         "resplits": summarise_draws(
                             draws,
@@ -262,11 +276,25 @@ def main(argv: list[str] | None = None) -> int:
                 q = quantiles[(score_id, convention, alpha)]
                 answered = np.flatnonzero(test.valid & (q > -math.inf))
                 radii = linearised_radii(extents, answered, q)
+                inside = estimate_in_purse(keypoint_set(score_id, test, q), test, geometry, order)
+                resid = np.array([extents[int(r)].residual_max for r in answered])
                 entry = {
                     "convention": convention,
                     "alpha": alpha,
                     "quantile": q,
                     "n_answered": int(answered.size),
+                    "estimate_in_purse": float(inside[answered].mean()) if answered.size else None,
+                    "residual_over_q": (
+                        dict(
+                            zip(
+                                ("p50", "p90", "p99"),
+                                (np.percentile(resid, [50, 90, 99]) / q).tolist(),
+                                strict=True,
+                            )
+                        )
+                        if answered.size and 0 < q < math.inf
+                        else None
+                    ),
                     "inner": propagation_report(
                         test, answered, radii["rot_inner"], radii["trans_inner"]
                     ),
@@ -446,7 +474,10 @@ def main(argv: list[str] | None = None) -> int:
         "level_a_comparison": {
             "source": level["level_a_result"],
             "source_sha256": sha256_file(level_a_path),
-            "note": "medians over answered val_test frames at equal alpha and convention",
+            "note": (
+                "medians over answered val_test frames at equal alpha and convention; linearised "
+                "and sampled medians exclude their n_nan frames (see linearised / sampled)"
+            ),
             "rows": comparison,
         },
         "provenance": {**provenance, "level_b_result": _rel(out)},

@@ -26,13 +26,13 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 
-from poseconf.conformal.metrics import set_size_summary
+from poseconf.conformal.metrics import clopper_pearson, set_size_summary
 from poseconf.conformal.propagate import (
     CameraGeometry,
     LinearisedExtent,
     PurseSet,
     crop_cov_to_full,
-    linearised_unit_extent,
+    linearised_extent,
     project,
     projection_jacobian,
     sampled_extent,
@@ -50,6 +50,7 @@ __all__ = [
     "keypoint_set",
     "linearised_frames",
     "linearised_radii",
+    "estimate_in_purse",
     "propagation_report",
     "purse_agreement",
     "runtime_summary",
@@ -284,10 +285,11 @@ def _pose_matrices(frames: KeypointFrames, order: str) -> NDArray[np.float64]:
 def linearised_frames(
     score_id: str, frames: KeypointFrames, geometry: CameraGeometry, order: str
 ) -> tuple[list[LinearisedExtent | None], NDArray[np.float64]]:
-    """Unit linearised extents (q = 1) of every valid frame, and the per-frame wall time (s).
+    """Linearised PURSE geometry (q-free) of every valid frame, and the per-frame wall time (s).
 
-    U = keypoints visible under the PnP estimate and constrained (label-free). Failed frames get
-    None and NaN time. The time covers the Jacobian and the 6x6 solve.
+    U = keypoints visible under the PnP estimate and constrained (label-free); the residual is
+    the estimate's projection minus the predicted keypoints. Failed frames get None and NaN time.
+    The time covers the projection, the Jacobian and the 6x6 solve.
     """
     kset = keypoint_set(score_id, frames, 1.0)
     shapes = unit_shapes(kset)
@@ -296,10 +298,10 @@ def linearised_frames(
     seconds = np.full(len(frames), np.nan)
     for i in np.flatnonzero(frames.valid):
         start = time.perf_counter()
-        _, visible = project(rotations[i][None], frames.t_hat[i][None], geometry)
+        points, visible = project(rotations[i][None], frames.t_hat[i][None], geometry)
         use = visible[0] & kset.constrained[i]
         jac = projection_jacobian(rotations[i], frames.t_hat[i], geometry)
-        out[i] = linearised_unit_extent(jac, shapes[i], use)
+        out[i] = linearised_extent(jac, shapes[i], use, points[0] - frames.y_hat[i])
         seconds[i] = time.perf_counter() - start
     return out, seconds
 
@@ -405,22 +407,36 @@ def _radius_summary(
     }
 
 
+def _measured(inside: NDArray[np.bool_]) -> dict[str, Any]:
+    k, m = int(inside.sum()), int(inside.size)
+    return {"value": k / m, "n": m, "coverage_ci95": list(clopper_pearson(k, m))}
+
+
 def propagation_report(
     frames: KeypointFrames,
     rows: NDArray[np.int64],
     rot: NDArray[np.float64],
     trans: NDArray[np.float64],
 ) -> dict[str, Any]:
-    """Radius summaries over `rows`, plus the *measured* pose-ball coverage (no guarantee).
+    """Radius summaries over `rows` (answered frames), plus the *measured* pose-ball coverage.
 
-    `measured_ball_coverage` = fraction of `rows` whose true pose has E_R <= rot and
-    ||t - t_hat|| <= trans: an empirical check of the radius, using labels for evaluation only.
-    Rows with a NaN radius (sampled: nothing accepted) are counted in `n_nan` and excluded.
+    `measured_ball_coverage` is the fraction of answered frames whose true pose has E_R <= rot and
+    ||t - t_hat|| <= trans, with a Clopper-Pearson interval: an empirical check of the radius,
+    using labels for evaluation only, not a guarantee. Rows with a NaN radius (sampled: nothing
+    accepted; linearised: empty ellipsoid) are excluded from `value` and the radius summaries
+    (`n_nan`) and counted as uncovered in `value_nan_as_uncovered`. An infinite radius covers
+    (`n_inf`). Answer rate = answered / all frames of the evaluated split.
     """
     rot, trans = np.asarray(rot, dtype=np.float64), np.asarray(trans, dtype=np.float64)
     finite = ~(np.isnan(rot) | np.isnan(trans))
     keep = rows[finite]
-    out: dict[str, Any] = {"n_frames": int(rows.size), "n_nan": int((~finite).sum())}
+    out: dict[str, Any] = {
+        "n_total": len(frames),
+        "n_answered": int(rows.size),
+        "answer_rate": rows.size / len(frames),
+        "n_nan": int((~finite).sum()),
+        "n_inf": int((np.isinf(rot) | np.isinf(trans)).sum()),
+    }
     if keep.size == 0:
         return out
     pred_range = np.linalg.norm(frames.t_hat[keep], axis=-1)
@@ -428,12 +444,29 @@ def propagation_report(
     e_t = np.linalg.norm(frames.t_hat[keep] - frames.t_gt[keep], axis=-1)
     inside = (e_r <= rot[finite]) & (e_t <= trans[finite])
     out.update(_radius_summary(rot[finite], trans[finite], pred_range))
+    all_rows = np.zeros(rows.size, dtype=bool)
+    all_rows[finite] = inside
     out["measured_ball_coverage"] = {
-        "value": float(inside.mean()),
-        "n": int(keep.size),
+        **_measured(inside),
+        "value_nan_as_uncovered": _measured(all_rows),
+        "convention_note": "answered frames only; see answer_rate",
         "note": "measured on val_test; not a guarantee",
     }
     return out
+
+
+def estimate_in_purse(
+    kset: KeypointSet, frames: KeypointFrames, geometry: CameraGeometry, order: str
+) -> NDArray[np.bool_]:
+    """(n,) whether the PnP estimate lies in its own PURSE (label-free; failed frames False).
+
+    When it does not, the PnP residual exceeds the set on some keypoint: the linearised ellipsoids
+    are then centred away from the estimate and the sampled estimator may accept nothing.
+    """
+    member = PurseSet(kset, geometry).contains_pose(
+        _pose_matrices(frames, order), np.where(frames.valid[:, None], frames.t_hat, 0.0)
+    )
+    return member & frames.valid
 
 
 def linearised_radii(

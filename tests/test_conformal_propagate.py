@@ -115,10 +115,19 @@ def test_project_is_p1_project_points() -> None:
         ref_points, ref_visible = p1_adapter.p1_project(GEOM, rot[i], t[i])
         np.testing.assert_array_equal(visible[i], ref_visible)
         np.testing.assert_array_equal(np.isnan(points[i]), np.isnan(ref_points))
-        np.testing.assert_allclose(points[i], ref_points, atol=1e-9, equal_nan=True)
+        np.testing.assert_array_equal(points[i], ref_points)  # bit-identical, NaN in place
     assert not visible[0].any() and np.isnan(points[0]).all()
     assert not visible[1].any()
     assert visible.mean() > 0.6 and not visible.all()  # the fixture exercises both sides
+
+
+def test_unbounded_purse_far_poses_are_members() -> None:
+    """Documented property: a pose projecting no keypoint into the frame meets no constraint."""
+    f = _frames(5, 22)
+    f["valid"][:] = True
+    kset, _ = _sets_and_scores(f, "B2", 0.0, "abstain_allowed")
+    behind = f["t_gt"] * np.array([1.0, 1.0, -1.0])
+    assert pr.PurseSet(kset, GEOM).contains_pose(f["r_gt"], behind).all()
 
 
 def test_project_matches_cv2_where_modellable() -> None:
@@ -289,30 +298,74 @@ def _exact_frame(seed: int, sd: float):
     return rot[0], t[0], y, vis[0], cov
 
 
-def test_linearised_scaling_and_inner_outer() -> None:
-    rot, t, y, vis, cov = _exact_frame(10, 2.0)
+def _linearised(rot, t, y_hat, vis, cov):
     jac = pr.projection_jacobian(rot, t, GEOM)
-    unit = pr.linearised_unit_extent(jac, cov[0], vis)
-    assert unit.n_used == int(vis.sum()) and math.isfinite(unit.rot_unit)
-    one, two = pr.scale_linearised(unit, 1.5), pr.scale_linearised(unit, 3.0)
+    points, _ = pr.project(rot[None], t[None], GEOM)
+    return jac, pr.linearised_extent(jac, cov[0], vis, points[0] - y_hat[0])
+
+
+def test_linearised_zero_residual_scales_with_q() -> None:
+    rot, t, y, vis, cov = _exact_frame(10, 2.0)
+    jac, ext = _linearised(rot, t, y, vis, cov)
+    assert ext.n_used == int(vis.sum()) and math.isfinite(ext.rot_var)
+    assert ext.c == pytest.approx(0.0, abs=1e-12) and ext.rot_offset < 1e-9
+    one, two = pr.scale_linearised(ext, 1.5), pr.scale_linearised(ext, 3.0)
     for key in one:
-        assert two[key] == pytest.approx(2.0 * one[key], rel=1e-12)
-    assert one["rot_outer"] == pytest.approx(math.sqrt(unit.n_used) * one["rot_inner"])
+        assert two[key] == pytest.approx(2.0 * one[key], rel=1e-6)
+    assert one["rot_outer"] == pytest.approx(math.sqrt(ext.n_used) * one["rot_inner"], rel=1e-6)
     assert one["trans_outer"] >= one["trans_inner"]
-    assert all(math.isnan(v) for v in pr.scale_linearised(unit, -math.inf).values())
-    assert all(math.isinf(v) for v in pr.scale_linearised(unit, math.inf).values())
+    assert all(math.isnan(v) for v in pr.scale_linearised(ext, -math.inf).values())
+    assert all(math.isinf(v) for v in pr.scale_linearised(ext, math.inf).values())
     few = np.zeros(K, dtype=bool)
     few[:2] = True
-    assert math.isinf(pr.linearised_unit_extent(jac, cov[0], few).rot_unit)
+    singular = pr.linearised_extent(jac, cov[0], few, np.zeros((K, 2)))
+    assert math.isinf(singular.rot_var)
+    assert all(math.isinf(v) for v in pr.scale_linearised(singular, 0.0).values())
 
 
-def test_linearised_brackets_the_small_set_purse() -> None:
-    """For a small set, rays from the estimate leave the true PURSE between inner and outer."""
+def test_linearised_residual_decomposition() -> None:
+    """sum_k Mahalanobis^2(r_k + J_k d) = (d - d*)^T H (d - d*) + c, and the radii follow it."""
+    rot, t, y, vis, cov = _exact_frame(19, 2.0)
+    rng = np.random.default_rng(20)
+    y_hat = y + rng.normal(scale=3.0, size=y.shape)  # PnP does not reproduce the predictions
+    jac, ext = _linearised(rot, t, y_hat, vis, cov)
+    points, _ = pr.project(rot[None], t[None], GEOM)
+    r = (points[0] - y_hat[0])[vis]
+    j = jac[vis]
+    inv = np.linalg.inv(cov[0][vis])
+    info = np.einsum("kai,kab,kbj->ij", j, inv, j)
+    star = -np.linalg.solve(info, np.einsum("kai,kab,kb->i", j, inv, r))
+    assert np.linalg.norm(star[:3]) == pytest.approx(ext.rot_offset, rel=1e-9)
+    for d in rng.normal(scale=0.01, size=(5, 6)):
+        e = r + np.einsum("kai,i->ka", j, d)
+        lhs = np.einsum("ka,kab,kb->", e, inv, e)
+        assert lhs == pytest.approx((d - star) @ info @ (d - star) + ext.c, rel=1e-9)
+    per_kp = np.einsum("ka,kab,kb->k", r, inv, r)
+    assert ext.residual_max == pytest.approx(np.sqrt(per_kp.max()))
+    q = 2.0 * math.sqrt(ext.c)
+    radii = pr.scale_linearised(ext, q)
+    lam = ext.rot_var
+    assert radii["rot_inner"] == pytest.approx(math.sqrt(ext.rot_offset**2 + (q * q - ext.c) * lam))
+    assert radii["rot_outer"] == pytest.approx(
+        ext.rot_offset + math.sqrt((ext.n_used * q * q - ext.c) * lam)
+    )
+    small = pr.scale_linearised(ext, 0.9 * math.sqrt(ext.c))  # inner ellipsoid empty
+    assert math.isnan(small["rot_inner"]) and math.isfinite(small["rot_outer"])
+    empty = pr.scale_linearised(ext, 0.9 * math.sqrt(ext.c / ext.n_used))
+    assert all(math.isnan(v) for v in empty.values())
+
+
+@pytest.mark.parametrize("noise", [0.0, 0.15])
+def test_linearised_brackets_the_small_set_purse(noise: float) -> None:
+    """For a small set, the true PURSE near the estimate lies between inner and outer."""
     rot, t, y, vis, cov = _exact_frame(11, 0.5)
+    rng = np.random.default_rng(21)
+    y_hat = y + noise * rng.normal(size=y.shape)
     q = 1.0
-    kset = set_mahalanobis(y, np.array([True]), q, cov=cov)
-    jac = pr.projection_jacobian(rot, t, GEOM)
-    radii = pr.scale_linearised(pr.linearised_unit_extent(jac, cov[0], vis), q)
+    kset = set_mahalanobis(y_hat, np.array([True]), q, cov=cov)
+    jac, ext = _linearised(rot, t, y_hat, vis, cov)
+    radii = pr.scale_linearised(ext, q)
+    assert ext.c < q * q  # the inner ellipsoid exists for this fixture
 
     def members(deltas: np.ndarray) -> np.ndarray:
         n = len(deltas)
@@ -320,28 +373,36 @@ def test_linearised_brackets_the_small_set_purse() -> None:
         ks = pr._single_frame(kset, 0, n)
         return pr.PurseSet(ks, GEOM).contains_pose(rots, t + deltas[:, 3:])
 
-    # (i) The inner ellipsoid's extreme rotation point (scaled in by 2 %) is a PURSE member.
-    info = np.einsum("kai,kab,kbj->ij", jac[vis], np.linalg.inv(cov[0][vis]), jac[vis])
+    points, _ = pr.project(rot[None], t[None], GEOM)
+    r = (points[0] - y_hat[0])[vis]
+    j = jac[vis]
+    inv = np.linalg.inv(cov[0][vis])
+    info = np.einsum("kai,kab,kbj->ij", j, inv, j)
+    star = -np.linalg.solve(info, np.einsum("kai,kab,kb->i", j, inv, r))
+    # (i) The inner ellipsoid's point that attains the inner radius (pulled 2 % towards its
+    # centre) is a PURSE member.
     w, v = np.linalg.eigh(info)
     half = (v / np.sqrt(w)) @ v.T  # H^-1/2
     u, _, _ = np.linalg.svd(half[:3, :])
     direction = half @ (half[:3, :].T @ u[:, 0])
     direction /= np.sqrt(direction @ info @ direction)
-    extreme = q * direction
-    assert np.linalg.norm(extreme[:3]) == pytest.approx(radii["rot_inner"], rel=1e-6)
-    assert members(0.98 * extreme[None])[0]
-    # (ii) No PURSE point along random rays goes beyond the outer radius.
-    rng = np.random.default_rng(12)
+    if star[:3] @ direction[:3] < 0:
+        direction = -direction
+    extreme = star + math.sqrt(q * q - ext.c) * direction
+    assert np.linalg.norm(extreme[:3]) >= radii["rot_inner"] * (1 - 1e-9)
+    assert members((star + 0.98 * (extreme - star))[None])[0]
+    # (ii) No PURSE point on rays from the linearised centre goes beyond the outer radius.
+    assert members(star[None])[0]
     dirs = rng.normal(size=(1500, 6))
     dirs /= np.linalg.norm(dirs, axis=1, keepdims=True)
     dirs[:, 3:] *= radii["trans_outer"] / radii["rot_outer"]  # comparable units on both blocks
     lo, hi = np.zeros(len(dirs)), np.full(len(dirs), 10.0 * radii["rot_outer"])
-    assert not members(hi[:, None] * dirs).any()
+    assert not members(star + hi[:, None] * dirs).any()
     for _ in range(40):
         mid = 0.5 * (lo + hi)
-        inside = members(mid[:, None] * dirs)
+        inside = members(star + mid[:, None] * dirs)
         lo, hi = np.where(inside, mid, lo), np.where(inside, hi, mid)
-    reach = lo[:, None] * dirs
+    reach = star + lo[:, None] * dirs
     assert np.linalg.norm(reach[:, :3], axis=1).max() <= 1.02 * radii["rot_outer"]
     assert np.linalg.norm(reach[:, 3:], axis=1).max() <= 1.02 * radii["trans_outer"]
 
@@ -380,8 +441,8 @@ def test_sampled_is_an_inner_approximation_of_a_small_set() -> None:
     rot, t, y, vis, cov = _exact_frame(15, 0.5)
     q = 1.0
     kset = set_mahalanobis(y, np.array([True]), q, cov=cov)
-    jac = pr.projection_jacobian(rot, t, GEOM)
-    radii = pr.scale_linearised(pr.linearised_unit_extent(jac, cov[0], vis), q)
+    _, lin = _linearised(rot, t, y, vis, cov)
+    radii = pr.scale_linearised(lin, q)
     ext = pr.sampled_extent(kset, 0, rot, t, GEOM, samples=256, rng=np.random.default_rng(16))
     assert ext.n_accepted > 0
     assert 0.0 < ext.rot <= 1.02 * radii["rot_outer"]

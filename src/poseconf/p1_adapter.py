@@ -1081,6 +1081,10 @@ def projection_geometry(run: str = "keypoint_a2", *, paths: P1Paths) -> Any:
     camera = load_camera(block["camera_json"])
     if convention.apply_distortion and camera.distortion is None:
         raise ValueError("P1's convention applies distortion but camera.json declares none")
+    if convention.transpose_rotation:
+        # poseconf builds R from q with `so3.quat_to_matrix` and applies it untransposed; a P1
+        # convention that transposes would silently mis-rotate every estimate.
+        raise ValueError("P1's convention transposes the rotation; poseconf does not support it")
     return CameraGeometry(
         wireframe=np.asarray(p1_projection.load_wireframe(block["wireframe"]), dtype=np.float64),
         camera_matrix=np.asarray(camera.matrix, dtype=np.float64),

@@ -11,23 +11,38 @@ keypoint-inclusion rule of B1/B2 applied to the candidate pose, so for the true 
 the joint keypoint coverage event (`PurseSet.contains` uses the score's own error helper, so the
 equivalence holds bit-for-bit, not up to rounding).
 
-Pose-space extent about the PnP estimate, two estimators, neither a bound:
+The PURSE is unbounded: a pose that projects no constrained keypoint into the frame (behind the
+camera, far off-axis) meets no constraint and is a member at every q >= 0, so its global extent is
+pi in rotation and infinite in translation. The estimators below describe the PURSE *near the PnP
+estimate*, which is what a pose set around a point estimate means.
 
-* `linearised_unit_extent` / `scale_linearised`: first order in a tangent perturbation
+Pose-space extent near the PnP estimate, two estimators, neither a bound:
+
+* `linearised_extent` / `scale_linearised`: first order in a tangent perturbation
   delta = (omega, dt), where R = Exp(omega) R_hat (so ||omega|| is the geodesic angle) and
-  t = t_hat + dt, with the projection Jacobian from `cv2.projectPoints`. With unit shapes S_k
-  (B2: Sigma_k; B1: d_hat^2 I) and H = sum_k J_k^T S_k^-1 J_k over the used keypoints U,
-  the ellipsoid {delta : sum_k ||S_k^-1/2 J_k delta||^2 <= q^2} lies inside the linearised PURSE
-  {delta : ||S_k^-1/2 J_k delta|| <= q for all k}, which lies inside sqrt(|U|) times that
-  ellipsoid. The *inner* radius is the ellipsoid's largest rotation (translation) extent,
-  q sqrt(lambda_max((H^-1)_omega omega)); the *outer* radius is sqrt(|U|) times it. Both assume the
-  PnP residual pi(theta_hat) - y_hat is negligible against the set and that the projection is
-  linear across the set: an approximation, not a bound.
+  t = t_hat + dt, with the projection Jacobian from `cv2.projectPoints`, over the keypoints U
+  visible under the estimate. With unit shapes S_k (B2: Sigma_k; B1: d_hat^2 I) and residuals
+  r_k = pi_k(theta_hat) - y_hat_k (PnP does not reproduce the predicted keypoints exactly), let
+  H = sum J_k^T S_k^-1 J_k, g = sum J_k^T S_k^-1 r_k, delta* = -H^-1 g and
+  c = sum r_k^T S_k^-1 r_k - g^T H^-1 g >= 0. Then
+
+      sum_k ||S_k^-1/2 (r_k + J_k delta)||^2 = (delta - delta*)^T H (delta - delta*) + c,
+
+  so the linearised PURSE L = {delta : ||S_k^-1/2 (r_k + J_k delta)|| <= q for all k} contains
+  E_in = {sum <= q^2} and lies inside E_out = {sum <= |U| q^2}: ellipsoids centred at delta* with
+  squared H-radii q^2 - c and |U| q^2 - c. With lambda the largest eigenvalue of the (H^-1)
+  rotation (translation) block and o that block of delta*:
+  - *inner* radius sqrt(||o||^2 + (q^2 - c) lambda): attained by a point of E_in, so it is at most
+    the extent of L about the estimate;
+  - *outer* radius ||o|| + sqrt((|U| q^2 - c) lambda): at least the extent of E_out, hence of L.
+  E_in is empty when c > q^2 (inner NaN); L is empty when c > |U| q^2 (both NaN). With zero
+  residual they reduce to q sqrt(lambda) and sqrt(|U|) q sqrt(lambda). Linearisation and a fixed U
+  make both an approximation, not a bound.
 * `sampled_extent`: M keypoint configurations drawn uniformly inside the sets, iterative PnP
   warm-started at the estimate, keeping only solutions that are PURSE members; the largest
   geodesic / translation deviation among them. Every kept pose is in the PURSE, so this is an
-  *inner* approximation: a lower bound on sup over the PURSE of the distance to the estimate.
-  Offline only.
+  *inner* approximation of the PURSE's extent near the estimate: a lower bound on how far the
+  members that local PnP reaches from the sets lie from it. Offline only.
 
 Geometry (wireframe, intrinsics, distortion, image size, P1's projection constants) comes in as a
 `CameraGeometry`; `poseconf.p1_adapter.projection_geometry` builds it from P1. This module imports
@@ -55,7 +70,7 @@ __all__ = [
     "SampledExtent",
     "crop_cov_to_full",
     "left_jacobian",
-    "linearised_unit_extent",
+    "linearised_extent",
     "project",
     "projection_jacobian",
     "sampled_extent",
@@ -306,71 +321,105 @@ def unit_shapes(keypoints: KeypointSet) -> NDArray[np.float64]:
 
 @dataclass(frozen=True)
 class LinearisedExtent:
-    """Linearised pose extent at q = 1 for one frame; `scale_linearised` applies q.
+    """Residual-aware linearised PURSE geometry of one frame; `scale_linearised` applies q.
 
     Attributes:
-        rot_unit: sqrt(lambda_max((H^-1)_omega omega)), radians per unit q (inf if H is singular).
-        trans_unit: sqrt(lambda_max((H^-1)_tt)), metres per unit q.
+        rot_var: lambda_max((H^-1)_omega omega), rad^2 per unit q^2 (inf if H is singular).
+        trans_var: lambda_max((H^-1)_tt), m^2 per unit q^2.
+        rot_offset: ||delta*_omega||, radians: where the linearised PURSE is centred.
+        trans_offset: ||delta*_t||, metres.
+        c: Residual floor sum r^T S^-1 r - g^T H^-1 g (>= 0), unit-q^2 Mahalanobis units.
         n_used: |U|, the keypoints in the information matrix.
+        residual_max: max_k sqrt(r_k^T S_k^-1 r_k) over U: with U fixed at the estimate's
+            visibility, the estimate is inside its own PURSE iff this is <= q.
     """
 
-    rot_unit: float
-    trans_unit: float
+    rot_var: float
+    trans_var: float
+    rot_offset: float
+    trans_offset: float
+    c: float
     n_used: int
+    residual_max: float
 
 
-def linearised_unit_extent(
-    jacobian: ArrayLike, shapes: ArrayLike, use: ArrayLike
+def linearised_extent(
+    jacobian: ArrayLike, shapes: ArrayLike, use: ArrayLike, residual: ArrayLike
 ) -> LinearisedExtent:
-    """Largest rotation / translation semi-axis of {delta : delta^T H delta <= 1}.
+    """Linearised PURSE geometry about the estimate (module docstring).
 
     Args:
-        jacobian: (K, 2, 6) d(pixels)/d(omega, t).
+        jacobian: (K, 2, 6) d(pixels)/d(omega, t) at the estimate.
         shapes: (K, 2, 2) unit set shapes (positive-definite on used keypoints).
         use: (K,) bool, the keypoints U (visible under the estimate and constrained).
+        residual: (K, 2) pi_k(estimate) - y_hat_k, px (finite on used keypoints).
 
     Returns:
-        The unit extent; infinite radii when |U| < 3 or H is not positive-definite.
+        The geometry; infinite variances when |U| < 3 or H is not positive-definite.
     """
     jac = np.asarray(jacobian, dtype=np.float64)
     sel = np.asarray(use, dtype=bool)
     n_used = int(sel.sum())
-    if n_used < MIN_LINEARISED_KEYPOINTS:
-        return LinearisedExtent(math.inf, math.inf, n_used)
+    if n_used == 0:
+        return LinearisedExtent(math.inf, math.inf, 0.0, 0.0, 0.0, 0, 0.0)
     j = jac[sel]
-    info = np.einsum("kai,kab,kbj->ij", j, np.linalg.inv(np.asarray(shapes)[sel]), j)
+    inv = np.linalg.inv(np.asarray(shapes, dtype=np.float64)[sel])
+    r = np.asarray(residual, dtype=np.float64)[sel]
+    per_keypoint = np.einsum("ka,kab,kb->k", r, inv, r)
+    residual_max = float(np.sqrt(per_keypoint.max()))
+    singular = LinearisedExtent(math.inf, math.inf, 0.0, 0.0, 0.0, n_used, residual_max)
+    if n_used < MIN_LINEARISED_KEYPOINTS:
+        return singular
+    info = np.einsum("kai,kab,kbj->ij", j, inv, j)
     info = 0.5 * (info + info.T)
     eig, vec = np.linalg.eigh(info)
     if not (np.all(np.isfinite(eig)) and eig[0] > eig[-1] * np.finfo(np.float64).eps * 6):
-        return LinearisedExtent(math.inf, math.inf, n_used)
+        return singular
     cov = (vec / eig) @ vec.T
-    rot = float(np.sqrt(np.linalg.eigvalsh(cov[:3, :3])[-1]))
-    trans = float(np.sqrt(np.linalg.eigvalsh(cov[3:, 3:])[-1]))
-    return LinearisedExtent(rot, trans, n_used)
+    g = np.einsum("kai,kab,kb->i", j, inv, r)
+    delta = -cov @ g
+    return LinearisedExtent(
+        rot_var=float(np.linalg.eigvalsh(cov[:3, :3])[-1]),
+        trans_var=float(np.linalg.eigvalsh(cov[3:, 3:])[-1]),
+        rot_offset=float(np.linalg.norm(delta[:3])),
+        trans_offset=float(np.linalg.norm(delta[3:])),
+        c=max(float(per_keypoint.sum() - g @ cov @ g), 0.0),
+        n_used=n_used,
+        residual_max=residual_max,
+    )
 
 
 def scale_linearised(extent: LinearisedExtent, q: float) -> dict[str, float]:
-    """Inner and outer linearised radii at quantile q (q = +inf: inf; q = -inf: no set, NaN).
+    """Inner and outer linearised radii at quantile q (module docstring).
+
+    q = +inf: inf. q = -inf (no set): NaN. Infinite variance (|U| < 3, singular H): inf for any
+    q >= 0. Inner is NaN when c > q^2 (the inner ellipsoid is empty); both are NaN when
+    c > |U| q^2 (the linearised PURSE is empty).
 
     Returns:
-        `rot_inner`, `rot_outer` (radians) and `trans_inner`, `trans_outer` (metres). Outer is
-        sqrt(|U|) times inner.
+        `rot_inner`, `rot_outer` (radians) and `trans_inner`, `trans_outer` (metres).
     """
+    keys = ("rot_inner", "rot_outer", "trans_inner", "trans_outer")
     if q == -math.inf:
-        return dict.fromkeys(("rot_inner", "rot_outer", "trans_inner", "trans_outer"), math.nan)
+        return dict.fromkeys(keys, math.nan)
     if q < 0:
         raise ValueError(f"a keypoint-set quantile is >= 0 or -inf, got {q}")
-    factor = math.sqrt(extent.n_used)
-
-    def times(unit: float, k: float) -> float:
-        return math.inf if (math.isinf(unit) and q > 0) or math.isinf(q) else q * unit * k
-
-    return {
-        "rot_inner": times(extent.rot_unit, 1.0),
-        "rot_outer": times(extent.rot_unit, factor),
-        "trans_inner": times(extent.trans_unit, 1.0),
-        "trans_outer": times(extent.trans_unit, factor),
-    }
+    if math.isinf(q) or math.isinf(extent.rot_var):
+        return dict.fromkeys(keys, math.inf)
+    inner_sq = q * q - extent.c
+    outer_sq = extent.n_used * q * q - extent.c
+    if outer_sq < 0:
+        return dict.fromkeys(keys, math.nan)
+    out: dict[str, float] = {}
+    for name, var, offset in (
+        ("rot", extent.rot_var, extent.rot_offset),
+        ("trans", extent.trans_var, extent.trans_offset),
+    ):
+        out[f"{name}_inner"] = (
+            math.sqrt(offset * offset + inner_sq * var) if inner_sq >= 0 else math.nan
+        )
+        out[f"{name}_outer"] = offset + math.sqrt(outer_sq * var)
+    return out
 
 
 # --------------------------------------------------------------------------------------------------

@@ -140,7 +140,10 @@ def test_linearised_and_sampled_runners() -> None:
     assert all((e is None) == (not v) for e, v in zip(extents, frames.valid, strict=True))
     assert np.all(np.isnan(seconds[~frames.valid])) and np.all(seconds[frames.valid] > 0)
     rows = np.flatnonzero(frames.valid)
-    radii = lb.linearised_radii(extents, rows, 2.0)
+    small = lb.linearised_radii(extents, rows, 2.0)  # residuals exceed the sets: inner empty
+    assert np.isnan(small["rot_inner"]).any()
+    radii = lb.linearised_radii(extents, rows, 200.0)
+    assert np.all(np.isfinite(radii["rot_inner"]))
     assert np.all(radii["rot_outer"] >= radii["rot_inner"])
     with pytest.raises(ValueError, match="failed frame"):
         lb.linearised_radii(extents, np.flatnonzero(~frames.valid), 2.0)
@@ -172,7 +175,16 @@ def test_propagation_report_measures_ball_coverage() -> None:
     nan_rot = huge.copy()
     nan_rot[:3] = np.nan
     partial = lb.propagation_report(frames, rows, nan_rot, np.full(rows.size, 1e3))
-    assert partial["n_nan"] == 3 and partial["measured_ball_coverage"]["n"] == rows.size - 3
+    measured = partial["measured_ball_coverage"]
+    assert partial["n_nan"] == 3 and measured["n"] == rows.size - 3
+    assert measured["value_nan_as_uncovered"]["n"] == rows.size
+    assert measured["value_nan_as_uncovered"]["value"] == pytest.approx((rows.size - 3) / rows.size)
+    lo, hi = measured["coverage_ci95"]
+    assert lo < measured["value"] <= hi == 1.0
+    assert partial["answer_rate"] == pytest.approx(rows.size / len(frames))
+    inf_rot = huge.copy()
+    inf_rot[0] = np.inf
+    assert lb.propagation_report(frames, rows, inf_rot, np.full(rows.size, 1e3))["n_inf"] == 1
 
 
 def test_runtime_summary() -> None:

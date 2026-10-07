@@ -35,9 +35,13 @@ __all__ = [
     "P1_ROOT",
     "P1Paths",
     "Sidecar",
+    "SyntheticLabels",
+    "dataset_audit_counts",
+    "list_image_filenames",
     "load_p1_config",
     "load_pipeline",
     "load_sidecar",
+    "load_synthetic_labels",
     "p1_commit",
     "p1_paths",
     "pose_quaternion_order",
@@ -67,6 +71,15 @@ CROP_SOURCES = {
     "predicted_crop": "_predicted_crop",
     "pipeline_gt_crop": "_pipeline_gt_crop",
 }
+
+#: Image directory inside each SPEED+ domain directory.
+_IMAGE_DIRNAME = "images"
+
+#: Image filename pattern inside `_IMAGE_DIRNAME`.
+_IMAGE_GLOB = "*.jpg"
+
+#: Synthetic official splits with labels P1 can load.
+_SYNTHETIC_SPLITS = ("train", "validation")
 
 #: Keys required in `configs/paths.local.yaml`.
 _LOCAL_KEYS = ("speedplus_root", "p1_runs", "dumps_root", "p1_release_sums")
@@ -120,6 +133,26 @@ class Sidecar:
     def __len__(self) -> int:
         """Number of frames."""
         return len(self.fields["filename"])
+
+
+@dataclass(frozen=True)
+class SyntheticLabels:
+    """Ground-truth poses for one synthetic official split, in label-file order.
+
+    Attributes:
+        filenames: (n,) image filenames.
+        q: (n, 4) `q_vbs2tango_true`, in the file's element order (P1's convention:
+            `pose_quaternion_order()`).
+        t: (n, 3) `r_Vo2To_vbs_true`, metres, camera frame.
+    """
+
+    filenames: NDArray[np.str_]
+    q: NDArray[np.float64]
+    t: NDArray[np.float64]
+
+    def __len__(self) -> int:
+        """Number of labelled frames."""
+        return len(self.filenames)
 
 
 def p1_paths(path: str | Path = DEFAULT_LOCAL_PATHS) -> P1Paths:
@@ -340,3 +373,66 @@ def p1_commit() -> str:
     if completed.returncode != 0:
         raise RuntimeError(f"git rev-parse failed in {P1_ROOT}: {completed.stderr.strip()}")
     return completed.stdout.strip()
+
+
+def load_synthetic_labels(split: str, *, paths: P1Paths) -> SyntheticLabels:
+    """Ground-truth poses for a **synthetic** split, through P1's own label loader.
+
+    There is deliberately no domain argument: HIL labels are never loaded by this function
+    (CLAUDE.md invariant 4). Phase 6 adds its own, tagged path for poolB evaluation.
+
+    Args:
+        split: `"train"` or `"validation"`.
+        paths: Local paths from `p1_paths()`.
+
+    Returns:
+        The labels, in label-file order.
+
+    Raises:
+        ValueError: On any other split.
+        FileNotFoundError: If the label file or image directory is missing.
+    """
+    from speedpose.data.speedplus import load_split
+
+    if split not in _SYNTHETIC_SPLITS:
+        raise ValueError(f"synthetic split must be one of {_SYNTHETIC_SPLITS}, got {split!r}")
+    index = load_split(paths.speedplus_root, "synthetic", split)
+    return SyntheticLabels(
+        filenames=np.array([sample.filename for sample in index.samples]),
+        q=np.stack([sample.quaternion for sample in index.samples]).astype(np.float64),
+        t=np.stack([sample.translation for sample in index.samples]).astype(np.float64),
+    )
+
+
+def list_image_filenames(domain: str, *, paths: P1Paths) -> list[str]:
+    """Sorted image filenames of a domain, from a directory listing only.
+
+    No label file, sidecar or image content is opened, so this is safe for HIL domains before
+    any HIL evaluation (it is how the HIL poolA/poolB manifests are drawn).
+
+    Args:
+        domain: One of `DOMAINS`.
+        paths: Local paths from `p1_paths()`.
+
+    Returns:
+        The sorted `*.jpg` names in `<speedplus_root>/<domain>/images/`.
+
+    Raises:
+        ValueError: On an unknown domain.
+        FileNotFoundError: If the image directory is missing or empty.
+    """
+    if domain not in DOMAINS:
+        raise ValueError(f"unknown domain {domain!r}; expected one of {DOMAINS}")
+    image_dir = paths.speedplus_root / domain / _IMAGE_DIRNAME
+    if not image_dir.is_dir():
+        raise FileNotFoundError(f"image directory {image_dir} not found; do not re-download it")
+    names = sorted(p.name for p in image_dir.glob(_IMAGE_GLOB))
+    if not names:
+        raise FileNotFoundError(f"no {_IMAGE_GLOB} files in {image_dir}")
+    return names
+
+
+def dataset_audit_counts() -> dict[str, int]:
+    """Frame counts per `<domain>/<split>` from P1's committed `results/dataset_audit.json`."""
+    path = P1_ROOT / "results" / "dataset_audit.json"
+    return {key: int(value) for key, value in json.loads(path.read_text("utf-8"))["counts"].items()}

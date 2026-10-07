@@ -270,3 +270,45 @@ def test_pose_quaternion_order_comes_from_p1() -> None:
         (P1_ROOT / "configs" / "pose_convention.yaml").read_text(encoding="utf-8")
     )["quaternion_order"]
     assert p1_adapter.pose_quaternion_order() == expected == "scalar_first"
+
+
+# --- Phase 2: synthetic labels and filename listings ---------------------------------------------
+
+
+def test_dataset_audit_counts() -> None:
+    counts = p1_adapter.dataset_audit_counts()
+    assert counts["synthetic/validation"] == 11994
+    assert counts["lightbox/test"] == 6740
+    assert counts["sunlamp/test"] == 2791
+
+
+def test_synthetic_label_loader_has_no_domain_argument() -> None:
+    import inspect
+
+    params = inspect.signature(p1_adapter.load_synthetic_labels).parameters
+    assert "domain" not in params
+
+
+def test_synthetic_label_loader_refuses_other_splits(tmp_path: Path) -> None:
+    fake = p1_adapter.P1Paths(tmp_path, tmp_path, tmp_path, tmp_path)
+    for split in ("test", "lightbox", "val_cal"):
+        with pytest.raises(ValueError, match="synthetic split"):
+            p1_adapter.load_synthetic_labels(split, paths=fake)
+
+
+def test_list_image_filenames_rejects_unknown_domain(tmp_path: Path) -> None:
+    fake = p1_adapter.P1Paths(tmp_path, tmp_path, tmp_path, tmp_path)
+    with pytest.raises(ValueError, match="unknown domain"):
+        p1_adapter.list_image_filenames("hil", paths=fake)
+    with pytest.raises(FileNotFoundError):
+        p1_adapter.list_image_filenames("lightbox", paths=fake)
+
+
+@pytest.mark.dataset
+def test_synthetic_validation_labels_match_sidecar(local_paths) -> None:
+    labels = p1_adapter.load_synthetic_labels("validation", paths=local_paths)
+    sidecar = load_sidecar("keypoint_a2", "synthetic", "predicted_crop")
+    assert len(labels) == len(sidecar) == 11994
+    assert sorted(labels.filenames.tolist()) == sidecar.fields["filename"].tolist()
+    assert labels.q.shape == (11994, 4) and labels.t.shape == (11994, 3)
+    assert np.allclose(np.linalg.norm(labels.q, axis=1), 1.0, atol=1e-5)

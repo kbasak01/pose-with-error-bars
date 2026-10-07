@@ -409,3 +409,21 @@ criteria per cell and the dumps' SHA-256 and runtime in provenance. Dumps never 
 me to generate the commands and run them. The dump ran as a background job with TF32 disabled
 (`cuda.matmul.allow_tf32 = cudnn.allow_tf32 = False`) and `cudnn.benchmark = False`. The flags are
 recorded in every dump's meta and in `dump_summary.json`.
+
+## 2026-10-07 — Phase 3 audits: carried items
+
+`p1-parity-auditor`: REPRODUCED (6/6 cells). It flagged its own import grep as loose, and a
+precise `^\s*(from|import) speedpose` grep confirms `p1_adapter.py` is the only importer.
+`split-leakage-auditor`: no critical findings.
+- **Closed.** (W4) `results/dump_summary.json` is committed with the gate commit. (W5) New tests pin that
+  `eval_frames` decompresses only `filenames` and that the `predicted_crop` arm reads no GT box.
+- **L1 (Phase 6).** `dumps/keypoint_a2/<hil>_labels_poolA.npz` exists, as the recorded strict-split
+  decision specifies (written under `oracle_target_labels`). `load_dump_labels` guards it, but the
+  file itself is plain npz in a gitignored directory. Every Phase 6 consumer must go through
+  `load_dump_labels`, and the auditor re-checks that (with W2).
+- **L2 (Phase 6).** The HIL `gt_crop` prediction dumps are oracle-conditioned on every frame:
+  `bbox_used` is the GT box, and poses come from GT crops. `load_dump` has no tag guard. Phase 6
+  consumers must check `meta["tag"]` / `meta["oracle"]` and keep these out of non-oracle and
+  `weighted_unlabeled_target` arms.
+- **L3 (note).** `load_eval_labels` parses the full HIL label JSON and arrays before slicing to the
+  permitted rows. Only the slice is returned, so nothing leaks, but the guarantee is in the slicing.

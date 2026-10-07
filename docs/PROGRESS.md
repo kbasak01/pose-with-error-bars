@@ -5,7 +5,7 @@
 | 0 Scaffold | **complete** 2026-10-06 | 4/4 P1 checkpoint SHA-256 match the release manifest ([`results/p1_checkpoints.json`](../results/p1_checkpoints.json)); P1 pinned at `0f81b426` (same file, `provenance.p1_commit`) | `phase-0-complete` |
 | 1 Conformal core ⚠️ | **complete** 2026-10-06 | synthetic validity 16/16 cases VALID; split CP Beta-law KS p ∈ [0.033, 0.773] over 12 cases, R = 2,000 each; weighted CP with true weights 0.9050 vs split 0.7502 at α = 0.10 under a known shift ([`results/validity/conformal_core_synthetic.json`](../results/validity/conformal_core_synthetic.json)); `conformal-validity-auditor` SOUND | `phase-1-complete` |
 | 2 Splits + Level A | **complete** 2026-10-07 | splits 2,399 / 4,798 / 4,797 + HIL 3,370/3,370, 1,395/1,396, byte-identical ([`splits/SHA256SUMS`](../splits/SHA256SUMS)); A1–A3 × 2 conventions × 8 α: 39 VALID, 9 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES vs the exact re-split law, R = 1,000 ([`results/level_a/keypoint_a2_predicted_crop_synthetic.json`](../results/level_a/keypoint_a2_predicted_crop_synthetic.json)); `split-leakage-auditor` no critical, `conformal-validity-auditor` SOUND | `phase-2-complete` |
-| 3 Dump + P1 parity | not started | | |
+| 3 Dump + P1 parity | **complete** 2026-10-07 | 6/6 domain × arm cells reproduce P1: success-flag agreement 1.0 (0 disagreements), solved counts equal P1's JSON (synthetic 11,159 / 11,146; lightbox 3,630 / 4,399; sunlamp 362 / 675, predicted / GT box), median \|Δe_r\| ≤ 1.38e-09 rad ([`results/dump_summary.json`](../results/dump_summary.json)); `p1-parity-auditor` REPRODUCED | `phase-3-complete` |
 | 4 Level B | not started | | |
 | 5 Variance head | not started | | |
 | 6 Coverage under shift ⭐ | not started | | |
@@ -104,3 +104,39 @@ Update at the end of each phase via `/phase-gate N`.
   `conformal-validity-auditor`: SOUND. Its 4 must-fix items (wording and provenance, no number
   changed) are closed. See "Phase 2 audits: carried items" in `docs/DECISIONS.md`.
 - **Carried into Phase 6.** A code-level guard on HIL sidecar loading (leakage W1).
+
+## Phase 3 — Dump + P1 parity (complete, 2026-10-07)
+
+- **Dump.** `poseconf.data.dump` runs P1's own stages: `prepare_frame`, `detect_boxes`, `crop_one`,
+  `normalise_crop`, `keypoints` and `solve_single`. It uses P1's batch size (48) and P1's PnP chunk
+  seeding. Forward hooks capture heatmaps, the pooled 512-d encoder feature, and decoder features
+  (the latter for a fixed 256-frame subset).
+  - Per frame it stores keypoints (crop and full frame), confidence, the heatmap-moment covariance
+    mapped to the full frame, and entropy. It also stores the PnP outcome, with NaN pose and a reason
+    on failure.
+  - The moment mean equals P1's coordinate on every non-empty channel. The maximum deviation is in
+    each dump's meta (`info.max_moment_mean_dev_crop_px`).
+  - Dumps live in gitignored `dumps/keypoint_a2/`, 3.3 GB. They were made at `f9ee848` with TF32
+    disabled and `cudnn.benchmark` off.
+- **HIL labels (invariant 4).** Prediction files are label-free. Ground truth is split physically by
+  pool, and poolA can be read only under an `oracle_*` tag. HIL `gt_crop` is the oracle arm
+  `oracle_gt_box`. `p1_adapter.load_sidecar` now guards label-derived HIL columns; this closes Phase 2
+  leakage item W1 for the sidecar and label paths.
+- **Gate** ([`results/dump_summary.json`](../results/dump_summary.json), parity run at `6736c85`):
+  every domain × arm cell meets it, with numbers in the table below.
+  - On HIL, \|Δe_r\| and \|Δe_t\| are measured on poolB only. poolA is gated by the label-free bound
+    angle(q̂_dump, q̂_P1), whose median ranges from 2.46e-08 to 2.88e-08 rad.
+
+  | Domain × arm | Flag agreement | Solved, dump = P1 JSON | Median \|Δe_r\| (rad), scope |
+  |---|---|---|---|
+  | synthetic × predicted_crop | 1.0 | 11,159 / 11,994 | 2.12e-10, all |
+  | synthetic × gt_crop | 1.0 | 11,146 / 11,994 | 2.06e-10, all |
+  | lightbox × predicted_crop | 1.0 | 3,630 / 6,740 | 6.45e-10, poolB |
+  | lightbox × gt_crop (oracle) | 1.0 | 4,399 / 6,740 | 6.30e-10, poolB |
+  | sunlamp × predicted_crop | 1.0 | 362 / 2,791 | 1.38e-09, poolB |
+  | sunlamp × gt_crop (oracle) | 1.0 | 675 / 2,791 | 1.34e-09, poolB |
+- **Audits.** `p1-parity-auditor`: REPRODUCED. `split-leakage-auditor`: no critical findings. Two
+  warnings are closed by new tests and three are carried into Phase 6 (`docs/DECISIONS.md`, "Phase 3
+  audits: carried items").
+- **Carried into Phase 4.** B2 must treat `heatmap_empty` channels, which have zero covariance, explicitly.
+

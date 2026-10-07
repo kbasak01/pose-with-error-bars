@@ -199,10 +199,11 @@ def main(argv: list[str] | None = None) -> int:
                 "in_plan_band": r["in_plan_band"],
                 "plan_band": r["plan_band"],
                 "ks_law_pvalue": r["ks_law"]["pvalue"],
-                "ks_beta_pvalue": r["beta"]["ks_pvalue"],
-                "sd_ratio_observed_to_law": (
-                    r["sd_coverage"] / r["law_sd"] if r["law_sd"] > 0 else None
+                "ks_beta_pvalue": (
+                    None if r["verdict"] == "DEGENERATE" else r["beta"]["ks_pvalue"]
                 ),
+                "sd_ratio_observed_to_law": r["sd_ratio_observed_to_law"],
+                "fixed_split_law_cdf": r["fixed_split_law_cdf"],
                 "frac_q_pos_inf": r["frac_q_pos_inf"],
                 "frac_q_neg_inf": r["frac_q_neg_inf"],
                 "fixed_split": {
@@ -253,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"{args.score} {args.convention:<16} α={c['alpha']:<5g} {c['verdict']:<10} "
             f"mean {c['mean_coverage']:.5f} ± {c['mc_se']:.5f}  law {c['law_mean']:.5f}  "
-            f"KS law {c['ks_law_pvalue']:.3f}  KS Beta {c['ks_beta_pvalue']:.1e}"
+            f"KS law {c['ks_law_pvalue']:.3f}  KS Beta {c['ks_beta_pvalue'] or float('nan'):.1e}"
         )
     print(f"wrote {out} and {fig_path}")
     return 1 if result["n_deviates"] else 0

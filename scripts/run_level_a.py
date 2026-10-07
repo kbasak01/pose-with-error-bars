@@ -181,6 +181,7 @@ def main(argv: list[str] | None = None) -> int:
                             n_finite_ties=int(finite.size - np.unique(finite).size),
                             ks_min_p=float(gate["ks_min_p"]),
                             mean_band_se=float(gate["mean_band_se"]),
+                            fixed_n_covered=summary["n_covered"],
                         ),
                     }
                 )

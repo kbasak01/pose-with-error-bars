@@ -263,3 +263,30 @@ def test_ks_against_pmf_validates_counts() -> None:
     with pytest.raises(ValueError):
         ks_against_pmf([3], [0.5, 0.5])
     assert ks_against_pmf([1, 1], [0.0, 1.0]) == (0.0, 1.0)
+
+
+def test_resplit_law_monte_carlo_abstain_with_mixed_neg_inf() -> None:
+    from poseconf.conformal.metrics import ks_against_pmf, resplit_coverage_law
+
+    rng = np.random.default_rng(1)
+    n, m, alpha = 60, 40, 0.5
+    law0 = resplit_coverage_law(n, m, alpha)
+    # Pick the bottom atom so that q = -inf (always abstain) has intermediate probability.
+    n_atom = next(
+        f
+        for f in range(1, n + m)
+        if 0.2 < resplit_coverage_law(n, m, alpha, n_bottom_atom=f)[m] - law0[m] < 0.8
+    )
+    pool = np.concatenate([rng.normal(size=n + m - n_atom), np.full(n_atom, -np.inf)])
+    valid = np.isfinite(pool)
+    counts, neg_inf = [], 0
+    for _ in range(4000):
+        perm = rng.permutation(n + m)
+        q = conformal_quantile(pool[perm[:n]], alpha)
+        neg_inf += q == -np.inf
+        covered, _ = outcomes(pool[perm[n:]], valid[perm[n:]], q, "abstain_allowed")
+        counts.append(int(covered.sum()))
+    assert 0.1 < neg_inf / 4000 < 0.9
+    law = resplit_coverage_law(n, m, alpha, n_bottom_atom=n_atom)
+    assert ks_against_pmf(counts, law)[1] > 0.01
+    assert ks_against_pmf(counts, law0)[1] < 1e-6

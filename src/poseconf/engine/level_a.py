@@ -400,19 +400,22 @@ def summarise_draws(
     n_finite_ties: int,
     ks_min_p: float,
     mean_band_se: float,
+    fixed_n_covered: int | None = None,
 ) -> dict[str, Any]:
     """Compare one alpha's re-split coverages with the exact re-split law and the Beta law.
 
     Verdict:
     * `DEGENERATE` — q = +inf in every draw (answer_required: set is the whole space) or q = -inf
-      in every draw (abstain_allowed: always abstain). Coverage is 1 by construction; reported, not
-      a validity test.
+      in every draw (abstain_allowed: always abstain), *and* the law predicts it (KS not rejected).
+      Coverage is 1 by construction; reported, not a validity test of the quantile.
     * `VALID` — KS against the atom-aware re-split law (`resplit_coverage_law`) not rejected at
       `ks_min_p`, and the mean within `mean_band_se` MC s.e. of that law's mean.
     * `DEVIATES` — otherwise.
     `in_plan_band` is IMPLEMENTATION_PLAN.md's literal criterion: the mean inside
     [1 - alpha, 1 - alpha + 1/(n+1)] widened by `mean_band_se` MC s.e. The plain Beta KS p is
     reported beside it; at finite m it is expected to reject (the re-split law is wider).
+    `fixed_split_law_cdf` = P(X <= covered count of the committed val_cal -> val_test split) under
+    the law: where that one split sits in the re-split distribution.
     """
     alpha = draws.alphas[index]
     n, m = draws.n_cal, draws.n_test
@@ -422,11 +425,12 @@ def summarise_draws(
     se = mc_standard_error(cov)
     law = resplit_coverage_law(n, m, alpha, n_top_atom=n_top_atom, n_bottom_atom=n_bottom_atom)
     law_mean = pmf_mean(law)
+    law_sd = float(np.sqrt(np.dot((np.arange(m + 1) / m - law_mean) ** 2, law)))
     ks_law = ks_against_pmf(draws.n_covered[index], law)
     ks_beta = ks_against_beta(cov, n, alpha)
     lo, hi = 1.0 - alpha, 1.0 - alpha + 1.0 / (n + 1)
     frac_pos, frac_neg = float(np.mean(q == math.inf)), float(np.mean(q == -math.inf))
-    if frac_pos == 1.0 or frac_neg == 1.0:
+    if (frac_pos == 1.0 or frac_neg == 1.0) and ks_law[1] >= ks_min_p:
         verdict = "DEGENERATE"
     elif ks_law[1] >= ks_min_p and abs(mean - law_mean) <= mean_band_se * se:
         verdict = "VALID"
@@ -445,9 +449,19 @@ def summarise_draws(
         "in_plan_band": bool(lo - mean_band_se * se <= mean <= hi + mean_band_se * se),
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": law_mean,
-        "law_sd": float(np.sqrt(np.dot((np.arange(m + 1) / m - law_mean) ** 2, law))),
+        "law_sd": law_sd,
+        "sd_ratio_observed_to_law": (
+            None if verdict == "DEGENERATE" else float(np.std(cov, ddof=1)) / law_sd
+        ),
+        "fixed_split_law_cdf": (
+            None if fixed_n_covered is None else float(law[: fixed_n_covered + 1].sum())
+        ),
         "law_p_full_coverage_atom": float(law[m]),
-        "ks_law": {"statistic": ks_law[0], "pvalue": ks_law[1], "conservative": True},
+        "ks_law": {
+            "statistic": ks_law[0],
+            "pvalue": ks_law[1],
+            "pvalue_note": "upper bound on the exact p (discrete null): conservative",
+        },
         "beta": {"a": a, "b": b, "ks_statistic": ks_beta[0], "ks_pvalue": ks_beta[1]},
         "frac_q_pos_inf": frac_pos,
         "frac_q_neg_inf": frac_neg,

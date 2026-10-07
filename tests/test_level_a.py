@@ -227,6 +227,32 @@ def test_summary_valid_on_exchangeable_pool_and_degenerate_on_atom(convention: s
     low = summarise_draws(draws, 0, **kw)
     expected = "DEGENERATE" if convention == "answer_required" else "VALID"
     assert low["verdict"] == expected
+    assert high["sd_ratio_observed_to_law"] == pytest.approx(1.0, abs=0.1)
+
+
+def test_all_inf_quantiles_the_law_does_not_predict_deviate() -> None:
+    """A bug returning q = +inf everywhere must not be labelled DEGENERATE."""
+    rng = np.random.default_rng(17)
+    n_pool = 400
+    s = rng.exponential(size=n_pool)
+    perms = np.stack([rng.permutation(n_pool) for _ in range(200)])
+    draws = resplit_draws(
+        s, np.ones(n_pool, bool), np.ones(n_pool), perms, 200, (0.3,), "answer_required"
+    )
+    broken = type(draws)(
+        alphas=draws.alphas,
+        n_cal=draws.n_cal,
+        n_test=draws.n_test,
+        q=np.full_like(draws.q, np.inf),
+        n_covered=np.full_like(draws.n_covered, draws.n_test),
+        answer_rate=draws.answer_rate,
+        silent_failure_rate=draws.silent_failure_rate,
+        median_rot_deg=draws.median_rot_deg,
+    )
+    kw = {"n_top_atom": 0, "n_bottom_atom": 0, "n_finite_ties": 0, "ks_min_p": 0.01}
+    out = summarise_draws(broken, 0, mean_band_se=3.0, fixed_n_covered=150, **kw)
+    assert out["verdict"] == "DEVIATES"
+    assert 0.0 <= out["fixed_split_law_cdf"] <= 1.0
 
 
 # --- end to end on the real sidecar (local only) ------------------------------------------------

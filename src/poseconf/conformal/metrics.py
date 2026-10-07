@@ -311,8 +311,10 @@ def ks_against_pmf(counts: ArrayLike, pmf: ArrayLike) -> tuple[float, float]:
     """KS test of integer covered counts (0..m) against a discrete pmf.
 
     D = max_j |F_emp(j) - F(j)| over the support, which is the exact sup for two step functions on
-    the integers. The p-value uses the continuous Kolmogorov law (`scipy.stats.kstwo`), which is
-    conservative for a discrete null: the true p-value is at least the one returned.
+    the integers. The p-value uses the continuous Kolmogorov law (`scipy.stats.kstwo`). Under a
+    discrete null D is stochastically smaller than under a continuous one, so the returned p is an
+    *upper bound* on the exact p: the test is conservative (type-I error at most nominal) and leans
+    towards not rejecting.
 
     Args:
         counts: (R,) covered counts.

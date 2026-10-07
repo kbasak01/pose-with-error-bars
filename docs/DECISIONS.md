@@ -951,12 +951,22 @@ P1's `spec_for_config` into gitignored `exports/`; the detector graph likewise.
 **Diagnosis.** It is not TF32 or cuDNN. The CPU control (torch CPU vs ORT CPU, same graph, 256
 crops) also misses: `cov_chol` max 7.02e-4, C1 radius relative max 1.76e-5. The TF32-off/off cell
 of P1's four-cell ablation gives 2.94e-3, against 0.268 with both on. What is left is the two
-frameworks' fp32 arithmetic in a sharp readout: `relu(h)^p` × window, normalised over 4,096 pixels.
-That arithmetic amplifies heatmap differences of order 1e-6. Set radii agree to < 1e-4 relative.
+frameworks' fp32 arithmetic.
+
+*Hypothesis, not measured:* the readout (`relu(h)^p` × window, normalised over 4,096 pixels)
+amplifies small heatmap differences. No heatmap delta of the variance graph is in the record.
+
+The miss is not explained by decode flips alone: on the 5,630 decode-stable keypoints the max is
+still 6.7e-4. Set radii agree to < 1e-4 relative.
+
+**Not exercised.** `keypoint_empty` had 0 mismatches, but no parity crop has an empty channel
+(`n_empty_reference = 0`). The empty-channel path is checked structurally (output present, bool,
+equal to `refine_weights`' mask in `tests/test_export.py`), not on a real empty channel.
 
 **fp16.** Halving the trunk flips P1's decode on most keypoints (112 of 5,632 stable). The C1
 radius differs by up to 8.3 % (p99 1.69 %), and `cov_chol` misses P1's stated fp16 relaxation (5e-2).
-**fp16 is not a faithful export of the variance outputs.**
+**fp16 is not a faithful export of the variance outputs.** It is measured and kept in the record,
+but it is not a deployment option for C1/C2. The deployable variance graph is fp32.
 
 **Coords.** These are P1's outputs, and P1's keypoint parity gate is inherited unmet. With TF32 off
 here, the coords max |Δ| is 6.1e-3 px. P1's committed record (TF32 on) gives 3.23 px. Both numbers
@@ -975,6 +985,18 @@ Network rows use P1's `benchmark_onnx` unchanged.
   `uncertainty` stage (covariance mapping + C1 and C2 `predict`) through `UncertaintyFrame`, a
   callable with P1's pipeline signature.
 - Every file carries the A4000-is-not-a-Jetson caveat.
+
+**Limits of the latency record** (onnx-parity-auditor, 2026-10-07):
+- TensorRT rows use P1's provider options unchanged. `trt_fp16_enable` is not set, and TensorRT
+  may use TF32 in its "fp32" engines on Ampere, so the fp32/fp16 split on TensorRT is a property
+  of the graph, not an engine precision flag. The fp16 and fp32 TensorRT rows are close.
+- Only TensorRT rows record a per-node provider split. Each ran as 1 TensorRT node, with no
+  fallback.
+- On-minus-off p99 deltas are at noise level; some are negative.
+- In the frame budget, the fp16 keypoint stage is slower than fp32. The cause is not
+  established: the standalone IOBinding rows show no such gap, and the pipeline's
+  `session.run` includes host copies and casts. It is reported, not explained.
+- `frame_budget.json` carries P1's p50/p99 per stage. P1's function does not return p90/max.
 
 ## 2026-10-07 — Result kinds `calibration` and `onnx_export`
 

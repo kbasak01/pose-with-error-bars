@@ -393,6 +393,9 @@ def frame_budget(args: argparse.Namespace, paths: Any, name: str, vhead: Path) -
         "arm": "predicted_crop (end to end, detector graph on ORT, no ground-truth box)",
         "provider": provider,
         "uncertainty_scores": list(BUDGET_SCORES),
+        "warmup_iters": args.warmup,
+        "timed_iters": args.iters,
+        "stats_note": "P1's end_to_end_frame_budget reports p50 and p99 per stage only",
         "budgets": budgets,
         "head_on_minus_off": deltas,
         "note": (

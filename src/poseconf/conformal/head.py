@@ -7,15 +7,18 @@ takes one frame's *predictions* (`FrameEstimate`, no label field exists) and the
 coverage numbers were measured on.
 
 **Artifact.** JSON with a `payload` (everything that changes a set: score, version, alpha,
-convention, quantile, normalisers, camera geometry for C2, quaternion order, and the checkpoint
-locks) and a `calibration_id`, the SHA-256 of the canonical payload. `provenance` sits outside the
+convention, quantile, normalisers, camera geometry for C2, quaternion order, the checkpoint locks,
+and a `context` carrying the P1 commit and PnP configuration the scores were produced under) and a
+`calibration_id`, the SHA-256 of the canonical payload. `provenance` sits outside the
 payload so a rebuild from the same committed rows is byte-stable apart from it.
 
-**Locks.** `from_json` hashes the checkpoint files the caller is running and refuses a P1 checkpoint
-(or, for C1/C2, a variance-head checkpoint) whose SHA-256 differs from the artifact's: a quantile is
-a property of one model's score distribution, and applying it to another model's predictions has no
-coverage meaning. It also refuses an artifact whose payload no longer hashes to its id, and an
-unknown schema or score version.
+**Locks.** `from_json` hashes the checkpoint files the caller is running and refuses a P1 keypoint
+checkpoint, a detector checkpoint (predicted-crop artifacts: the detector decides every crop) or,
+for C1/C2, a variance-head checkpoint whose SHA-256 differs from the artifact's: a quantile is a
+property of one pipeline's score distribution, and applying it to another's predictions has no
+coverage meaning. It also refuses an artifact whose payload no longer hashes to its id, an unknown
+schema or score version, and a payload that fails the same validation `build_artifact` applies.
+`calibration_id` is an unkeyed hash: it detects edits, not a deliberate forgery.
 
 **Abstention mirrors `metrics.outcomes`.** A frame is answered iff it has a point estimate (C2: and a
 defined pose sigma) and q > -inf. Under `answer_required` an `Abstain` is a miss unless q = +inf
@@ -45,7 +48,7 @@ from poseconf.conformal.propagate import (
     project,
     projection_jacobian,
 )
-from poseconf.conformal.scores import SCORES, KeypointSet, PoseSet
+from poseconf.conformal.scores import SCORES, KeypointSet, PoseSet, set_mahalanobis
 from poseconf.conformal.so3 import QUATERNION_ORDERS, quat_to_matrix
 from poseconf.conformal.split import CONVENTIONS, check_alpha
 
@@ -85,6 +88,7 @@ _NORMALISERS: dict[str, tuple[str, ...]] = {
 }
 
 _COVARIANCE_SCORES = ("C1", "C2")
+_CROP_SOURCES = ("predicted_crop", "gt_crop")
 _HASH_CHUNK = 1 << 20
 
 
@@ -184,9 +188,10 @@ def build_artifact(
     normalisers: Mapping[str, Any],
     quaternion_order: str,
     p1_checkpoint_sha256: str,
+    context: Mapping[str, Any],
+    detector_checkpoint_sha256: str | None = None,
     variance_head_sha256: str | None = None,
     geometry: CameraGeometry | None = None,
-    context: Mapping[str, Any] | None = None,
     provenance: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble a calibration artifact (JSON-ready dict) and stamp its `calibration_id`.
@@ -200,10 +205,12 @@ def build_artifact(
         normalisers: The score's fitted constants (`_NORMALISERS[score_id]`; empty for B1/C1/C2).
         quaternion_order: P1's quaternion order (`so3.QUATERNION_ORDERS`).
         p1_checkpoint_sha256: SHA-256 of the P1 keypoint checkpoint the scores came from.
+        context: Locked description of how the scores were produced; must hold `crop_source`
+            (`predicted_crop` or `gt_crop`). Also run, arm, calibration subset, P1 commit and
+            PnP configuration, so a deployment can assert them.
+        detector_checkpoint_sha256: SHA-256 of P1's detector (required for `predicted_crop` only).
         variance_head_sha256: SHA-256 of the variance-head checkpoint (required for C1/C2 only).
         geometry: Camera and wireframe (required for C2 only, which linearises PnP).
-        context: Descriptive fields that are still part of the locked payload (run, crop source,
-            arm, calibration subset).
         provenance: Unlocked bookkeeping (source result file and SHA, git SHA, creation time).
 
     Returns:
@@ -212,30 +219,12 @@ def build_artifact(
     Raises:
         ValueError: On an unsupported score, a missing or unexpected normaliser, or a missing lock.
     """
-    if score_id not in DEPLOYABLE_SCORES:
-        raise ValueError(
-            f"{score_id!r} is not deployable (supported: {DEPLOYABLE_SCORES}); B2 needs heatmap "
-            "moments the exported graph does not produce"
-        )
-    if convention not in CONVENTIONS:
-        raise ValueError(f"unknown convention {convention!r}")
-    if quaternion_order not in QUATERNION_ORDERS:
-        raise ValueError(f"unknown quaternion order {quaternion_order!r}")
-    if set(normalisers) != set(_NORMALISERS[score_id]):
-        raise ValueError(
-            f"{score_id} needs normalisers {_NORMALISERS[score_id]}, got {sorted(normalisers)}"
-        )
-    needs_vhead = score_id in _COVARIANCE_SCORES
-    if needs_vhead != (variance_head_sha256 is not None):
-        raise ValueError(f"variance_head_sha256 is required for C1/C2 only (score {score_id})")
-    if (score_id == "C2") != (geometry is not None):
-        raise ValueError(f"geometry is required for C2 only (score {score_id})")
     if math.isnan(quantile):
         raise ValueError("quantile is NaN")
     payload: dict[str, Any] = {
         "score_id": score_id,
-        "score_version": SCORE_VERSIONS[score_id],
-        "alpha": check_alpha(alpha),
+        "score_version": SCORE_VERSIONS.get(score_id),
+        "alpha": float(alpha),
         "convention": convention,
         "quantile": float(quantile),
         "n_cal": int(n_cal),
@@ -244,10 +233,12 @@ def build_artifact(
         "geometry": None if geometry is None else geometry_to_dict(geometry),
         "locks": {
             "p1_checkpoint_sha256": p1_checkpoint_sha256,
+            "detector_checkpoint_sha256": detector_checkpoint_sha256,
             "variance_head_sha256": variance_head_sha256,
         },
-        "context": dict(context or {}),
+        "context": dict(context),
     }
+    _validate_payload(payload)
     encoded = _encode(payload)
     return {
         "schema": ARTIFACT_SCHEMA,
@@ -255,6 +246,53 @@ def build_artifact(
         "payload": encoded,
         "provenance": _encode(dict(provenance or {})),
     }
+
+
+def _validate_payload(payload: Mapping[str, Any]) -> None:
+    """The structural rules every artifact obeys, checked at build and again at load.
+
+    Raises:
+        ValueError: On an unsupported score or version, convention, alpha, quaternion order,
+            normaliser set, a NaN quantile, a non-positive n_cal, or a lock or geometry that is
+            missing where required or present where not.
+    """
+    score_id = payload["score_id"]
+    if score_id not in DEPLOYABLE_SCORES:
+        raise ValueError(
+            f"{score_id!r} is not deployable (supported: {DEPLOYABLE_SCORES}); B2 needs heatmap "
+            "moments the exported graph does not produce"
+        )
+    if payload["score_version"] != SCORE_VERSIONS[score_id]:
+        raise ValueError(
+            f"{score_id} artifact is score version {payload['score_version']}, this code is "
+            f"version {SCORE_VERSIONS[score_id]}; recalibrate"
+        )
+    if payload["convention"] not in CONVENTIONS:
+        raise ValueError(f"unknown convention {payload['convention']!r}")
+    check_alpha(payload["alpha"])
+    if math.isnan(_decode_float(payload["quantile"])):
+        raise ValueError("quantile is NaN")
+    if int(payload["n_cal"]) < 1:
+        raise ValueError("n_cal must be positive")
+    if payload["quaternion_order"] not in QUATERNION_ORDERS:
+        raise ValueError(f"unknown quaternion order {payload['quaternion_order']!r}")
+    if set(payload["normalisers"]) != set(_NORMALISERS[score_id]):
+        raise ValueError(
+            f"{score_id} needs normalisers {_NORMALISERS[score_id]}, "
+            f"got {sorted(payload['normalisers'])}"
+        )
+    locks, context = payload["locks"], payload["context"]
+    if not locks.get("p1_checkpoint_sha256"):
+        raise ValueError("p1_checkpoint_sha256 is required")
+    crop_source = context.get("crop_source")
+    if crop_source not in _CROP_SOURCES:
+        raise ValueError(f"context.crop_source must be one of {_CROP_SOURCES}, got {crop_source!r}")
+    if (crop_source == "predicted_crop") != bool(locks.get("detector_checkpoint_sha256")):
+        raise ValueError("detector_checkpoint_sha256 is required for predicted_crop only")
+    if (score_id in _COVARIANCE_SCORES) != bool(locks.get("variance_head_sha256")):
+        raise ValueError(f"variance_head_sha256 is required for C1/C2 only (score {score_id})")
+    if (score_id == "C2") != (payload["geometry"] is not None):
+        raise ValueError(f"geometry is required for C2 only (score {score_id})")
 
 
 # --------------------------------------------------------------------------------------------------
@@ -343,6 +381,7 @@ class ConformalPoseHead:
         path: str | Path,
         *,
         p1_checkpoint: str | Path,
+        detector_checkpoint: str | Path | None = None,
         variance_head_checkpoint: str | Path | None = None,
     ) -> ConformalPoseHead:
         """Load an artifact, hashing the checkpoint files actually in use.
@@ -350,6 +389,7 @@ class ConformalPoseHead:
         Args:
             path: The artifact JSON.
             p1_checkpoint: The P1 keypoint checkpoint the predictions come from.
+            detector_checkpoint: P1's detector checkpoint (predicted-crop artifacts).
             variance_head_checkpoint: The variance-head checkpoint (C1/C2).
 
         Raises:
@@ -359,6 +399,9 @@ class ConformalPoseHead:
         return cls.from_dict(
             artifact,
             p1_checkpoint_sha256=sha256_file(p1_checkpoint),
+            detector_sha256=None
+            if detector_checkpoint is None
+            else sha256_file(detector_checkpoint),
             variance_head_sha256=(
                 None if variance_head_checkpoint is None else sha256_file(variance_head_checkpoint)
             ),
@@ -370,14 +413,17 @@ class ConformalPoseHead:
         artifact: Mapping[str, Any],
         *,
         p1_checkpoint_sha256: str,
+        detector_sha256: str | None = None,
         variance_head_sha256: str | None = None,
     ) -> ConformalPoseHead:
         """Validate an artifact against the running checkpoints' hashes.
 
         Raises:
             CalibrationMismatchError: Unknown schema; payload not hashing to `calibration_id`;
-                unknown score or score version; P1 checkpoint hash differs; variance-head hash
-                missing or different for C1/C2.
+                a payload failing `build_artifact`'s validation (unknown score or version,
+                convention, alpha, order, normalisers, locks); P1 checkpoint hash differs;
+                detector hash missing or different for a predicted-crop artifact; variance-head
+                hash missing or different for C1/C2.
         """
         if artifact.get("schema") != ARTIFACT_SCHEMA:
             raise CalibrationMismatchError(
@@ -389,20 +435,27 @@ class ConformalPoseHead:
                 "artifact payload does not hash to its calibration_id: it was edited after it was "
                 "built, so its quantile cannot be trusted"
             )
+        try:
+            _validate_payload(payload)
+        except (KeyError, TypeError, ValueError) as error:
+            raise CalibrationMismatchError(f"invalid artifact payload: {error}") from error
         score_id = payload["score_id"]
-        if score_id not in DEPLOYABLE_SCORES:
-            raise CalibrationMismatchError(f"score {score_id!r} is not deployable")
-        if payload["score_version"] != SCORE_VERSIONS[score_id]:
-            raise CalibrationMismatchError(
-                f"{score_id} artifact is score version {payload['score_version']}, this code is "
-                f"version {SCORE_VERSIONS[score_id]}; recalibrate"
-            )
         locks = payload["locks"]
         if p1_checkpoint_sha256 != locks["p1_checkpoint_sha256"]:
             raise CalibrationMismatchError(
                 f"P1 checkpoint sha256 {p1_checkpoint_sha256} differs from the calibrated one "
                 f"{locks['p1_checkpoint_sha256']}: the quantile does not apply to this model"
             )
+        if locks["detector_checkpoint_sha256"] is not None:
+            if detector_sha256 is None:
+                raise CalibrationMismatchError(
+                    "this predicted-crop artifact needs the detector checkpoint it was calibrated with"
+                )
+            if detector_sha256 != locks["detector_checkpoint_sha256"]:
+                raise CalibrationMismatchError(
+                    f"detector sha256 {detector_sha256} differs from the calibrated one "
+                    f"{locks['detector_checkpoint_sha256']}"
+                )
         if score_id in _COVARIANCE_SCORES:
             if variance_head_sha256 is None:
                 raise CalibrationMismatchError(
@@ -450,8 +503,14 @@ class ConformalPoseHead:
     ) -> tuple[float, float, LinearisedExtent] | None:
         """C2's (sigma_R, sigma_t) at the PnP estimate from full-frame keypoint covariances.
 
-        Same construction as `engine.level_b.linearised_frames` + `engine.level_c.pose_sigma`: U =
-        keypoints visible under the estimate and constrained; residual = projection - prediction.
+        Same construction as `engine.level_b.linearised_frames` + `engine.level_c.pose_sigma`: the
+        covariances are validated and unconstrained entries replaced by the C1 set constructor at
+        q = 1 (shape, finiteness, symmetry, positive-definiteness: a bad covariance raises rather
+        than turning into an abstention); U = keypoints visible under the estimate and
+        constrained; residual = projection - prediction.
+
+        Raises:
+            ValueError: If `cov` is malformed or not positive-definite on a constrained keypoint.
 
         Returns:
             `(sigma_R, sigma_t, extent)`, or None when either sigma is undefined (not finite or
@@ -467,10 +526,16 @@ class ConformalPoseHead:
         points, visible = project(rotation[None], t_hat[None], self.geometry)
         unconstrained = _unconstrained(estimate)
         use = visible[0] & ~unconstrained
-        shapes = np.array(cov, dtype=np.float64)
-        shapes[unconstrained] = np.eye(2)  # never read (excluded from U); keeps inv() defined
+        keypoints = np.asarray(estimate.keypoints, dtype=np.float64)
+        shapes = set_mahalanobis(
+            keypoints[None],
+            np.array([True]),
+            1.0,
+            cov=np.asarray(cov, dtype=np.float64)[None],
+            unconstrained=unconstrained[None],
+        ).cov[0]
         jac = projection_jacobian(rotation, t_hat, self.geometry)
-        extent = linearised_extent(jac, shapes, use, points[0] - estimate.keypoints)
+        extent = linearised_extent(jac, shapes, use, points[0] - keypoints)
         if not (math.isfinite(extent.rot_var) and math.isfinite(extent.trans_var)):
             return None
         sigma_r, sigma_t = math.sqrt(extent.rot_var), math.sqrt(extent.trans_var)

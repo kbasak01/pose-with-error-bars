@@ -54,6 +54,9 @@ from poseconf.provenance import (
 
 DOMAIN = "synthetic"
 _POSE_FROM_SIDECAR = ("A1", "A2", "A3")
+FIT_SPLIT = "synthetic_val_tune"
+#: Phase 0's verification of the P1 checkpoints against the release SHA256SUMS.
+CHECKPOINT_MANIFEST = Path("results/p1_checkpoints.json")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -98,17 +101,21 @@ def _variance_sha(record: dict[str, Any]) -> str:
     return sha
 
 
-def build(config: dict[str, Any], paths: Any) -> list[tuple[Path, dict[str, Any], dict]]:
-    """Write every artifact; return `(path, artifact, source row)` per artifact."""
-    block = config["calibration"]
-    alpha = float(block["alpha"])
-    run, crop = block["run"], block["crop_source"]
-    order = pose_quaternion_order(run)
-    geometry = projection_geometry(run, paths=paths)
-    out_dir = Path(block["out_dir"])
-    git_sha = poseconf_git_sha()
-    written = []
-    p1_shas = set()
+def detector_sha256(paths: Any) -> str:
+    """The detector's release SHA-256 (Phase 0 manifest), after checking the local file has it."""
+    manifest = json.loads(CHECKPOINT_MANIFEST.read_text(encoding="utf-8"))
+    (entry,) = [c for c in manifest["checkpoints"] if c["run"] == "detector"]
+    if not entry["match"]:
+        raise ValueError("Phase 0 recorded a detector checkpoint mismatch")
+    local = sha256_file(paths.p1_runs / "detector" / "best.pt")
+    if local != entry["sha256_release"]:
+        raise ValueError(f"local detector sha256 {local} is not the verified release checkpoint")
+    return local
+
+
+def _load_sources(block: dict[str, Any], run: str, crop: str) -> dict[str, dict[str, Any]]:
+    """Every score's source record, checked for role and checkpoint consistency before writing."""
+    records: dict[str, dict[str, Any]] = {}
     for score_id in block["scores"]:
         source = Path(block["sources"][score_id])
         record = json.loads(source.read_text(encoding="utf-8"))
@@ -121,7 +128,34 @@ def build(config: dict[str, Any], paths: Any) -> list[tuple[Path, dict[str, Any]
             raise ValueError(f"{source} is not the {run}/{crop}/{block['arm']}/{DOMAIN} result")
         if record["splits"]["calibration"] != block["calibration_split"]:
             raise ValueError(f"{source} was calibrated on {record['splits']['calibration']}")
-        p1_shas.add(record["provenance"]["p1_checkpoint_sha256"])
+        if score_id in _POSE_FROM_SIDECAR and record["splits"]["fit"] != FIT_SPLIT:
+            raise ValueError(f"{source} fitted its normalisers on {record['splits']['fit']}")
+        records[score_id] = record
+    for key in ("p1_checkpoint_sha256", "p1_commit", "split_manifest_sha256"):
+        values = {json.dumps(r["provenance"][key]) for r in records.values()}
+        if len(values) != 1:
+            raise ValueError(f"source results disagree on {key}: {sorted(values)}")
+    pnp = {json.dumps(r["provenance"]["pnp_config"], sort_keys=True) for r in records.values()}
+    if len(pnp) != 1:
+        raise ValueError("source results disagree on the PnP configuration")
+    return records
+
+
+def build(config: dict[str, Any], paths: Any) -> list[tuple[Path, dict[str, Any], dict]]:
+    """Write every artifact; return `(path, artifact, source row)` per artifact."""
+    block = config["calibration"]
+    alpha = float(block["alpha"])
+    run, crop = block["run"], block["crop_source"]
+    order = pose_quaternion_order(run)
+    geometry = projection_geometry(run, paths=paths)
+    out_dir = Path(block["out_dir"])
+    git_sha = poseconf_git_sha()
+    records = _load_sources(block, run, crop)
+    detector = detector_sha256(paths) if crop == "predicted_crop" else None
+    written = []
+    for score_id in block["scores"]:
+        source = Path(block["sources"][score_id])
+        record = records[score_id]
         for convention in config["conventions"]:
             row = _row(record, score_id, convention, alpha)
             artifact = build_artifact(
@@ -133,6 +167,7 @@ def build(config: dict[str, Any], paths: Any) -> list[tuple[Path, dict[str, Any]
                 normalisers=_normalisers(score_id, record),
                 quaternion_order=order,
                 p1_checkpoint_sha256=record["provenance"]["p1_checkpoint_sha256"],
+                detector_checkpoint_sha256=detector,
                 variance_head_sha256=_variance_sha(record) if score_id in ("C1", "C2") else None,
                 geometry=geometry if score_id == "C2" else None,
                 context={
@@ -141,6 +176,8 @@ def build(config: dict[str, Any], paths: Any) -> list[tuple[Path, dict[str, Any]
                     "arm": block["arm"],
                     "calibration_subset": block["calibration_split"],
                     "domain": DOMAIN,
+                    "p1_commit": record["provenance"]["p1_commit"],
+                    "pnp_config": record["provenance"]["pnp_config"],
                 },
                 provenance={
                     "source_result": _rel(source),
@@ -156,8 +193,6 @@ def build(config: dict[str, Any], paths: Any) -> list[tuple[Path, dict[str, Any]
             path.write_text(json.dumps(artifact, indent=2, allow_nan=False) + "\n", "utf-8")
             written.append((path, artifact, row))
             print(f"wrote {path}  q = {artifact['payload']['quantile']}")
-    if len(p1_shas) != 1:
-        raise ValueError(f"source results disagree on the P1 checkpoint: {sorted(p1_shas)}")
     return written
 
 
@@ -250,12 +285,16 @@ def verify(config: dict[str, Any], paths: Any, written: list) -> dict[str, Any]:
     if vhead_sha != side_meta["variance_head"]["checkpoint_sha256"]:
         raise ValueError(f"{vhead_file} is not the checkpoint the variance sidecar was made with")
     p1_sha = sha256_file(paths.p1_runs / run / "best.pt")
+    det_sha = sha256_file(paths.p1_runs / "detector" / "best.pt")
 
     checks = []
     for path, artifact, row in written:
         sid = artifact["payload"]["score_id"]
         head = ConformalPoseHead.from_dict(
-            artifact, p1_checkpoint_sha256=p1_sha, variance_head_sha256=vhead_sha
+            artifact,
+            p1_checkpoint_sha256=p1_sha,
+            detector_sha256=det_sha,
+            variance_head_sha256=vhead_sha,
         )
         if sid in _POSE_FROM_SIDECAR:
             got = _replay(head, pose_estimates, None, pose_truth)
@@ -306,11 +345,12 @@ def verify(config: dict[str, Any], paths: Any, written: list) -> dict[str, Any]:
             "poseconf_git_sha": poseconf_git_sha(),
             "p1_commit": p1_commit(),
             "p1_checkpoint_sha256": p1_sha,
+            "detector_checkpoint_sha256": det_sha,
             "variance_head_checkpoint": str(vhead_file),
             "variance_head_checkpoint_sha256": vhead_sha,
             "dump": str(dump_path),
             "dump_sha256": sha256_file(dump_path),
-            "dump_poseconf_git_sha": meta.get("poseconf_git_sha"),
+            "dump_poseconf_git_sha": meta["provenance"]["poseconf_git_sha"],
             "split_manifest_sha256": written[0][1]["provenance"]["split_manifest_sha256"],
             "created_at": utc_now_iso(),
         },

@@ -42,6 +42,7 @@ GEOM = pr.CameraGeometry(
 CONVENTIONS = ("answer_required", "abstain_allowed")
 P1_SHA = "a" * 64
 VHEAD_SHA = "b" * 64
+DETECTOR_SHA = "e" * 64
 NORMALISERS = {
     "A1": {"c_R": 0.012, "c_t": 0.0033},
     "A2": {"c_R": 0.012, "c_z": 0.0031, "c_xy": 0.00057},
@@ -71,6 +72,8 @@ def _frames(n: int = 300, seed: int = 7) -> level_b.KeypointFrames:
     cov = a @ a.transpose(0, 1, 3, 2) * sd[..., None] ** 2 + 0.5 * np.eye(2)
     unconstrained = rng.uniform(size=(n, K)) < 0.03
     valid = rng.uniform(size=n) > 0.1
+    # A few solved frames with only two constrained keypoints: C2's sigma is undefined there.
+    unconstrained[np.flatnonzero(valid)[:6], 2:] = True
     q_hat[~valid], t_hat[~valid] = np.nan, np.nan
     return level_b.KeypointFrames(
         filenames=np.array([f"img{i:06d}.jpg" for i in range(n)]),
@@ -141,9 +144,10 @@ def _artifact(score_id: str, convention: str, q: float) -> dict:
         normalisers=NORMALISERS[score_id],
         quaternion_order=ORDER,
         p1_checkpoint_sha256=P1_SHA,
+        detector_checkpoint_sha256=DETECTOR_SHA,
         variance_head_sha256=VHEAD_SHA if score_id in ("C1", "C2") else None,
         geometry=GEOM if score_id == "C2" else None,
-        context={"run": "test"},
+        context={"run": "test", "crop_source": "predicted_crop"},
         provenance={"note": "unit test"},
     )
 
@@ -152,6 +156,7 @@ def _load(artifact: dict) -> hd.ConformalPoseHead:
     return hd.ConformalPoseHead.from_dict(
         json.loads(json.dumps(artifact)),
         p1_checkpoint_sha256=P1_SHA,
+        detector_sha256=DETECTOR_SHA,
         variance_head_sha256=VHEAD_SHA,
     )
 
@@ -188,7 +193,7 @@ def test_head_reproduces_batch_outcomes_frame_by_frame(score_id: str, convention
     assert 0 < answered.sum() < len(FRAMES)
     if score_id == "C2":
         reasons = {r.reason for r in results if isinstance(r, hd.Abstain)}
-        assert reasons <= {"no_estimate", "sigma_undefined"}
+        assert reasons == {"no_estimate", "sigma_undefined"}
 
 
 @pytest.mark.parametrize("score_id", hd.DEPLOYABLE_SCORES)
@@ -233,6 +238,7 @@ def test_artifact_round_trips_through_a_file(tmp_path: Path) -> None:
             p1_checkpoint_sha256=hd.sha256_file(p1),
             variance_head_sha256=hd.sha256_file(vh),
             geometry=GEOM,
+            context={"crop_source": "gt_crop"},
         )
         path = tmp_path / "c2.json"
         path.write_text(json.dumps(artifact, allow_nan=False), encoding="utf-8")
@@ -257,12 +263,49 @@ def test_infinite_quantiles_abstain_or_cover_as_outcomes_does() -> None:
     assert failed.covered_if_abstained  # whole space under answer_required
     finite = _load(_artifact("A1", "answer_required", 3.0)).predict(_estimate(j))
     assert isinstance(finite, hd.Abstain) and not finite.covered_if_abstained
+    for q in (-math.inf, math.inf, 3.0):  # abstain_allowed: every abstention is covered
+        head = _load(_artifact("A1", "abstain_allowed", q))
+        assert head.predict(_estimate(j)).covered_if_abstained
+    neg = _load(_artifact("A1", "abstain_allowed", -math.inf)).predict(_estimate(i))
+    assert isinstance(neg, hd.Abstain) and neg.reason == "q_neg_inf" and neg.covered_if_abstained
 
 
 def test_refuses_a_different_p1_checkpoint() -> None:
     artifact = _artifact("A1", "abstain_allowed", 2.0)
     with pytest.raises(hd.CalibrationMismatchError, match="P1 checkpoint"):
-        hd.ConformalPoseHead.from_dict(artifact, p1_checkpoint_sha256="c" * 64)
+        hd.ConformalPoseHead.from_dict(
+            artifact, p1_checkpoint_sha256="c" * 64, detector_sha256=DETECTOR_SHA
+        )
+
+
+def test_refuses_a_missing_or_different_detector() -> None:
+    artifact = _artifact("B1", "abstain_allowed", 0.02)
+    with pytest.raises(hd.CalibrationMismatchError, match="detector"):
+        hd.ConformalPoseHead.from_dict(artifact, p1_checkpoint_sha256=P1_SHA)
+    with pytest.raises(hd.CalibrationMismatchError, match="detector"):
+        hd.ConformalPoseHead.from_dict(
+            artifact, p1_checkpoint_sha256=P1_SHA, detector_sha256="f" * 64
+        )
+
+
+def test_refuses_a_rehashed_but_invalid_payload() -> None:
+    artifact = _artifact("A1", "abstain_allowed", 2.0)
+    artifact["payload"]["convention"] = "answer_if_convenient"
+    artifact["calibration_id"] = hd.calibration_id(artifact["payload"])
+    with pytest.raises(hd.CalibrationMismatchError, match="convention"):
+        _load(artifact)
+
+
+def test_c2_rejects_a_covariance_that_is_not_positive_definite() -> None:
+    i = int(np.flatnonzero(FRAMES.valid & SIGMA.ok)[0])
+    head = _load(_artifact("C2", "abstain_allowed", 2.0))
+    bad = FRAMES.cov[i].copy()
+    k = int(np.flatnonzero(~FRAMES.unconstrained[i])[0])
+    bad[k] = -bad[k]
+    with pytest.raises(ValueError, match="positive-definite"):
+        head.predict(_estimate(i), cov=bad)
+    with pytest.raises(ValueError):
+        head.predict(_estimate(i), cov=FRAMES.cov[i][:3])
 
 
 def test_refuses_a_different_checkpoint_file(tmp_path: Path) -> None:
@@ -278,6 +321,7 @@ def test_refuses_a_different_checkpoint_file(tmp_path: Path) -> None:
         normalisers=NORMALISERS["A1"],
         quaternion_order=ORDER,
         p1_checkpoint_sha256=hd.sha256_file(good),
+        context={"crop_source": "gt_crop"},
     )
     path = tmp_path / "a1.json"
     path.write_text(json.dumps(artifact), encoding="utf-8")
@@ -290,10 +334,15 @@ def test_refuses_a_different_checkpoint_file(tmp_path: Path) -> None:
 def test_refuses_a_missing_or_different_variance_head(score_id: str) -> None:
     artifact = _artifact(score_id, "abstain_allowed", 2.0)
     with pytest.raises(hd.CalibrationMismatchError, match="variance-head"):
-        hd.ConformalPoseHead.from_dict(artifact, p1_checkpoint_sha256=P1_SHA)
+        hd.ConformalPoseHead.from_dict(
+            artifact, p1_checkpoint_sha256=P1_SHA, detector_sha256=DETECTOR_SHA
+        )
     with pytest.raises(hd.CalibrationMismatchError, match="variance-head"):
         hd.ConformalPoseHead.from_dict(
-            artifact, p1_checkpoint_sha256=P1_SHA, variance_head_sha256="d" * 64
+            artifact,
+            p1_checkpoint_sha256=P1_SHA,
+            detector_sha256=DETECTOR_SHA,
+            variance_head_sha256="d" * 64,
         )
 
 
@@ -324,6 +373,7 @@ def test_b2_is_not_deployable() -> None:
             normalisers={},
             quaternion_order=ORDER,
             p1_checkpoint_sha256=P1_SHA,
+            context={"crop_source": "gt_crop"},
         )
 
 
@@ -338,6 +388,7 @@ def test_build_refuses_wrong_normalisers_and_locks() -> None:
             normalisers=NORMALISERS["A1"],
             quaternion_order=ORDER,
             p1_checkpoint_sha256=P1_SHA,
+            context={"crop_source": "gt_crop"},
         )
     with pytest.raises(ValueError, match="variance_head_sha256"):
         hd.build_artifact(
@@ -349,6 +400,19 @@ def test_build_refuses_wrong_normalisers_and_locks() -> None:
             normalisers={},
             quaternion_order=ORDER,
             p1_checkpoint_sha256=P1_SHA,
+            context={"crop_source": "gt_crop"},
+        )
+    with pytest.raises(ValueError, match="detector_checkpoint_sha256"):
+        hd.build_artifact(
+            score_id="A1",
+            alpha=0.1,
+            convention="abstain_allowed",
+            quantile=1.0,
+            n_cal=10,
+            normalisers=NORMALISERS["A1"],
+            quaternion_order=ORDER,
+            p1_checkpoint_sha256=P1_SHA,
+            context={"crop_source": "predicted_crop"},
         )
 
 
@@ -400,6 +464,23 @@ def test_committed_artifact_matches_its_source_row(path: Path) -> None:
     ]
     assert payload["quantile"] == row["quantile"]
     assert payload["n_cal"] == row["n_cal"]
+    record = json.loads(source.read_text(encoding="utf-8"))
+    assert record["splits"]["calibration"] == payload["context"]["calibration_subset"]
+    assert payload["context"]["pnp_config"] == record["provenance"]["pnp_config"]
+    assert payload["locks"]["p1_checkpoint_sha256"] == record["provenance"]["p1_checkpoint_sha256"]
+    if payload["score_id"] in ("A1", "A2", "A3"):
+        fit = record["fit"]
+        assert record["splits"]["fit"] == "synthetic_val_tune"
+        assert payload["normalisers"]["c_R"] == fit["c_R_rad"]
+        for key in ("c_t", "c_z", "c_xy"):
+            if key in payload["normalisers"]:
+                assert payload["normalisers"][key] == fit[key]
+        if payload["score_id"] == "A3":
+            assert payload["normalisers"]["g_x"] == fit["g"]["x"]
+            assert payload["normalisers"]["g_y"] == fit["g"]["y"]
+    manifest = json.loads((REPO_ROOT / "results" / "p1_checkpoints.json").read_text("utf-8"))
+    detector = {c["run"]: c["sha256_release"] for c in manifest["checkpoints"]}["detector"]
+    assert payload["locks"]["detector_checkpoint_sha256"] == detector
 
 
 def test_committed_artifacts_cover_every_deployable_score() -> None:

@@ -2593,7 +2593,7 @@
     }
   ],
   "provenance": {
-    "poseconf_git_sha": "c4e3b475c7d88597e99bf589a8501202401096c5",
+    "poseconf_git_sha": "55ad03b8b863fae55217fd191e36c771a864c658",
     "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
     "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
     "dump": "dumps/keypoint_a2/synthetic_predicted_crop.npz",
@@ -2603,7 +2603,7 @@
     "labels_sha256": "c0996245e55f8d7dd457c5e010c7dd08556629133a2940dd099f73e6777cfe47",
     "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
     "config_sha256": "af93dbac7bb597840c7f1a65bce181c55eb473840ad6906720c15c3a48d66bf0",
-    "created_at": "2026-10-07T14:58:34Z",
+    "created_at": "2026-10-07T17:04:26Z",
     "pnp_config": {
       "method": "EPNP",
       "reprojection_threshold_px": 5.0,

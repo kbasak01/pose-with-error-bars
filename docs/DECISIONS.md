@@ -867,3 +867,10 @@ items were about presentation and are closed; no number changed.
   - S4: TABLES.md states that the oracle arm's marginal coverage does hold under poolA/poolB
     exchangeability.
   - S5: the empty heading is removed.
+- **Gate re-audit (`1103ba2..2691a15`): clean, with one note recorded here.**
+  - The weighted arm's overflow shift c = max logit over `val_cal` ∪ poolB reads poolB *features*,
+    never labels.
+  - Test-time weights need poolB features anyway.
+  - c is a common factor that cancels in every normalised mass, so no quantile depends on it
+    (`test_logit_shift_leaves_weighted_quantiles_unchanged`).
+  - It is not a fitted normaliser.

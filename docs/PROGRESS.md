@@ -8,7 +8,7 @@
 | 3 Dump + P1 parity | **complete** 2026-10-07 | 6/6 domain × arm cells reproduce P1: success-flag agreement 1.0 (0 disagreements), solved counts equal P1's JSON (synthetic 11,159 / 11,146; lightbox 3,630 / 4,399; sunlamp 362 / 675, predicted / GT box), median \|Δe_r\| ≤ 1.38e-09 rad ([`results/dump_summary.json`](../results/dump_summary.json)); `p1-parity-auditor` REPRODUCED | `phase-3-complete` |
 | 4 Level B | **complete** 2026-10-07 | B1/B2 × 2 conventions × 8 α: 26 VALID, 6 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES against the exact re-split law, R = 1,000. PURSE(label pose) ≡ joint coverage on 142,528/142,528 checks. α = 0.10 abstain_allowed, B2: coverage 0.8985 [0.8896, 0.9069]; sampled rotation radius (median) 2.93° vs A1 2.33° ([`results/level_b/`](../results/level_b/)). `pose-geometry-verifier` VERIFIED, `conformal-validity-auditor` SOUND | `phase-4-complete` |
 | 5 Variance head | **complete** 2026-10-07 | P1 coordinates bit-identical with the head (tests + sidecar dumps, 6/6 cells); `uncertainty-head-diagnostician` TRUSTWORTHY. C1/C2 × 2 conventions × 8 α: 26 VALID, 6 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES, R = 1,000. `val_test` NLL learned Σ̂ 3.054 vs heatmap moment 5.432 nats/keypoint; set size mixed (C1 vs B2 at α = 0.10: 20.0 vs 16.4 px abstain_allowed, 25.6 vs 30.8 px answer_required) ([`results/level_c/`](../results/level_c/)). `conformal-validity-auditor` SOUND | `phase-5-complete` |
-| 6 Coverage under shift ⭐ | not started | | |
+| 6 Coverage under shift ⭐ | **complete** 2026-10-07 | 54 domain × crop × arm cells: 38 written (4,256 rows), 16 explained, 0 unexplained ([`results/shift/index.json`](../results/shift/index.json)). A1, `split`, α = 0.10, `abstain_allowed`, predicted_crop: synthetic 0.8941 [0.8850, 0.9027] (n = 4,797), lightbox 0.6596 [0.6434, 0.6756] (n = 3,370), sunlamp 0.8918 [0.8744, 0.9076] (n = 1,396; answer rate 0.125, coverage given answered 0.137) ([`results/shift/`](../results/shift/)). Weighted CP: AUC 0.983 / 0.998, ESS 1.04 / 1.60 of 4,798, sets ∞. `split-leakage-auditor` clean, `conformal-validity-auditor` SOUND | `phase-6-complete` |
 | 7 Head, ONNX, latency | not started | | |
 | 8 Validation sweep | not started | | |
 | 9 Publication | not started | | |
@@ -293,3 +293,74 @@ Update at the end of each phase via `/phase-gate N`.
     no HIL label was read.
   - C2's σ̂-undefined path will matter there.
   - The selection crops were GT-box a0 crops (disclosed).
+
+## Phase 6 — Coverage under shift (complete, 2026-10-07)
+
+- **Modules.**
+  - `engine/shift.py`: dump-sourced frames for A1–C2, the four §1.4 arms, set radii at per-frame
+    q, guarded HIL label access, conditional slices.
+  - `scripts/run_shift_matrix.py`, `scripts/make_tables.py` → [`results/TABLES.md`](../results/TABLES.md).
+  - Five figures in `scripts/make_figures.py` → `assets/shift_*.png`.
+  - `metrics.outcomes` takes a per-frame q (closes S5).
+  - `p1_adapter.wireframe_edges` (figures only).
+- **Matrix.** [`results/shift/index.json`](../results/shift/index.json) has 54 domain × crop × arm cells:
+  - 38 files (4,256 rows) written, 16 explained, 0 unexplained.
+  - Explained cells: weighted and oracle arms on synthetic (no target shift), and weighted ×
+    `gt_crop` on HIL (GT-box-conditioned features).
+  - Results were generated at `b3a2795`. The `predicted_crop` refit matches Phase 2 to float32
+    precision (`checks.predicted_crop_fit_vs_phase2`, ok).
+  - Synthetic `split` rows reproduce the Phases 2/4/5 `val_test` coverages.
+- **Headline: A1, `split`, α = 0.10, `predicted_crop`**
+  ([`results/shift/keypoint_a2_<domain>_predicted_crop_split.json`](../results/shift/)).
+  Synthetic is the only domain where the marginal coverage guarantee applies.
+
+  | Domain (n) | Convention | Coverage [95 % CI] | Answer rate | Silent-failure rate | Coverage given answered |
+  |---|---|---|---|---|---|
+  | synthetic val_test (4,797) | abstain_allowed | 0.8941 [0.8850, 0.9027] | 0.928 | 0.106 | 0.886 |
+  | lightbox poolB (3,370) | abstain_allowed | 0.6596 [0.6434, 0.6756] | 0.531 | 0.340 | 0.359 |
+  | sunlamp poolB (1,396) | abstain_allowed | 0.8918 [0.8744, 0.9076] | 0.125 | 0.108 | 0.137 |
+  | synthetic val_test | answer_required | 0.8989 [0.8900, 0.9073] | 0.928 | 0.030 | 0.968 |
+  | lightbox poolB | answer_required | 0.3353 [0.3194, 0.3515] | 0.531 | 0.196 | 0.631 |
+  | sunlamp poolB | answer_required | 0.0466 [0.0361, 0.0590] | 0.125 | 0.079 | 0.371 |
+
+  - Sunlamp's near-nominal `abstain_allowed` coverage comes from 87.5 % abstentions. Only 175
+    frames are answered, and their coverage is 0.137.
+  - Measured HIL coverage carries no guarantee.
+- **Arms on HIL** (A1, α = 0.10, `abstain_allowed`, predicted_crop).
+  - **`mondrian`.** Lightbox 0.7561 [0.7412, 0.7705], sunlamp 0.9112 [0.8950, 0.9256].
+    - Under `answer_required` the rows are identical by construction: the failure group gets the
+      whole-space set (footnoted in TABLES.md).
+  - **`weighted_unlabeled_target`.** The domain classifier separates the domains almost perfectly.
+    - 5-fold AUC is 0.9834 (lightbox) and 0.9982 (sunlamp).
+    - ESS of the 4,798 `val_cal` weights is 1.04 and 1.60.
+    - Every answered set is ∞. The 1.0000 / 0.9979 coverage reflects ∞ sets and abstentions, not
+      recovery.
+    - Source: `index.json` `classifiers` and the `*_weighted_unlabeled_target.json` files.
+  - **`oracle_target_labels_n*`** (oracle, poolA labels; mean (min–max) over 5 draws):
+
+    | n | lightbox | sunlamp |
+    |---|---|---|
+    | 25 | 0.9458 (0.8932–0.9671) | 0.9646 (0.8804–1.0000) |
+    | 250 | 0.9271 (0.9110–0.9409) | 0.9192 (0.9090–0.9291) |
+    | 1000 | 0.9101 (0.9062–0.9145) | 0.9097 (0.9033–0.9169) |
+
+    - Every draw is at or above 0.90 at n = 250 and n = 1000, but not at n = 500 (minimum 0.8902
+      on lightbox and 0.8782 on sunlamp).
+    - Sunlamp at n ≤ 100 includes draws whose quantile is −∞, which abstain on every frame: the
+      mean answer rate is 0.075–0.100.
+    - Under `answer_required` every oracle quantile is +∞, because the target failure rate is
+      above α.
+- **Audits.**
+  - `split-leakage-auditor`: clean at `1103ba2`, and again on the diff to the gate commit.
+    Carried items W1, W2, L1 and L2 are closed.
+  - `conformal-validity-auditor`: SOUND. Its 4 must-fix items were presentation only (answer
+    rate beside coverage, Mondrian `answer_required` footnote, slice tables split by convention,
+    qualified guarantee wording). All are closed, and no number changed.
+  - Items: `docs/DECISIONS.md`, "Phase 6 validity audit: items closed" and "Phase 6 leakage
+    audit: carried items closed".
+- **Carried into Phase 7+.**
+  - The weighted arm is degenerate at this shift severity. Clipping or other features would be
+    a new design choice, and must not be tuned on HIL.
+  - The `keypoint_a1` robustness run is not dumped.
+  - Sunlamp answered n is small (175 on poolB).
+

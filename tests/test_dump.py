@@ -500,3 +500,46 @@ def test_first_batch_reproduces_p1(local_paths, tmp_path):
         ["--config", str(CONFIG), "--dumps-root", str(tmp_path), "--domain", "synthetic",
          "--out", str(tmp_path / "summary.json")]
     ) == 0  # fmt: skip
+
+
+def test_eval_frames_decompresses_only_filenames(tiny, monkeypatch):
+    """`eval_frames` must not touch label-valued members (safe on HIL before Phase 6)."""
+    accessed = []
+    real_load = np.load
+
+    class Spy:
+        def __init__(self, archive):
+            self.archive = archive
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            self.archive.close()
+
+        def __getitem__(self, key):
+            accessed.append(key)
+            return self.archive[key]
+
+    monkeypatch.setattr(p1_adapter.np, "load", lambda *a, **k: Spy(real_load(*a, **k)))
+    frames = p1_adapter.eval_frames("synthetic", paths=tiny.paths)
+    assert accessed == ["filenames"] and frames.filenames.tolist() == tiny.filenames
+
+
+def test_predicted_crop_arm_reads_no_gt_box(tiny, tmp_path, monkeypatch):
+    """Only the label-file writer reads labels when the predicted_crop arm runs alone."""
+    script = _script("dump_predictions")
+    calls = []
+    original = script.load_eval_labels
+
+    def spy(domain, *, paths, frames, tag):
+        calls.append(tag)
+        return original(domain, paths=paths, frames=frames, tag=tag)
+
+    monkeypatch.setattr(script, "_write_label_files", lambda *a, **k: [])
+    monkeypatch.setattr(script, "load_eval_labels", spy)
+    script.main(
+        ["--config", str(CONFIG), "--paths", str(tiny.paths_yaml), "--domain", "synthetic",
+         "--crop-source", "predicted_crop", "--device", "cpu", "--out", str(tmp_path)]
+    )  # fmt: skip
+    assert calls == []

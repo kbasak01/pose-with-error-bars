@@ -7,7 +7,7 @@
 | 2 Splits + Level A | **complete** 2026-10-07 | splits 2,399 / 4,798 / 4,797 + HIL 3,370/3,370, 1,395/1,396, byte-identical ([`splits/SHA256SUMS`](../splits/SHA256SUMS)); A1–A3 × 2 conventions × 8 α: 39 VALID, 9 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES vs the exact re-split law, R = 1,000 ([`results/level_a/keypoint_a2_predicted_crop_synthetic.json`](../results/level_a/keypoint_a2_predicted_crop_synthetic.json)); `split-leakage-auditor` no critical, `conformal-validity-auditor` SOUND | `phase-2-complete` |
 | 3 Dump + P1 parity | **complete** 2026-10-07 | 6/6 domain × arm cells reproduce P1: success-flag agreement 1.0 (0 disagreements), solved counts equal P1's JSON (synthetic 11,159 / 11,146; lightbox 3,630 / 4,399; sunlamp 362 / 675, predicted / GT box), median \|Δe_r\| ≤ 1.38e-09 rad ([`results/dump_summary.json`](../results/dump_summary.json)); `p1-parity-auditor` REPRODUCED | `phase-3-complete` |
 | 4 Level B | **complete** 2026-10-07 | B1/B2 × 2 conventions × 8 α: 26 VALID, 6 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES against the exact re-split law, R = 1,000. PURSE(label pose) ≡ joint coverage on 142,528/142,528 checks. α = 0.10 abstain_allowed, B2: coverage 0.8985 [0.8896, 0.9069]; sampled rotation radius (median) 2.93° vs A1 2.33° ([`results/level_b/`](../results/level_b/)). `pose-geometry-verifier` VERIFIED, `conformal-validity-auditor` SOUND | `phase-4-complete` |
-| 5 Variance head | not started | | |
+| 5 Variance head | **complete** 2026-10-07 | P1 coordinates bit-identical with the head (tests + sidecar dumps, 6/6 cells); `uncertainty-head-diagnostician` TRUSTWORTHY. C1/C2 × 2 conventions × 8 α: 26 VALID, 6 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES, R = 1,000. `val_test` NLL learned Σ̂ 3.054 vs heatmap moment 5.432 nats/keypoint; set size mixed (C1 vs B2 at α = 0.10: 20.0 vs 16.4 px abstain_allowed, 25.6 vs 30.8 px answer_required) ([`results/level_c/`](../results/level_c/)). `conformal-validity-auditor` SOUND | `phase-5-complete` |
 | 6 Coverage under shift ⭐ | not started | | |
 | 7 Head, ONNX, latency | not started | | |
 | 8 Validation sweep | not started | | |
@@ -216,3 +216,80 @@ Update at the end of each phase via `/phase-gate N`.
   - Read `n_vacuous` beside any HIL B1/B2 coverage.
   - The PURSE is unbounded, and no figure may imply otherwise.
 
+
+## Phase 5 — Variance head (complete, 2026-10-07)
+
+- **Modules.**
+  - `models/variance_head.py`: `VarianceHead` reads P1's decoder features, with a readout weighted
+    by P1's refine distribution and a clamped Cholesky output. `VarianceKeypointNet` wraps the
+    frozen P1 network and returns its outputs untouched.
+  - `engine/train_variance.py`: 2-D β-NLL, β = 0.5.
+  - `engine/head_metrics.py`.
+  - `engine/level_c.py`.
+  - Scripts: `train_variance_head.py`, `dump_variance.py`, `run_level_c.py`.
+  - `p1_adapter` gained P1's crop dataset, loader, masked mean and seeding (new optional local
+    path `p1_crop_cache`, read-only).
+- **Invariant 10.**
+  - `tests/test_variance_head.py` pins bit-identical coordinates, confidences and heatmaps. That
+    covers random-init CPU and the real checkpoint under bf16 autocast on GPU. It also pins the P1
+    state hash after a training step, PD covariances, and an ONNX graph free of ArgMax, TopK and
+    NonZero.
+  - `scripts/dump_variance.py` refuses unless P1's coordinates equal the Phase 3 dump bit for bit.
+    They did on all 6 domain × arm cells (sidecars in gitignored `dumps/`).
+- **Overfit gate** ([`results/level_c/variance_head_smoke.json`](../results/level_c/variance_head_smoke.json)):
+  after 400 steps on one A2 batch, the NLL was 3.3525 against a homoscedastic floor of 7.8065.
+- **Training** ([`results/level_c/variance_head_training.json`](../results/level_c/variance_head_training.json)):
+  - Data: synthetic `train` (47,966 frames) with A2, 20 epochs, about 29 s per epoch, 615.6 s in
+    total, peak 341 MB.
+  - Selection: `val_tune` only (2,399 frames). Best epoch 15, `val_tune` NLL 2.9807.
+  - The P1 state hash was unchanged.
+  - No σ hit a clamp at the selected epoch, and no ρ saturated.
+- **Diagnostician: TRUSTWORTHY**, as a ranking signal and conformal normaliser. σ̂ is not a
+  calibrated Gaussian. See `docs/DECISIONS.md`, "diagnostician verdict".
+- **Head quality.** Predicted-box crops,
+  [`results/level_c/keypoint_a2_predicted_crop_synthetic.json`](../results/level_c/keypoint_a2_predicted_crop_synthetic.json),
+  `head_quality`. The rescaling factor is fitted on `val_tune` and applied to `val_test`. Values
+  are for `val_test`, 51,223 keypoints:
+
+  | | Learned Σ̂ | Heatmap moment (B2's Σ̂) |
+  |---|---|---|
+  | NLL (nats/keypoint) | 3.054 | 5.432 |
+  | NLL after the `val_tune` rescale | 3.053 | 4.765 |
+  | 1σ / 2σ ellipse reliability (Gaussian 0.393 / 0.865) | 0.520 / 0.881 | 0.977 / 0.995 |
+  | Spearman(σ̂, ‖r‖) | 0.520 | 0.385 |
+
+  Spearman(−confidence, ‖r‖) is 0.436. The learned Σ̂ beats heatmap moments on NLL and on error
+  ranking. Its reliability is measured, not calibrated.
+- **C1/C2 validity** (same protocol as Phase 2, same R = 1,000 permutations as Level B):
+  - Results: 26 VALID, 6 DEGENERATE, 0 DEVIATES.
+  - Law KS p ranges from 0.020 to 0.978. Observed/law sd ranges from 0.96 to 1.04.
+  - Every VALID mean is inside the plan band.
+  - `/coverage-check C1`: 13 VALID, 3 DEGENERATE
+    ([`results/validity/C1_*.json`](../results/validity/), `assets/validity_C1_*.png`). C2 has the
+    same counts.
+  - No solved synthetic frame has an undefined C2 σ̂, so C2's answer rate equals the PnP rate.
+- **α = 0.10, `val_test`, n = 4,797, answer rate 0.9285:**
+
+  | Score | Convention | Coverage | 95 % CI | Silent-failure rate | q |
+  |---|---|---|---|---|---|
+  | C1 | abstain_allowed | 0.9079 | [0.8993, 0.9159] | 0.0921 | 3.469 |
+  | C1 | answer_required | 0.9020 | [0.8933, 0.9103] | 0.0265 | 4.439 |
+  | C2 | abstain_allowed | 0.8981 | [0.8892, 0.9065] | 0.1019 | 3.746 |
+  | C2 | answer_required | 0.9006 | [0.8917, 0.9089] | 0.0279 | 5.397 |
+
+- **Set size at equal α** (same JSON, `comparison`). Learned Σ̂ does not uniformly shrink sets.
+  - **C1 vs B2.** Largest keypoint radius, median: 20.0 vs 16.4 px (abstain_allowed) and 25.6 vs
+    30.8 px (answer_required).
+  - **C2 vs A1** (abstain_allowed):
+    - Rotation radius, median: 1.41° vs 2.33°.
+    - Translation, median: 1.40 % vs 1.10 % of ‖t̂‖.
+- **Audits.**
+  - `uncertainty-head-diagnostician`: TRUSTWORTHY.
+  - `conformal-validity-auditor`: SOUND. Its 2 must-fix items (a label-scramble test and labelled
+    reliability metrics) are closed, and no number changed.
+  - Items closed and carried: `docs/DECISIONS.md`, "Phase 5 audits: carried items".
+- **Carried into Phase 6.**
+  - HIL sidecars `{lightbox,sunlamp}_{predicted,gt}_crop_vhead.npz` exist, with predictions only;
+    no HIL label was read.
+  - C2's σ̂-undefined path will matter there.
+  - The selection crops were GT-box a0 crops (disclosed).

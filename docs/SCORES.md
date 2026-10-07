@@ -122,10 +122,14 @@ camera frame, with z along the optical axis. Keypoints are in full-frame pixels.
   (Phase 4) needs.
 * **Failures.** `valid` is the caller's failure mask. The default, from §1.3, is PnP failure, so
   that Levels A and B share one answer rate. It is decided per table and stated there.
+* **Unconstrained keypoints.** B1 uses the same rule as B2 (user decision, 2026-10-07): a
+  `heatmap_empty` keypoint's set is the whole image, and it is left out of the max. `radius_px` is
+  `∞` on its frame.
 * **Valid when** d̂ comes from the detector, never the GT box.
 * **Breaks when** the GT box or GT IoU enters d̂, or the inclusion rule differs between calibration
   and evaluation.
-* **Tests:** `test_keypoint_scores`, `test_set_inverts_score_exactly[B1-*]`.
+* **Tests:** `test_keypoint_scores`, `test_set_inverts_score_exactly[B1-*]`,
+  `test_b1_shares_the_unconstrained_rule`.
 
 ## B2: keypoints, 11 Mahalanobis ellipses from the heatmap moment
 

@@ -207,8 +207,12 @@ Update at the end of each phase via `/phase-gate N`.
   - `conformal-validity-auditor`: SOUND. Its 3 must-fix items (wording and labelling, no number
     changed) are closed.
   - Items closed and carried: `docs/DECISIONS.md`, "Phase 4 audits: carried items".
+- **After the gate.**
+  - B1 now shares B2's empty-channel rule (user decision). No number changed: synthetic has 0
+    empty channels.
+  - Set-overlay gallery: [`assets/level_b_overlay_B2.png`](../assets/level_b_overlay_B2.png)
+    (`make figures`).
 - **Carried into Phase 6.**
-  - Whether B1 should also treat empty heatmap channels as unconstrained (user decision). Read
-    `n_vacuous` beside any HIL B2 coverage.
+  - Read `n_vacuous` beside any HIL B1/B2 coverage.
   - The PURSE is unbounded, and no figure may imply otherwise.
 

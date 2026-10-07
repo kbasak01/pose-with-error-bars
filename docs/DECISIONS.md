@@ -568,3 +568,32 @@ findings; its three must-fix items are closed.
     right (`size_factor = 1`); only the field name is generic.
   - `so3.UNIT_NORM_TOL` (1e-3) is looser than P1's 1e-5. That is harmless for P1 outputs, which
     are unit to 1e-15.
+
+## 2026-10-07 — B1 shares B2's empty-channel rule (closes the Phase 4 carried item)
+
+**Decision (user choice, after the Phase 4 gate).** `score_b1` / `set_b1` take the same optional
+`unconstrained` mask as B2, and Level B passes `heatmap_empty` to both scores. On HIL, B1 and B2
+therefore no longer differ merely because a channel is empty.
+**Effect on committed numbers.** None: the synthetic `predicted_crop` dump has 0 empty channels.
+`results/level_b/` was regenerated from the commit that made the change, and every coverage,
+quantile and verdict is unchanged.
+**Still required in Phase 6.** Read `n_vacuous` and `n_frames_with_unconstrained_keypoint` beside
+any HIL B1/B2 coverage.
+
+## 2026-10-07 — `scripts/make_figures.py` and the Level B set-overlay gallery
+
+**Decision.** `make figures` (`--figure all`) runs a registry of figures. It skips a figure whose
+inputs are absent, with a message, and raises when the figure is named explicitly. The first entry
+is `level_b_overlay`, which writes `assets/level_b_overlay_<score>.png`.
+- It shows 8 seeded answered `val_test` frames: 5 whose PnP estimate is inside its own PURSE and 3
+  outside.
+- Each frame shows the keypoint sets at q from the committed `level_b` JSON (α = 0.10,
+  `abstain_allowed`), the true keypoints, and the estimate's projection.
+- A set that the estimate's keypoint leaves is drawn bold.
+- Colours are the reference palette's dark-surface categorical slots 1–3, each with its own
+  marker shape. The palette validator could not be run (no `node` on the workstation); the slots
+  are the reference palette's pre-validated ones.
+- The caption carries the SPEED+ CC BY-NC-SA 4.0 notice.
+**Reason.** This is the visual check both geometry reviews asked for. Sets offset from the
+wireframe, or far too large, would show here first.
+

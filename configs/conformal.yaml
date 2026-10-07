@@ -39,6 +39,21 @@ level_a:                    # Phase 2: in-distribution only, synthetic val_test;
     ks_min_p: 0.01                       # KS against the atom-aware re-split law
     mean_band_se: 3                      # mean within this many MC s.e.
 
+level_b:                    # Phase 4: in-distribution only, synthetic val_test; no HIL
+  scores: [B1, B2]
+  run: keypoint_a2
+  crop_source: predicted_crop
+  calibration_split: synthetic_val_cal
+  test_split: synthetic_val_test
+  valid_mask: pnp_success                # shared answer rate with Level A
+  label_projection_max_px: 0.01          # projected label pose vs P1's stored keypoint product
+  cov_mapping_rtol: 1.0e-9               # stored heatmap_cov_full vs propagate.crop_cov_to_full
+  level_a_result: results/level_a/keypoint_a2_predicted_crop_synthetic.json
+  gate:
+    ks_min_p: 0.01                       # KS against the atom-aware re-split law
+    mean_band_se: 3                      # mean within this many MC s.e.
+    purse_agreement: 1.0                 # PURSE(label pose) == joint coverage on every frame
+
 dump:                       # Phase 3: per-frame prediction dump + P1 parity gate
   run: keypoint_a2
   domains: [synthetic, lightbox, sunlamp]
@@ -89,9 +104,16 @@ arms:
     gamma: 0.005
     order_seed: 7
 
-propagation:
-  linearised: {enabled: true}
-  sampled: {enabled: true, samples: 256, offline_only: true}
+propagation:               # Phase 4: keypoint sets -> pose-space extent (conformal/propagate.py)
+  linearised: {enabled: true}            # every alpha; inner + outer radii (approximation, not a bound)
+  sampled:
+    enabled: true
+    samples: 256                         # M keypoint configurations per frame
+    offline_only: true
+    alpha: 0.10                          # headline alpha only
+    seed: 1337                           # per-frame SeedSequence([seed, score, convention, row])
+    workers: 16
+    max_frames: null                     # all answered val_test frames (pilot: ~35 ms / frame)
 
 reporting:
   confidence_interval: clopper_pearson_95

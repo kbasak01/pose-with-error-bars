@@ -336,6 +336,7 @@ def resplit_draws(
     n_cal: int,
     alphas: Sequence[float],
     convention: str,
+    size_factor: float = _RAD_TO_DEG,
 ) -> ResplitDraws:
     """Split CP on each re-partition: first `n_cal` of each permutation calibrate, the rest test.
 
@@ -346,13 +347,15 @@ def resplit_draws(
         scores: (N,) pool scores under `convention`.
         valid: (N,) PnP solved.
         rot_scale: (N,) radians per unit score (c_R, times g for A3); used for set size only.
+            Level B passes its keypoint radius per unit score (px) here, with `size_factor` 1.
         perms: (R, N) permutations of the pool (shared across scores: common random numbers).
         n_cal: Calibration size.
         alphas: Miscoverage levels.
         convention: PnP-failure convention the scores were computed under.
+        size_factor: Unit conversion of `q * median(rot_scale)` (default radians -> degrees).
 
     Returns:
-        The per-draw arrays.
+        The per-draw arrays. `median_rot_deg` holds `q * median scale * size_factor`.
     """
     fail = CONVENTIONS[convention]
     if np.any(scores[~valid] != fail) or not np.all(np.isfinite(scores[valid])):
@@ -379,7 +382,8 @@ def resplit_draws(
         med = np.full(len(q), np.nan)
         if rows.any():
             med[rows] = np.nanmedian(np.where(answered[rows], r_test[rows], np.nan), axis=1)
-        rot_all[i] = np.where(rows, q * med * _RAD_TO_DEG, np.nan)
+        with np.errstate(invalid="ignore"):  # q = -inf rows are masked out below
+            rot_all[i] = np.where(rows, q * med * size_factor, np.nan)
     return ResplitDraws(
         alphas=tuple(alphas),
         n_cal=n_cal,
@@ -402,6 +406,7 @@ def summarise_draws(
     ks_min_p: float,
     mean_band_se: float,
     fixed_n_covered: int | None = None,
+    size_name: str = "rot_deg",
 ) -> dict[str, Any]:
     """Compare one alpha's re-split coverages with the exact re-split law and the Beta law.
 
@@ -416,7 +421,8 @@ def summarise_draws(
     [1 - alpha, 1 - alpha + 1/(n+1)] widened by `mean_band_se` MC s.e. The plain Beta KS p is
     reported beside it; at finite m it is expected to reject (the re-split law is wider).
     `fixed_split_law_cdf` = P(X <= covered count of the committed val_cal -> val_test split) under
-    the law: where that one split sits in the re-split distribution.
+    the law: where that one split sits in the re-split distribution. `size_name` names the
+    median set-size column (`rot_deg` for Level A, `kp_px` for Level B).
     """
     alpha = draws.alphas[index]
     n, m = draws.n_cal, draws.n_test
@@ -476,7 +482,7 @@ def summarise_draws(
         "pool_finite_ties": n_finite_ties,
         "mean_answer_rate": float(draws.answer_rate[index].mean()),
         "mean_silent_failure_rate": float(draws.silent_failure_rate[index].mean()),
-        "median_rot_deg_over_draws": (
+        f"median_{size_name}_over_draws": (
             None
             if np.all(np.isnan(draws.median_rot_deg[index]))
             else float(np.nanmedian(draws.median_rot_deg[index]))

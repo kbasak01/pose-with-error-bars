@@ -20,6 +20,7 @@ from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
+from scipy import stats
 from sklearn.isotonic import IsotonicRegression
 
 from poseconf.conformal.metrics import (
@@ -462,7 +463,13 @@ def summarise_draws(
             "pvalue": ks_law[1],
             "pvalue_note": "upper bound on the exact p (discrete null): conservative",
         },
-        "beta": {"a": a, "b": b, "ks_statistic": ks_beta[0], "ks_pvalue": ks_beta[1]},
+        "beta": {
+            "a": a,
+            "b": b,
+            "sd": float(stats.beta.std(a, b)) if b > 0 else 0.0,
+            "ks_statistic": ks_beta[0],
+            "ks_pvalue": ks_beta[1],
+        },
         "frac_q_pos_inf": frac_pos,
         "frac_q_neg_inf": frac_neg,
         "pool_failure_atom": {"top_+inf": n_top_atom, "bottom_-inf": n_bottom_atom},

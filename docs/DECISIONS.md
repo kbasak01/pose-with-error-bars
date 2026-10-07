@@ -220,3 +220,113 @@ each to the phase where it starts to matter.
   is answered. The oracle test's acceptance condition is looser than this, which is harmless.
 - **Reporting note.** A keypoint frame with no included keypoint scores 0 and is vacuously covered.
   Phase 4 tables report how many such frames there are.
+
+## 2026-10-07 — Split rule: sorted names, per-domain seed streams, round-half-down sizes
+
+**Decision.** `poseconf.data.splits.assign_splits` sorts filenames, permutes them with
+`default_rng(SeedSequence([20261006, key]))`, key = synthetic 0 / lightbox 1 / sunlamp 2, and takes
+consecutive blocks. Every split but the last gets `N·f` rounded half-down (exact `Fraction`); the last
+takes the remainder. This reproduces IMPLEMENTATION_PLAN §1.2 exactly: 2,399 / 4,798 / 4,797;
+3,370 / 3,370; 1,395 / 1,396. Manifests list names sorted, LF, trailing newline; `splits/SHA256SUMS`
+pins them and `load_split` refuses a file whose hash disagrees. Results carry
+`split_manifest_sha256` = SHA-256 of `SHA256SUMS`.
+**Alternatives.** Floor everywhere (2,398 / 4,797 / 4,799); one global stream for all domains.
+**Reason.** Matches the plan's table; per-domain streams mean a domain can be regenerated alone.
+Byte-identity depends on numpy's `Generator.permutation`, pinned by P1 (numpy 2.4.4).
+
+## 2026-10-07 — Manifest name sources (no label is read)
+
+**Decision.** Synthetic validation names come from the `filename` column of P1's committed
+`keypoint_a2/synthetic_predicted_crop_samples.npz` (so CI can regenerate them without the dataset;
+a `dataset` test checks they equal `synthetic/validation.json`). HIL names come from a directory
+listing of `<speedplus_root>/{lightbox,sunlamp}/images/*.jpg` (`p1_adapter.list_image_filenames`):
+no `test.json`, no HIL sidecar, no pixels. CI regenerates HIL from the committed poolA ∪ poolB
+(`--hil-names-from-manifest`), which verifies the permutation, not the listing; the listing check is
+a `dataset` test. Counts are asserted against P1's committed `results/dataset_audit.json`.
+**Reason.** User choice (Phase 2 planning): nothing on lightbox/sunlamp is opened before Phase 6.
+
+## 2026-10-07 — Synthetic labels for Level A via `p1_adapter.load_synthetic_labels`
+
+**Observation.** P1's sidecars store `e_r`, `e_t`, `q_pred`, `t_pred` but no GT pose; A2 needs the
+vector Δt. **Decision.** `load_synthetic_labels(split, paths)` wraps P1's `load_split` for
+`synthetic/{train,validation}` only and has no domain argument. `run_level_a.py` re-derives `e_r`,
+`e_t` from predictions + labels and fails if they differ from P1's committed values by > 1e-4
+(measured max 8.1e-8 rad, 4.8e-7 m), which proves the filename join and the quaternion order.
+
+## 2026-10-07 — A3 difficulty g(conf̄): decreasing isotonic fit of the A1 score
+
+**Decision.** g = sklearn `IsotonicRegression(increasing=False, out_of_bounds="clip")` of the A1
+score (with the val_tune c_R, c_t) on `confidence_mean`, solved `val_tune` frames only (2,251).
+Stored as knots and evaluated with `np.interp` (numpy-only, serialisable for the Phase 7 artifact).
+No floor: every knot is > 0 (asserted). **Alternatives.** Fit E_R alone; a log-linear fit.
+**Reason.** A3 = A1 / g is then "A1 relative to its expected value at this confidence", the
+standard normalised-residual construction; isotonic makes no shape assumption beyond monotonicity.
+
+## 2026-10-07 — Re-split reference law (closes S1) and what the re-split test can and cannot detect
+
+**Decision.** The primary reference is `conformal.metrics.resplit_coverage_law`: conditional on the
+pool, a uniformly random cal/test partition makes the covered count X_tb Beta-Binomial(m; k, n+1−k)
+(negative-hypergeometric rank law; exact for distinct scores). PnP-failure atoms are exact too:
+answer_required, X = m iff k + X_tb > N − F (q = +∞); abstain_allowed, X = m iff k + X_tb ≤ F
+(q = −∞, always abstain). Verified by exhaustive enumeration and Monte Carlo
+(`tests/test_conformal_metrics.py`). KS uses D = max over the integers of |F_emp − F| with the
+continuous Kolmogorov p-value. Under a discrete null that p is an *upper bound* on the exact p, so
+the test is conservative (the auditor's simulation of the size under the exact null confirmed it is
+below nominal; that simulation is not a committed result). Verdicts: VALID (KS p ≥
+0.01 and mean within 3 MC s.e. of the law mean), DEGENERATE (q = +∞ or −∞ in every draw — coverage
+≡ 1 by construction, reported with set = ∞, not a validity test), DEVIATES. R re-splits of one pool
+are iid draws from this conditional law: the null law is exact, the p-value is conservative.
+DEGENERATE additionally requires the law to predict the all-infinite quantile (KS not rejected), so
+a bug that returned q = +∞ everywhere would read DEVIATES.
+**Deviation from the gate's literal wording (documented as the gate allows).** "KS vs Beta not
+rejected at 0.01" fails for every non-degenerate cell (max p 1.4e-7), because Beta(n+1−l, l) ignores
+the finite test half: at n = 4,798, m = 4,797, α = 0.10 the Beta sd is 0.00433 and the re-split law
+sd 0.00612 (×1.41); observed/law sd ratios are 0.96–1.04. The literal mean band
+[1−α, 1−α+1/(n+1)] ± 3 s.e. holds for every non-degenerate cell. It fails for the 9 DEGENERATE
+cells (answer_required, α ∈ {0.01, 0.02, 0.05}: 7.2 % failures in the pool > α, so q = +∞ and
+coverage is 1 with an ∞ set) — the plan's §0(2) prediction, reported, not fixed.
+**Limits of this test** (sharpened by the Phase 2 `conformal-validity-auditor`).
+- *It cannot see §0(4), and nothing using validation frames can.* P1 chose `best.pt` with one scalar
+  over all 11,994 validation frames, a symmetric function of the pool; given that choice the
+  validation frames stay exchangeable *with each other*. What selection may break is exchangeability
+  with a fresh synthetic draw, testable only with fresh data. IMPLEMENTATION_PLAN §0(4)(c)
+  overstates this ("if selection had materially broken exchangeability it would show there"); the
+  plan is a root planning doc and is not edited — this entry corrects it.
+- *It says nothing about data roles.* Scores are fixed across re-splits, so normalisers fitted on
+  `val_cal` would pass too. Data roles rest on the code paths and the `split-leakage-auditor`.
+- *Resolution.* At n ≈ 4,800, R = 1,000, 3 MC s.e. ≈ 0.0006 ≈ 3/(n+1): an off-by-one quantile index
+  is below what the run resolves. Index correctness rests on the brute-force / enumeration unit
+  tests. What the run adds is that the production vectorised path, on real arrays with real failure
+  atoms, matches the exact law (observed/law sd 0.96–1.04).
+
+## 2026-10-07 — `level_a` result layout and the `level_a` config block
+
+**Decision.** `results/level_a/<run>_<crop>_synthetic.json` (`kind: level_a`) holds one provenance
+block, the val_tune fit, the join check, the re-split protocol and `rows` (score × convention × α),
+each row carrying every results-provenance field plus a `resplits` summary. Per-draw arrays live in
+the sibling `_resplits.npz`, whose SHA-256 is in the JSON; `scripts/coverage_check.py` refuses an
+npz that does not match. `results/validity/<score>_<convention>.json` (`kind: validity`) is derived
+from those two files without recomputation. `configs/conformal.yaml` gained `level_a:` (score list,
+split roles, join-check tolerances, gate thresholds `ks_min_p: 0.01`, `mean_band_se: 3`).
+The same R = 1,000 permutations (seed 1337) serve every score, convention and α (common random
+numbers), so cells are correlated with each other; each cell's test is valid on its own.
+
+## 2026-10-07 — Phase 2 audits: carried items
+
+- **Leakage W1 (before Phase 6).** `p1_adapter.load_sidecar` accepts lightbox/sunlamp and returns
+  label columns; the only guard today is that Phase 2 callers pass `"synthetic"` (tested by a spy in
+  `tests/test_level_a.py`). Phase 6 must add a code-level guard (poolB-evaluation or `oracle_*` tag,
+  or a label-free loader for the weighted arm).
+- **Leakage W2.** The weighted / domain-classifier / oracle paths do not exist yet; re-audit in Phase 6.
+- **Validity audit (SOUND).** Must-fix items closed: the `ks_against_pmf` docstring had the
+  conservativeness direction inverted (fixed; the JSON now says "upper bound on the exact p"); KS
+  wording above; PROGRESS guarantee wording; the fixed split's position in the re-split law is now
+  stored per row (`resplits.fixed_split_law_cdf`). Should-consider items adopted: DEGENERATE requires
+  law agreement, the sd ratio is null when degenerate, and an abstain_allowed Monte Carlo test
+  covers a mixed q = −∞ branch.
+- **The committed `val_cal → val_test` split runs low for A3.** `fixed_split_law_cdf` is 0.039
+  (abstain_allowed, α = 0.10), 0.025 (abstain_allowed, 0.15), 0.064 (answer_required, 0.15) and
+  0.043 (answer_required, 0.20); their Clopper–Pearson intervals lie below 1 − α. The cells share
+  one split, so they are correlated, and are consistent with the re-split law. Any README sentence
+  quoting a fixed-split coverage cites `fixed_split_law_cdf` beside it. The split is not changed
+  (invariant 3).

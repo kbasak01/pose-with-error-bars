@@ -259,15 +259,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9902062929777031,
         "law_sd": 0.002010370194100018,
+        "sd_ratio_observed_to_law": 0.9845773829841867,
+        "fixed_split_law_cdf": 0.740491233831065,
         "law_p_full_coverage_atom": 6.376177154261528e-15,
         "ks_law": {
           "statistic": 0.03817373776327171,
           "pvalue": 0.10569246921125008,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4752,
           "b": 47,
+          "sd": 0.0014213982497481234,
           "ks_statistic": 0.12940139447209487,
           "ks_pvalue": 4.653121086391617e-15
         },
@@ -335,15 +338,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9802042092102539,
         "law_sd": 0.0028437037518356774,
+        "sd_ratio_observed_to_law": 1.006978373700096,
+        "fixed_split_law_cdf": 0.44133970163948427,
         "law_p_full_coverage_atom": 1.5936090471111555e-29,
         "ks_law": {
           "statistic": 0.036300124714989224,
           "pvalue": 0.1398780898920705,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4704,
           "b": 95,
+          "sd": 0.002010592649815202,
           "ks_statistic": 0.12608705848015167,
           "ks_pvalue": 2.5671851864061467e-14
         },
@@ -411,15 +417,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9501979579079002,
         "law_sd": 0.004440892532719407,
+        "sd_ratio_observed_to_law": 0.9639457474024377,
+        "fixed_split_law_cdf": 0.28796269628608884,
         "law_p_full_coverage_atom": 5.55463671282041e-74,
         "ks_law": {
           "statistic": 0.020822929286054476,
           "pvalue": 0.7705617064055652,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4560,
           "b": 239,
+          "sd": 0.003139857968376083,
           "ks_statistic": 0.09247830178550387,
           "ks_pvalue": 6.812137281056075e-08
         },
@@ -487,15 +496,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9001875390706451,
         "law_sd": 0.006119254584753349,
+        "sd_ratio_observed_to_law": 1.002216827252565,
+        "fixed_split_law_cdf": 0.16392481441806164,
         "law_p_full_coverage_atom": 2.362018601607071e-150,
         "ks_law": {
           "statistic": 0.01157409136497406,
           "pvalue": 0.9991311639692677,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4320,
           "b": 479,
+          "sd": 0.004326515475640328,
           "ks_statistic": 0.09053792105656533,
           "ks_pvalue": 1.3912031668038774e-07
         },
@@ -563,15 +575,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8501771202333651,
         "law_sd": 0.007285903562251685,
+        "sd_ratio_observed_to_law": 1.0025958287024626,
+        "fixed_split_law_cdf": 0.24627197034340992,
         "law_p_full_coverage_atom": 8.952551061193215e-230,
         "ks_law": {
           "statistic": 0.015872310726075256,
           "pvalue": 0.9592436483879683,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4080,
           "b": 719,
+          "sd": 0.005151374906781674,
           "ks_statistic": 0.09399742976495828,
           "ks_pvalue": 3.8537493987702076e-08
         },
@@ -639,15 +654,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8001667013961247,
         "law_sd": 0.008163263356244848,
+        "sd_ratio_observed_to_law": 1.0236451141890388,
+        "fixed_split_law_cdf": 0.16024400406658768,
         "law_p_full_coverage_atom": 1.6353099157e-312,
         "ks_law": {
           "statistic": 0.02284754680172163,
           "pvalue": 0.6647712963855699,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3840,
           "b": 959,
+          "sd": 0.005771697312694833,
           "ks_statistic": 0.09357033018636207,
           "ks_pvalue": 4.5274037234167176e-08
         },
@@ -715,15 +733,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.7001458637216093,
         "law_sd": 0.00935381825843741,
+        "sd_ratio_observed_to_law": 1.0158473427613564,
+        "fixed_split_law_cdf": 0.17394050813056666,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.02233706327840379,
           "pvalue": 0.6919323222319285,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3360,
           "b": 1439,
+          "sd": 0.006613459023636497,
           "ks_statistic": 0.10404057450723903,
           "ks_pvalue": 7.04971874140551e-10
         },
@@ -791,15 +812,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.5001041883725776,
         "law_sd": 0.010207270796030161,
+        "sd_ratio_observed_to_law": 0.9786639157815835,
+        "fixed_split_law_cdf": 0.35280259370315215,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.04032142281006834,
           "pvalue": 0.07532946566584697,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 2400,
           "b": 2399,
+          "sd": 0.007216878208188759,
           "ks_statistic": 0.09173681313733995,
           "ks_pvalue": 8.965347309748657e-08
         },
@@ -867,15 +891,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 1.0,
         "law_sd": 2.8690210523902935e-73,
+        "sd_ratio_observed_to_law": null,
+        "fixed_split_law_cdf": 1.0,
         "law_p_full_coverage_atom": 1.0,
         "ks_law": {
           "statistic": 4.59553236904514e-144,
           "pvalue": 1.0,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4752,
           "b": 47,
+          "sd": 0.0014213982497481234,
           "ks_statistic": 1.0,
           "ks_pvalue": 0.0
         },
@@ -943,15 +970,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 1.0,
         "law_sd": 3.56282456834532e-49,
+        "sd_ratio_observed_to_law": null,
+        "fixed_split_law_cdf": 1.0,
         "law_p_full_coverage_atom": 1.0,
         "ks_law": {
           "statistic": 8.272835212481467e-96,
           "pvalue": 1.0,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4704,
           "b": 95,
+          "sd": 0.002010592649815202,
           "ks_statistic": 1.0,
           "ks_pvalue": 0.0
         },
@@ -1019,15 +1049,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 1.0,
         "law_sd": 4.858400261903463e-10,
+        "sd_ratio_observed_to_law": null,
+        "fixed_split_law_cdf": 1.0,
         "law_p_full_coverage_atom": 1.0,
         "ks_law": {
           "statistic": 2.6597823168515513e-17,
           "pvalue": 1.0,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4560,
           "b": 239,
+          "sd": 0.003139857968376083,
           "ks_statistic": 1.0,
           "ks_pvalue": 0.0
         },
@@ -1095,15 +1128,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9001875390706451,
         "law_sd": 0.006119254584753349,
+        "sd_ratio_observed_to_law": 1.0074248412159712,
+        "fixed_split_law_cdf": 0.417909623208502,
         "law_p_full_coverage_atom": 1.3453049740016652e-27,
         "ks_law": {
           "statistic": 0.032913862466220856,
           "pvalue": 0.22382612088696807,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4320,
           "b": 479,
+          "sd": 0.004326515475640328,
           "ks_statistic": 0.10565809146089411,
           "ks_pvalue": 3.5620079206459305e-10
         },
@@ -1171,15 +1207,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8501771202333651,
         "law_sd": 0.007285903562251685,
+        "sd_ratio_observed_to_law": 1.0101284709800127,
+        "fixed_split_law_cdf": 0.1166636224426387,
         "law_p_full_coverage_atom": 8.952551061193215e-230,
         "ks_law": {
           "statistic": 0.013882558542012147,
           "pvalue": 0.989154259400612,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4080,
           "b": 719,
+          "sd": 0.005151374906781674,
           "ks_statistic": 0.09399742976495828,
           "ks_pvalue": 3.8537493987702076e-08
         },
@@ -1247,15 +1286,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8001667013961247,
         "law_sd": 0.008163263356244848,
+        "sd_ratio_observed_to_law": 1.0051697317368342,
+        "fixed_split_law_cdf": 0.3588280470653156,
         "law_p_full_coverage_atom": 1.6353099157e-312,
         "ks_law": {
           "statistic": 0.013422893663389557,
           "pvalue": 0.9927102648997456,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3840,
           "b": 959,
+          "sd": 0.005771697312694833,
           "ks_statistic": 0.09652995842452988,
           "ks_pvalue": 1.4602487200165137e-08
         },
@@ -1323,15 +1365,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.7001458637216093,
         "law_sd": 0.00935381825843741,
+        "sd_ratio_observed_to_law": 1.0055983502772383,
+        "fixed_split_law_cdf": 0.11436603031219005,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.01698839760325166,
           "pvalue": 0.9302710228129051,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3360,
           "b": 1439,
+          "sd": 0.006613459023636497,
           "ks_statistic": 0.09204057450723901,
           "ks_pvalue": 8.013414960867607e-08
         },
@@ -1399,15 +1444,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.5001041883725776,
         "law_sd": 0.010207270796030161,
+        "sd_ratio_observed_to_law": 0.9936579766755765,
+        "fixed_split_law_cdf": 0.2872115816689331,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.015419056947718612,
           "pvalue": 0.9684050553344451,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 2400,
           "b": 2399,
+          "sd": 0.007216878208188759,
           "ks_statistic": 0.09173681313733995,
           "ks_pvalue": 8.965347309748657e-08
         },
@@ -1483,15 +1531,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9902062929777031,
         "law_sd": 0.002010370194100018,
+        "sd_ratio_observed_to_law": 0.9921518862832338,
+        "fixed_split_law_cdf": 0.8377627445267711,
         "law_p_full_coverage_atom": 6.376177154261528e-15,
         "ks_law": {
           "statistic": 0.025583149700172808,
           "pvalue": 0.5211875424854114,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4752,
           "b": 47,
+          "sd": 0.0014213982497481234,
           "ks_statistic": 0.12787973811698994,
           "ks_pvalue": 1.0249351211141444e-14
         },
@@ -1567,15 +1618,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9802042092102539,
         "law_sd": 0.0028437037518356774,
+        "sd_ratio_observed_to_law": 0.9994730728414238,
+        "fixed_split_law_cdf": 0.3316255548164647,
         "law_p_full_coverage_atom": 1.5936090471111555e-29,
         "ks_law": {
           "statistic": 0.04442194708767072,
           "pvalue": 0.03747947350579506,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4704,
           "b": 95,
+          "sd": 0.002010592649815202,
           "ks_statistic": 0.1214633202063422,
           "ks_pvalue": 2.580123360548672e-13
         },
@@ -1651,15 +1705,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9501979579079002,
         "law_sd": 0.004440892532719407,
+        "sd_ratio_observed_to_law": 0.992781945919729,
+        "fixed_split_law_cdf": 0.517816820423571,
         "law_p_full_coverage_atom": 5.55463671282041e-74,
         "ks_law": {
           "statistic": 0.01372889975145708,
           "pvalue": 0.9904591123416311,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4560,
           "b": 239,
+          "sd": 0.003139857968376083,
           "ks_statistic": 0.0941067780508128,
           "ks_pvalue": 3.697591432635602e-08
         },
@@ -1735,15 +1792,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9001875390706451,
         "law_sd": 0.006119254584753349,
+        "sd_ratio_observed_to_law": 0.9885062231465817,
+        "fixed_split_law_cdf": 0.4445587534193231,
         "law_p_full_coverage_atom": 2.362018601607071e-150,
         "ks_law": {
           "statistic": 0.014188905104675298,
           "pvalue": 0.9861752770892711,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4320,
           "b": 479,
+          "sd": 0.004326515475640328,
           "ks_statistic": 0.09226716434573012,
           "ks_pvalue": 7.36796502508131e-08
         },
@@ -1819,15 +1879,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8501771202333651,
         "law_sd": 0.007285903562251685,
+        "sd_ratio_observed_to_law": 1.0106291182465696,
+        "fixed_split_law_cdf": 0.3645103877751686,
         "law_p_full_coverage_atom": 8.952551061193215e-230,
         "ks_law": {
           "statistic": 0.026333094465848694,
           "pvalue": 0.4838184175118867,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4080,
           "b": 719,
+          "sd": 0.005151374906781674,
           "ks_statistic": 0.10494024847235478,
           "ks_pvalue": 4.828792077115556e-10
         },
@@ -1903,15 +1966,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8001667013961247,
         "law_sd": 0.008163263356244848,
+        "sd_ratio_observed_to_law": 1.0152629930895825,
+        "fixed_split_law_cdf": 0.22163825557663544,
         "law_p_full_coverage_atom": 1.6353099157e-312,
         "ks_law": {
           "statistic": 0.020006395044320363,
           "pvalue": 0.81059301428161,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3840,
           "b": 959,
+          "sd": 0.005771697312694833,
           "ks_statistic": 0.10468034720350339,
           "ks_pvalue": 5.388380681131336e-10
         },
@@ -1987,15 +2053,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.7001458637216093,
         "law_sd": 0.00935381825843741,
+        "sd_ratio_observed_to_law": 1.0150187275346851,
+        "fixed_split_law_cdf": 0.09079557156295624,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.017568509128066512,
           "pvalue": 0.9116469586522133,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3360,
           "b": 1439,
+          "sd": 0.006613459023636497,
           "ks_statistic": 0.10168081406226405,
           "ks_pvalue": 1.872519121853016e-09
         },
@@ -2071,15 +2140,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.5001041883725776,
         "law_sd": 0.010207270796030161,
+        "sd_ratio_observed_to_law": 1.0161233445122189,
+        "fixed_split_law_cdf": 0.17116710473099303,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.01779238358627888,
           "pvalue": 0.9038361493686772,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 2400,
           "b": 2399,
+          "sd": 0.007216878208188759,
           "ks_statistic": 0.0951574235222682,
           "ks_pvalue": 2.4787913670270233e-08
         },
@@ -2155,15 +2227,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 1.0,
         "law_sd": 2.8690210523902935e-73,
+        "sd_ratio_observed_to_law": null,
+        "fixed_split_law_cdf": 1.0,
         "law_p_full_coverage_atom": 1.0,
         "ks_law": {
           "statistic": 4.59553236904514e-144,
           "pvalue": 1.0,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4752,
           "b": 47,
+          "sd": 0.0014213982497481234,
           "ks_statistic": 1.0,
           "ks_pvalue": 0.0
         },
@@ -2239,15 +2314,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 1.0,
         "law_sd": 3.56282456834532e-49,
+        "sd_ratio_observed_to_law": null,
+        "fixed_split_law_cdf": 1.0,
         "law_p_full_coverage_atom": 1.0,
         "ks_law": {
           "statistic": 8.272835212481467e-96,
           "pvalue": 1.0,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4704,
           "b": 95,
+          "sd": 0.002010592649815202,
           "ks_statistic": 1.0,
           "ks_pvalue": 0.0
         },
@@ -2323,15 +2401,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 1.0,
         "law_sd": 4.858400261903463e-10,
+        "sd_ratio_observed_to_law": null,
+        "fixed_split_law_cdf": 1.0,
         "law_p_full_coverage_atom": 1.0,
         "ks_law": {
           "statistic": 2.6597823168515513e-17,
           "pvalue": 1.0,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4560,
           "b": 239,
+          "sd": 0.003139857968376083,
           "ks_statistic": 1.0,
           "ks_pvalue": 0.0
         },
@@ -2407,15 +2488,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9001875390706451,
         "law_sd": 0.006119254584753349,
+        "sd_ratio_observed_to_law": 1.0005047855145435,
+        "fixed_split_law_cdf": 0.4311889051046753,
         "law_p_full_coverage_atom": 1.3453049740016652e-27,
         "ks_law": {
           "statistic": 0.03363113094199355,
           "pvalue": 0.20341637162374304,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4320,
           "b": 479,
+          "sd": 0.004326515475640328,
           "ks_statistic": 0.10853687883959007,
           "ks_pvalue": 1.0294991717544255e-10
         },
@@ -2491,15 +2575,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8501771202333651,
         "law_sd": 0.007285903562251685,
+        "sd_ratio_observed_to_law": 1.0111631613105914,
+        "fixed_split_law_cdf": 0.5211207912279364,
         "law_p_full_coverage_atom": 8.952551061193215e-230,
         "ks_law": {
           "statistic": 0.01557791778534623,
           "pvalue": 0.9653626125285126,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4080,
           "b": 719,
+          "sd": 0.005151374906781674,
           "ks_statistic": 0.09121490539678845,
           "ks_pvalue": 1.0862945721660282e-07
         },
@@ -2575,15 +2662,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8001667013961247,
         "law_sd": 0.008163263356244848,
+        "sd_ratio_observed_to_law": 1.0148053183758758,
+        "fixed_split_law_cdf": 0.3493843641716735,
         "law_p_full_coverage_atom": 1.6353099157e-312,
         "ks_law": {
           "statistic": 0.024823394478743932,
           "pvalue": 0.5601819592590082,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3840,
           "b": 959,
+          "sd": 0.005771697312694833,
           "ks_statistic": 0.10130629456369922,
           "ks_pvalue": 2.1820170541719526e-09
         },
@@ -2659,15 +2749,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.7001458637216093,
         "law_sd": 0.00935381825843741,
+        "sd_ratio_observed_to_law": 1.0346997532908513,
+        "fixed_split_law_cdf": 0.20379392269773577,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.020786455158771422,
           "pvalue": 0.7723953353906585,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3360,
           "b": 1439,
+          "sd": 0.006613459023636497,
           "ks_statistic": 0.10085313857683492,
           "ks_pvalue": 2.623664187896557e-09
         },
@@ -2743,15 +2836,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.5001041883725776,
         "law_sd": 0.010207270796030161,
+        "sd_ratio_observed_to_law": 1.027764016782167,
+        "fixed_split_law_cdf": 0.2872115816689331,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.024927782154483602,
           "pvalue": 0.5547660348788181,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 2400,
           "b": 2399,
+          "sd": 0.007216878208188759,
           "ks_statistic": 0.1101144285438509,
           "ks_pvalue": 5.14066576184425e-11
         },
@@ -2819,15 +2915,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9902062929777031,
         "law_sd": 0.002010370194100018,
+        "sd_ratio_observed_to_law": 0.9839946255998135,
+        "fixed_split_law_cdf": 0.8079612707323236,
         "law_p_full_coverage_atom": 6.376177154261528e-15,
         "ks_law": {
           "statistic": 0.02128041094085631,
           "pvalue": 0.7472685479750625,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4752,
           "b": 47,
+          "sd": 0.0014213982497481234,
           "ks_statistic": 0.11687973811698993,
           "ks_pvalue": 2.3320326964784503e-12
         },
@@ -2895,15 +2994,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9802042092102539,
         "law_sd": 0.0028437037518356774,
+        "sd_ratio_observed_to_law": 1.0161209077330524,
+        "fixed_split_law_cdf": 0.7503601215297078,
         "law_p_full_coverage_atom": 1.5936090471111555e-29,
         "ks_law": {
           "statistic": 0.014517570785871514,
           "pvalue": 0.9823783529623172,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4704,
           "b": 95,
+          "sd": 0.002010592649815202,
           "ks_statistic": 0.1067176473737318,
           "ks_pvalue": 2.2645767861175644e-10
         },
@@ -2971,15 +3073,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9501979579079002,
         "law_sd": 0.004440892532719407,
+        "sd_ratio_observed_to_law": 1.0292730322184662,
+        "fixed_split_law_cdf": 0.09980666267296337,
         "law_p_full_coverage_atom": 5.55463671282041e-74,
         "ks_law": {
           "statistic": 0.019780652474647775,
           "pvalue": 0.8212292302995292,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4560,
           "b": 239,
+          "sd": 0.003139857968376083,
           "ks_statistic": 0.09548124440510153,
           "ks_pvalue": 2.1893688405505874e-08
         },
@@ -3047,15 +3152,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9001875390706451,
         "law_sd": 0.006119254584753349,
+        "sd_ratio_observed_to_law": 1.0428289196989904,
+        "fixed_split_law_cdf": 0.038630078209056826,
         "law_p_full_coverage_atom": 2.362018601607071e-150,
         "ks_law": {
           "statistic": 0.03755052750784016,
           "pvalue": 0.11620139695289111,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4320,
           "b": 479,
+          "sd": 0.004326515475640328,
           "ks_statistic": 0.10426716434573013,
           "ks_pvalue": 6.410879045350346e-10
         },
@@ -3123,15 +3231,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8501771202333651,
         "law_sd": 0.007285903562251685,
+        "sd_ratio_observed_to_law": 1.0368253701894723,
+        "fixed_split_law_cdf": 0.02449739430844826,
         "law_p_full_coverage_atom": 8.952551061193215e-230,
         "ks_law": {
           "statistic": 0.029938671281305035,
           "pvalue": 0.32505400505439297,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4080,
           "b": 719,
+          "sd": 0.005151374906781674,
           "ks_statistic": 0.11539377691911724,
           "ks_pvalue": 4.674255914824233e-12
         },
@@ -3199,15 +3310,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8001667013961247,
         "law_sd": 0.008163263356244848,
+        "sd_ratio_observed_to_law": 1.0310139229072341,
+        "fixed_split_law_cdf": 0.4371808149988361,
         "law_p_full_coverage_atom": 1.6353099157e-312,
         "ks_law": {
           "statistic": 0.04063749474357908,
           "pvalue": 0.07155485157108521,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3840,
           "b": 959,
+          "sd": 0.005771697312694833,
           "ks_statistic": 0.12164004643490661,
           "ks_pvalue": 2.366094481007057e-13
         },
@@ -3275,15 +3389,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.7001458637216093,
         "law_sd": 0.00935381825843741,
+        "sd_ratio_observed_to_law": 1.0124342605852241,
+        "fixed_split_law_cdf": 0.5151132188577016,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.01916673274437969,
           "pvalue": 0.8490127306718679,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3360,
           "b": 1439,
+          "sd": 0.006613459023636497,
           "ks_statistic": 0.0970962580316681,
           "ks_pvalue": 1.1712292334352898e-08
         },
@@ -3351,15 +3468,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.5001041883725776,
         "law_sd": 0.010207270796030161,
+        "sd_ratio_observed_to_law": 1.002392021200452,
+        "fixed_split_law_cdf": 0.7332979282567478,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.025584959868197976,
           "pvalue": 0.5210959040632679,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 2400,
           "b": 2399,
+          "sd": 0.007216878208188759,
           "ks_statistic": 0.10588028631485036,
           "ks_pvalue": 3.24047127678348e-10
         },
@@ -3427,15 +3547,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 1.0,
         "law_sd": 2.8690210523902935e-73,
+        "sd_ratio_observed_to_law": null,
+        "fixed_split_law_cdf": 1.0,
         "law_p_full_coverage_atom": 1.0,
         "ks_law": {
           "statistic": 4.59553236904514e-144,
           "pvalue": 1.0,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4752,
           "b": 47,
+          "sd": 0.0014213982497481234,
           "ks_statistic": 1.0,
           "ks_pvalue": 0.0
         },
@@ -3503,15 +3626,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 1.0,
         "law_sd": 3.56282456834532e-49,
+        "sd_ratio_observed_to_law": null,
+        "fixed_split_law_cdf": 1.0,
         "law_p_full_coverage_atom": 1.0,
         "ks_law": {
           "statistic": 8.272835212481467e-96,
           "pvalue": 1.0,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4704,
           "b": 95,
+          "sd": 0.002010592649815202,
           "ks_statistic": 1.0,
           "ks_pvalue": 0.0
         },
@@ -3579,15 +3705,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 1.0,
         "law_sd": 4.858400261903463e-10,
+        "sd_ratio_observed_to_law": null,
+        "fixed_split_law_cdf": 1.0,
         "law_p_full_coverage_atom": 1.0,
         "ks_law": {
           "statistic": 2.6597823168515513e-17,
           "pvalue": 1.0,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4560,
           "b": 239,
+          "sd": 0.003139857968376083,
           "ks_statistic": 1.0,
           "ks_pvalue": 0.0
         },
@@ -3655,15 +3784,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.9001875390706451,
         "law_sd": 0.006119254584753349,
+        "sd_ratio_observed_to_law": 1.0051845986903023,
+        "fixed_split_law_cdf": 0.5798798062699312,
         "law_p_full_coverage_atom": 1.3453049740016652e-27,
         "ks_law": {
           "statistic": 0.014050649775964874,
           "pvalue": 0.9875839268353072,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4320,
           "b": 479,
+          "sd": 0.004326515475640328,
           "ks_statistic": 0.09758335405107044,
           "ks_pvalue": 9.678372895926025e-09
         },
@@ -3731,15 +3863,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8501771202333651,
         "law_sd": 0.007285903562251685,
+        "sd_ratio_observed_to_law": 0.9881534896216662,
+        "fixed_split_law_cdf": 0.06348567056322693,
         "law_p_full_coverage_atom": 8.952551061193215e-230,
         "ks_law": {
           "statistic": 0.016091881281436793,
           "pvalue": 0.9542679489934278,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 4080,
           "b": 719,
+          "sd": 0.005151374906781674,
           "ks_statistic": 0.09536360241050842,
           "ks_pvalue": 2.2904953504512696e-08
         },
@@ -3807,15 +3942,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.8001667013961247,
         "law_sd": 0.008163263356244848,
+        "sd_ratio_observed_to_law": 1.0222657040255152,
+        "fixed_split_law_cdf": 0.04279825995757909,
         "law_p_full_coverage_atom": 1.6353099157e-312,
         "ks_law": {
           "statistic": 0.015543261252016327,
           "pvalue": 0.9660417313517108,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3840,
           "b": 959,
+          "sd": 0.005771697312694833,
           "ks_statistic": 0.09281823550719881,
           "ks_pvalue": 6.001711788247582e-08
         },
@@ -3883,15 +4021,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.7001458637216093,
         "law_sd": 0.00935381825843741,
+        "sd_ratio_observed_to_law": 1.0302073152061209,
+        "fixed_split_law_cdf": 0.2504152272778884,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.02397006468444679,
           "pvalue": 0.6049959157353976,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 3360,
           "b": 1439,
+          "sd": 0.006613459023636497,
           "ks_statistic": 0.10660069896384551,
           "ks_pvalue": 2.3811999277041834e-10
         },
@@ -3959,15 +4100,18 @@
         "law": "beta_binomial_with_failure_atoms",
         "law_mean": 0.5001041883725776,
         "law_sd": 0.010207270796030161,
+        "sd_ratio_observed_to_law": 0.9888211198796283,
+        "fixed_split_law_cdf": 0.6319149644954464,
         "law_p_full_coverage_atom": 0.0,
         "ks_law": {
           "statistic": 0.018137474471097703,
           "pvalue": 0.8911466450334252,
-          "conservative": true
+          "pvalue_note": "upper bound on the exact p (discrete null): conservative"
         },
         "beta": {
           "a": 2400,
           "b": 2399,
+          "sd": 0.007216878208188759,
           "ks_statistic": 0.09601962380430373,
           "ks_pvalue": 1.779354965540232e-08
         },
@@ -3986,7 +4130,7 @@
     }
   ],
   "provenance": {
-    "poseconf_git_sha": "4caf8d004d39c3d51f30e00a1027cb2fd5c69df8",
+    "poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
     "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
     "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
     "p1_sidecar": "external/spacecraft-pose-baseline/results/keypoint_a2/synthetic_predicted_crop_samples.npz",
@@ -4004,7 +4148,7 @@
     "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
     "config_sha256": "667eb0cc0aa96131da34b866db6be1cc8d621265060e016fc073a6f976763351",
     "resplits_npz_sha256": "88aa70893ea688aa7d8217ca536b0eefe834af180fa7bbb42ca854f2575a79aa",
-    "created_at": "2026-10-07T12:55:26Z",
+    "created_at": "2026-10-07T13:06:26Z",
     "pnp_config": {
       "method": "EPNP",
       "reprojection_threshold_px": 5.0,

@@ -4,7 +4,7 @@
 |---|---|---|---|
 | 0 Scaffold | **complete** 2026-10-06 | 4/4 P1 checkpoint SHA-256 match the release manifest ([`results/p1_checkpoints.json`](../results/p1_checkpoints.json)); P1 pinned at `0f81b426` (same file, `provenance.p1_commit`) | `phase-0-complete` |
 | 1 Conformal core ⚠️ | **complete** 2026-10-06 | synthetic validity 16/16 cases VALID; split CP Beta-law KS p ∈ [0.033, 0.773] over 12 cases, R = 2,000 each; weighted CP with true weights 0.9050 vs split 0.7502 at α = 0.10 under a known shift ([`results/validity/conformal_core_synthetic.json`](../results/validity/conformal_core_synthetic.json)); `conformal-validity-auditor` SOUND | `phase-1-complete` |
-| 2 Splits + Level A | not started | | |
+| 2 Splits + Level A | **complete** 2026-10-07 | splits 2,399 / 4,798 / 4,797 + HIL 3,370/3,370, 1,395/1,396, byte-identical ([`splits/SHA256SUMS`](../splits/SHA256SUMS)); A1–A3 × 2 conventions × 8 α: 39 VALID, 9 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES vs the exact re-split law, R = 1,000 ([`results/level_a/keypoint_a2_predicted_crop_synthetic.json`](../results/level_a/keypoint_a2_predicted_crop_synthetic.json)); `split-leakage-auditor` no critical, `conformal-validity-auditor` SOUND | `phase-2-complete` |
 | 3 Dump + P1 parity | not started | | |
 | 4 Level B | not started | | |
 | 5 Variance head | not started | | |
@@ -52,3 +52,55 @@ Update at the end of each phase via `/phase-gate N`.
 - **Carried into Phase 2**, listed under "Phase 1 audit: carried items" in `docs/DECISIONS.md`.
   The most urgent is S1: the SPEED+ re-split reference law must be Beta-Binomial, not Beta, and
   failure atoms need handling.
+
+## Phase 2 — Splits + Level A (complete, 2026-10-07)
+
+- **Splits.** `splits/*.txt` + `SHA256SUMS`, seed 20261006. Sizes are synthetic `val_tune` / `val_cal` / `val_test`
+  2,399 / 4,798 / 4,797, lightbox poolA/poolB 3,370 / 3,370, and sunlamp 1,395 / 1,396.
+  `make_splits.py --check` is byte-identical, both from the dataset listing and from the committed
+  HIL union (the latter is in CI). HIL names come from an image-directory listing only. No HIL label,
+  sidecar or image was opened in this phase.
+- **Level A** ([`results/level_a/keypoint_a2_predicted_crop_synthetic.json`](../results/level_a/keypoint_a2_predicted_crop_synthetic.json)):
+  `keypoint_a2`, `predicted_crop`, arm `split`, synthetic `val_test` only, with n_cal = 4,798 and n = 4,797.
+  - **Fit.** Normalisers were fitted on 2,251 solved `val_tune` frames: c_R = 0.01208 rad, c_t = 0.003281,
+    c_z = 0.003094, c_xy = 0.000572. g(conf̄) is a decreasing isotonic fit with 70 knots.
+  - **Answer rate.** 0.9285 on `val_test`.
+  - **α = 0.10, `abstain_allowed`** (`val_test` coverage, then the Clopper–Pearson interval, rotation radius, translation radius):
+
+    | Score | Coverage | 95 % CI | Rotation radius (median) | Translation radius |
+    |---|---|---|---|---|
+    | A1 | 0.8941 | [0.8850, 0.9027] | 2.33° | 1.10 % of ‖t̂‖ |
+    | A2 | 0.8993 | [0.8904, 0.9077] | 2.83° | boresight 1.27 %, lateral 0.23 % |
+    | A3 | 0.8891 | [0.8799, 0.8978] | 2.13° (p90 3.15°) | 1.01 % (p90 1.50 %) |
+
+    Silent-failure rate is 0.106 / 0.101 / 0.111.
+    The fixed-split coverage is one draw from the re-split law (`resplits.fixed_split_law_cdf` in
+    the JSON). A3's 0.8891, with a CI below 0.90, has a law CDF of 0.039. That is consistent with
+    marginal coverage under exchangeability of `val_cal` and `val_test`; the Clopper–Pearson
+    interval conditions on this one calibration set. A3's re-split mean is 0.90002.
+  - **α = 0.10, `answer_required`** (`val_test`, n = 4,797; translation radius as % of ‖t̂‖):
+
+    | Score | Coverage | 95 % CI | Rotation radius | Translation radius | Silent-failure rate |
+    |---|---|---|---|---|---|
+    | A1 | 0.8989 | [0.8900, 0.9073] | 3.99° | 1.89 % | 0.0296 |
+    | A2 | 0.8991 | [0.8902, 0.9075] | 4.83° | boresight 2.16 %, lateral 0.40 % | 0.0294 |
+    | A3 | 0.9014 | [0.8926, 0.9097] | 3.27° (median; p90 4.83°) | 1.55 % (p90 2.29 %) | 0.0271 |
+
+  - **`answer_required`, α ≤ 0.05.** q = +∞, so the set is the whole space and coverage is 1. This is
+    reported, not fixed: the pool has 7.2 % failures, which exceeds α.
+- **Validity over R = 1,000 re-splits of `val_cal ∪ val_test`.** The reference is the exact
+  atom-aware Beta-Binomial law (`conformal.metrics.resplit_coverage_law`), which closes carried item S1.
+  - Results: 39 / 48 cells VALID, 9 DEGENERATE, 0 DEVIATES.
+  - Law KS p ranges from 0.037 to 0.999. Observed/law sd ratio ranges from 0.96 to 1.04.
+  - The plain Beta KS rejects everywhere (max p 1.4e-7), because its sd ignores the finite test
+    half (0.00433 vs 0.00612 at α = 0.10). This is documented as a deviation in `docs/DECISIONS.md`.
+  - The plan's literal mean band holds for all 39 non-degenerate cells.
+  - Per-score files and figures: [`results/validity/A*_*.json`](../results/validity/) and
+    `assets/validity_*.png`.
+- **What the re-split test cannot show.** Random re-splits of one pool are exchangeable by
+  construction. The test validates the implementation, not §0(4) selection dependence
+  (`docs/DECISIONS.md`).
+- **Audits.** `split-leakage-auditor`: no critical findings, 2 warnings carried to Phase 6.
+  `conformal-validity-auditor`: SOUND. Its 4 must-fix items (wording and provenance, no number
+  changed) are closed. See "Phase 2 audits: carried items" in `docs/DECISIONS.md`.
+- **Carried into Phase 6.** A code-level guard on HIL sidecar loading (leakage W1).

@@ -24,8 +24,9 @@
         0.9902083767451553
       ],
       "ks_law_pvalue": 1.0,
-      "ks_beta_pvalue": 0.0,
-      "sd_ratio_observed_to_law": 0.0,
+      "ks_beta_pvalue": null,
+      "sd_ratio_observed_to_law": null,
+      "fixed_split_law_cdf": 1.0,
       "frac_q_pos_inf": 1.0,
       "frac_q_neg_inf": 0.0,
       "fixed_split": {
@@ -74,8 +75,9 @@
         0.9802083767451553
       ],
       "ks_law_pvalue": 1.0,
-      "ks_beta_pvalue": 0.0,
-      "sd_ratio_observed_to_law": 0.0,
+      "ks_beta_pvalue": null,
+      "sd_ratio_observed_to_law": null,
+      "fixed_split_law_cdf": 1.0,
       "frac_q_pos_inf": 1.0,
       "frac_q_neg_inf": 0.0,
       "fixed_split": {
@@ -124,8 +126,9 @@
         0.9502083767451552
       ],
       "ks_law_pvalue": 1.0,
-      "ks_beta_pvalue": 0.0,
-      "sd_ratio_observed_to_law": 0.0,
+      "ks_beta_pvalue": null,
+      "sd_ratio_observed_to_law": null,
+      "fixed_split_law_cdf": 1.0,
       "frac_q_pos_inf": 1.0,
       "frac_q_neg_inf": 0.0,
       "fixed_split": {
@@ -176,6 +179,7 @@
       "ks_law_pvalue": 0.20341637162374304,
       "ks_beta_pvalue": 1.0294991717544255e-10,
       "sd_ratio_observed_to_law": 1.0005047855145435,
+      "fixed_split_law_cdf": 0.4311889051046753,
       "frac_q_pos_inf": 0.0,
       "frac_q_neg_inf": 0.0,
       "fixed_split": {
@@ -226,6 +230,7 @@
       "ks_law_pvalue": 0.9653626125285126,
       "ks_beta_pvalue": 1.0862945721660282e-07,
       "sd_ratio_observed_to_law": 1.0111631613105914,
+      "fixed_split_law_cdf": 0.5211207912279364,
       "frac_q_pos_inf": 0.0,
       "frac_q_neg_inf": 0.0,
       "fixed_split": {
@@ -276,6 +281,7 @@
       "ks_law_pvalue": 0.5601819592590082,
       "ks_beta_pvalue": 2.1820170541719526e-09,
       "sd_ratio_observed_to_law": 1.0148053183758758,
+      "fixed_split_law_cdf": 0.3493843641716735,
       "frac_q_pos_inf": 0.0,
       "frac_q_neg_inf": 0.0,
       "fixed_split": {
@@ -326,6 +332,7 @@
       "ks_law_pvalue": 0.7723953353906585,
       "ks_beta_pvalue": 2.623664187896557e-09,
       "sd_ratio_observed_to_law": 1.0346997532908513,
+      "fixed_split_law_cdf": 0.20379392269773577,
       "frac_q_pos_inf": 0.0,
       "frac_q_neg_inf": 0.0,
       "fixed_split": {
@@ -376,6 +383,7 @@
       "ks_law_pvalue": 0.5547660348788181,
       "ks_beta_pvalue": 5.14066576184425e-11,
       "sd_ratio_observed_to_law": 1.027764016782167,
+      "fixed_split_law_cdf": 0.2872115816689331,
       "frac_q_pos_inf": 0.0,
       "frac_q_neg_inf": 0.0,
       "fixed_split": {
@@ -418,7 +426,7 @@
   "n_deviates": 0,
   "figure": "assets/validity_A2_answer_required.png",
   "provenance": {
-    "poseconf_git_sha": "cfccbb1e9772ea9cb2880741f1014555036aefc5",
+    "poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
     "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
     "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
     "p1_sidecar": "external/spacecraft-pose-baseline/results/keypoint_a2/synthetic_predicted_crop_samples.npz",
@@ -436,7 +444,7 @@
     "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
     "config_sha256": "667eb0cc0aa96131da34b866db6be1cc8d621265060e016fc073a6f976763351",
     "resplits_npz_sha256": "88aa70893ea688aa7d8217ca536b0eefe834af180fa7bbb42ca854f2575a79aa",
-    "created_at": "2026-10-07T12:57:11Z",
+    "created_at": "2026-10-07T13:06:33Z",
     "pnp_config": {
       "method": "EPNP",
       "reprojection_threshold_px": 5.0,
@@ -448,6 +456,6 @@
       "confidence_min": 0.2
     },
     "source_result": "results/level_a/keypoint_a2_predicted_crop_synthetic.json",
-    "source_result_sha256": "27b2cc5bb83fb5c14e1edf5cdff99230f2772d91f6a2882774980e462c75f428"
+    "source_result_sha256": "42f63ae2622f166a24ca3c811cb6ffb4a682946e537944f89f69c3652a3f2cef"
   }
 }

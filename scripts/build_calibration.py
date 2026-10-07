@@ -141,7 +141,9 @@ def _load_sources(block: dict[str, Any], run: str, crop: str) -> dict[str, dict[
     return records
 
 
-def build(config: dict[str, Any], paths: Any) -> list[tuple[Path, dict[str, Any], dict]]:
+def build(
+    config: dict[str, Any], paths: Any, git_sha: str
+) -> list[tuple[Path, dict[str, Any], dict]]:
     """Write every artifact; return `(path, artifact, source row)` per artifact."""
     block = config["calibration"]
     alpha = float(block["alpha"])
@@ -149,7 +151,6 @@ def build(config: dict[str, Any], paths: Any) -> list[tuple[Path, dict[str, Any]
     order = pose_quaternion_order(run)
     geometry = projection_geometry(run, paths=paths)
     out_dir = Path(block["out_dir"])
-    git_sha = poseconf_git_sha()
     records = _load_sources(block, run, crop)
     detector = detector_sha256(paths) if crop == "predicted_crop" else None
     written = []
@@ -216,7 +217,7 @@ def _replay(head: ConformalPoseHead, estimates, covs, truth) -> tuple[int, int, 
     return n_cov, n_ans, reasons
 
 
-def verify(config: dict[str, Any], paths: Any, written: list) -> dict[str, Any]:
+def verify(config: dict[str, Any], paths: Any, written: list, git_sha: str) -> dict[str, Any]:
     """Replay every artifact on `val_test`; the result record for `index.json`."""
     block = config["calibration"]
     run, crop = block["run"], block["crop_source"]
@@ -342,7 +343,7 @@ def verify(config: dict[str, Any], paths: Any, written: list) -> dict[str, Any]:
         "all_match": all(c["match"] for c in checks),
         "checks": checks,
         "provenance": {
-            "poseconf_git_sha": poseconf_git_sha(),
+            "poseconf_git_sha": git_sha,
             "p1_commit": p1_commit(),
             "p1_checkpoint_sha256": p1_sha,
             "detector_checkpoint_sha256": det_sha,
@@ -362,10 +363,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     paths = p1_paths(args.paths)
-    written = build(config, paths)
+    # Read once, before anything is written: the artifacts are tracked files, so reading it after
+    # writing them would mark the index -dirty.
+    git_sha = poseconf_git_sha()
+    written = build(config, paths, git_sha)
     if not args.verify:
         return 0
-    record = verify(config, paths, written)
+    record = verify(config, paths, written, git_sha)
     out = Path(config["calibration"]["out_dir"]) / "index.json"
     write_result_json(out, record)
     print(f"wrote {out}  all_match = {record['all_match']}")

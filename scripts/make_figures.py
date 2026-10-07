@@ -389,7 +389,19 @@ def shift_coverage_vs_nominal(args: argparse.Namespace) -> Path:
                 ax.scatter(x[inf], y[inf], marker=MARKERS[i], s=42, facecolors=LIGHT_SURFACE,
                            edgecolors=SLOTS[i], linewidths=1.4, zorder=4)  # fmt: skip
             n = sel[0]["n_total"] if sel else 0
-            ax.set_title(f"{DOMAIN_LABEL[domain]} (n = {n})", fontsize=10.5)
+            ref = _one(rows, score="A1", domain=domain, convention=convention, alpha=0.1)
+            answer = ref["answer_rate"]
+            if convention == "abstain_allowed":
+                bound, text = 1 - answer, f"floor 1 − answer rate = {1 - answer:.3f}"
+            else:
+                bound, text = answer, f"ceiling = answer rate {answer:.3f} (finite sets)"
+            ax.axhline(bound, color=LIGHT_TEXT_2, linestyle=":", linewidth=1.2)
+            if convention == "abstain_allowed":
+                ax.text(0.995, bound - 0.045, text, fontsize=8, color=LIGHT_TEXT_2, ha="right")
+            else:
+                ax.text(0.46, bound + 0.015, text, fontsize=8, color=LIGHT_TEXT_2, ha="left")
+            ax.set_title(f"{DOMAIN_LABEL[domain]} (n = {n}; A1 answer rate {answer:.3f})",
+                         fontsize=10.5)  # fmt: skip
             ax.set_xlim(0.45, 1.0)
             ax.set_ylim(0.0, 1.02)
             ax.set_xlabel("nominal coverage 1 − α")
@@ -400,16 +412,23 @@ def shift_coverage_vs_nominal(args: argparse.Namespace) -> Path:
         handles.append(
             Line2D([], [], color=LIGHT_TEXT_2, linestyle="--", label="measured = nominal")
         )
-        legend = fig.legend(handles=handles, loc="lower center", ncol=len(handles), frameon=False,
+        bound_label = (
+            "abstentions count as covered: coverage ≥ 1 − answer rate"
+            if convention == "abstain_allowed"
+            else "failures uncovered unless q = ∞: coverage ≤ answer rate"
+        )
+        handles.append(Line2D([], [], color=LIGHT_TEXT_2, linestyle=":", label=bound_label))
+        legend = fig.legend(handles=handles, loc="lower center", ncol=5, frameon=False,
                             fontsize=9, bbox_to_anchor=(0.5, 0.0))  # fmt: skip
         for text in legend.get_texts():
             text.set_color(LIGHT_TEXT)
         fig.suptitle(
             f"Coverage under shift: calibrated on synthetic val_cal (arm split, predicted_crop, "
-            f"{convention}). Guaranteed only on synthetic; HIL is measured.",
+            f"{convention}).\nMarginal, finite-sample coverage ≥ 1 − α holds on synthetic val_test "
+            f"(exchangeable with val_cal); on HIL poolB it is measured, not guaranteed.",
             color=LIGHT_TEXT, fontsize=11.5,
         )  # fmt: skip
-        fig.subplots_adjust(left=0.05, right=0.99, top=0.86, bottom=0.2, wspace=0.12)
+        fig.subplots_adjust(left=0.05, right=0.99, top=0.83, bottom=0.24, wspace=0.12)
         written.append(_save(fig, args, f"shift_coverage_vs_nominal_{convention}.png"))
     return written[0].parent / "shift_coverage_vs_nominal_*.png"
 
@@ -446,10 +465,12 @@ def shift_silent_failure(args: argparse.Namespace) -> Path:
             if _infinite(row):
                 ax.text(x, value + 0.03, "set ∞", ha="center", fontsize=7.5, color=LIGHT_TEXT_2)
     ax.set_xticks(range(len(DOMAINS)))
-    ax.set_xticklabels([DOMAIN_LABEL[d] for d in DOMAINS], color=LIGHT_TEXT)
+    answer = {d: _one(rows, arm="split", domain=d)["answer_rate"] for d in DOMAINS}
+    ax.set_xticklabels([f"{DOMAIN_LABEL[d]}\nanswer rate {answer[d]:.3f}" for d in DOMAINS],
+                       color=LIGHT_TEXT)  # fmt: skip
     ax.set_ylabel("silent-failure rate  P(answered ∧ truth ∉ set)")
     ax.axhline(0.1, color=LIGHT_TEXT_2, linestyle="--", linewidth=1.0)
-    ax.text(-0.45, 0.103, "α = 0.10", fontsize=8, color=LIGHT_TEXT_2, ha="left")
+    ax.text(2.55, 0.113, "α = 0.10", fontsize=8, color=LIGHT_TEXT_2, ha="right")
     legend = ax.legend(frameon=False, fontsize=9, loc="upper left")
     for text in legend.get_texts():
         text.set_color(LIGHT_TEXT)
@@ -458,7 +479,7 @@ def shift_silent_failure(args: argparse.Namespace) -> Path:
         "(hatched = oracle, uses target labels)",
         fontsize=10.5,
     )
-    fig.subplots_adjust(left=0.08, right=0.99, top=0.9, bottom=0.1)
+    fig.subplots_adjust(left=0.08, right=0.99, top=0.9, bottom=0.13)
     return _save(fig, args, "shift_silent_failure.png")
 
 
@@ -488,8 +509,19 @@ def shift_few_label_recovery(args: argparse.Namespace) -> Path:
             base = _one(rows, score=score, domain=domain, arm="split")
             top.axhline(base["coverage"], color=SLOTS[i], linestyle=":", linewidth=1.6,
                         label=f"{score}: split, synthetic calibration ({base['coverage']:.3f})")  # fmt: skip
+            if score == "A1":
+                for r in oracle:
+                    top.text(r["n_cal"], 0.03, f"ans\n{r['answer_rate']:.3f}", ha="center",
+                             fontsize=7.5, color=LIGHT_TEXT_2,
+                             transform=top.get_xaxis_transform())  # fmt: skip
             radius = [r["set_size"]["rot_deg"]["median"] if r["set_size"] else np.nan
                       for r in oracle]  # fmt: skip
+            for r, value in zip(oracle, radius, strict=True):
+                answered = r["set_size"]["n_draws_with_answers"] if r["set_size"] else 0
+                if score == "A1" and answered < r["n_draws"] and math.isfinite(value):
+                    bottom.annotate(f"{answered}/{r['n_draws']} draws answer", (r["n_cal"], value),
+                                    textcoords="offset points", xytext=(0, 8), ha="center",
+                                    fontsize=7.5, color=LIGHT_TEXT_2)  # fmt: skip
             bottom.plot(n, radius, color=SLOTS[i], linewidth=2, marker=MARKERS[i], markersize=7,
                         markeredgecolor=LIGHT_SURFACE, label=f"{score}: oracle (median over draws)")  # fmt: skip
             bottom.axhline(base["set_size"]["rot_deg"]["median"], color=SLOTS[i], linestyle=":",
@@ -505,18 +537,21 @@ def shift_few_label_recovery(args: argparse.Namespace) -> Path:
         top.set_ylim(0.6, 1.0)
         bottom.set_xlabel("n labeled poolA frames used for calibration")
     axes[0, 0].set_ylabel("measured coverage on poolB")
-    axes[1, 0].set_ylabel("median rotation radius (°), answered frames")
+    axes[1, 0].set_ylabel("median rotation radius (°)\n(answered frames; draws with answers)")
     for ax, loc in zip(axes.ravel(), ("lower right", "lower right", "upper right", "upper right"),
                        strict=True):  # fmt: skip
-        legend = ax.legend(frameon=False, fontsize=7.8, loc=loc)
+        anchor = (1.0, 0.13) if loc == "lower right" else (1.0, 1.0)
+        legend = ax.legend(frameon=False, fontsize=7.8, loc=loc, bbox_to_anchor=anchor)
         for text in legend.get_texts():
             text.set_color(LIGHT_TEXT)
     fig.suptitle(
         "How many labeled real frames buy coverage back? oracle_target_labels_n*, α = 0.10, "
-        "abstain_allowed, predicted_crop (oracle: uses HIL labels)",
+        "abstain_allowed, predicted_crop (oracle: uses HIL labels)\nAn abstention counts as "
+        "covered: read coverage with the mean A1 answer rate (ans, bottom of each panel).\n"
+        "A draw with q = −∞ abstains on every frame.",
         color=LIGHT_TEXT, fontsize=11.5,
     )  # fmt: skip
-    fig.subplots_adjust(left=0.07, right=0.99, top=0.91, bottom=0.07, hspace=0.25, wspace=0.14)
+    fig.subplots_adjust(left=0.08, right=0.99, top=0.86, bottom=0.07, hspace=0.25, wspace=0.14)
     return _save(fig, args, "shift_few_label_recovery.png")
 
 
@@ -543,6 +578,10 @@ def shift_size_vs_coverage(args: argparse.Namespace) -> Path:
         lo, hi = row["coverage_ci95"]
         ax.errorbar(x, row["coverage"], yerr=[[row["coverage"] - lo], [hi - row["coverage"]]],
                     color=SLOTS[d], linewidth=1.2, capsize=0, zorder=3)  # fmt: skip
+        offset = {0: (7, 6), 1: (7, -12), 2: (7, 6), 3: (-44, 8)}[j]
+        ax.annotate(f"ans {row['answer_rate']:.2f}", (x, row["coverage"]),
+                    textcoords="offset points", xytext=offset, fontsize=7.5,
+                    color=LIGHT_TEXT_2)  # fmt: skip
         ax.scatter(x, row["coverage"], marker=MARKERS[j], s=70, color=SLOTS[d],
                    edgecolors=LIGHT_SURFACE, linewidths=1.4, zorder=4,
                    hatch="///" if row["oracle"] else None)  # fmt: skip
@@ -568,7 +607,8 @@ def shift_size_vs_coverage(args: argparse.Namespace) -> Path:
     for text in legend.get_texts():
         text.set_color(LIGHT_TEXT)
     ax.set_title(
-        "Coverage is only informative beside set size: A1, α = 0.10, abstain_allowed, "
+        "Coverage is only informative beside set size and answer rate: A1, α = 0.10, "
+        "abstain_allowed, "
         "predicted_crop\n(colour = domain, marker = arm; domains offset slightly in x: a split "
         "set has the same radius everywhere)",
         fontsize=10.5,

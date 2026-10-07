@@ -220,8 +220,9 @@ def test_set_size_keeps_infinity() -> None:
 
 
 def test_test_labels_never_reach_sets_or_quantiles(frames) -> None:
-    """Scramble every label column of the test frames: radii, groups and arm quantiles stay
-    bit-identical (invariant 5)."""
+    """Scramble every label column of the test frames: radii, Mondrian groups and the per-frame
+    Mondrian quantiles stay bit-identical (invariant 5). Split and weighted quantiles take no test
+    input but weights from features, so they cannot depend on test labels."""
     tune, test, fit = frames
     rng = np.random.default_rng(9)
     perm = rng.permutation(len(test))
@@ -250,9 +251,16 @@ def test_test_labels_never_reach_sets_or_quantiles(frames) -> None:
         for key in a:
             np.testing.assert_array_equal(a[key], b[key])
         valid = sh.valid_mask(score_id, test)
+        groups = bins.groups(test, valid)
         np.testing.assert_array_equal(
-            bins.groups(test, valid), bins.groups(scrambled, sh.valid_mask(score_id, scrambled))
+            groups, bins.groups(scrambled, sh.valid_mask(score_id, scrambled))
         )
+        s_cal = sh.scores(score_id, tune, fit, "answer_required")
+        g_cal = bins.groups(tune, sh.valid_mask(score_id, tune))
+        q_a, _ = sh.mondrian_frame_quantiles(s_cal, g_cal, groups, 0.2, bins.group_ids)
+        g_b = bins.groups(scrambled, sh.valid_mask(score_id, scrambled))
+        q_b, _ = sh.mondrian_frame_quantiles(s_cal, g_cal, g_b, 0.2, bins.group_ids)
+        np.testing.assert_array_equal(q_a, q_b)
 
 
 # --- rows -----------------------------------------------------------------------------------

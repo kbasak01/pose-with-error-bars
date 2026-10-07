@@ -837,3 +837,33 @@ one file per domain × crop, which would mix oracle and non-oracle rows.
     `shift.py`, one oracle call in the script), not a hard barrier.
   - L3: `load_eval_labels` parses before slicing; it is producer-side only.
   - N3: `hil_label_access_allowed` returns True for an empty frame list, which returns no rows.
+
+## 2026-10-07 — Phase 6 validity audit: items closed
+
+`conformal-validity-auditor` at `8c5493e`: **SOUND** for the computation. Quantiles, arm tags,
+data roles and label-free sets were all verified, with no critical finding. Its four must-fix
+items were about presentation and are closed; no number changed.
+- **M1 (figures without answer rate).**
+  - `shift_coverage_vs_nominal_*` draws the bound and gives the A1 answer rate in each panel
+    title: the floor 1 − answer rate under `abstain_allowed`, the ceiling (answer rate) under
+    `answer_required`.
+  - `shift_size_vs_coverage` labels every point with its answer rate.
+  - `shift_few_label_recovery` prints the mean A1 answer rate per n, and states how many draws
+    answer where fewer than all do.
+  - `shift_silent_failure` puts the answer rate under each domain.
+- **M2 (Mondrian under `answer_required`).** Every such row has a footnote. Its arm cell gives the
+  number of frames that get the whole-space set.
+- **M3 (slice tables mixed conventions).** There is now one slice table per convention, and every
+  cell gives coverage [CI] · answer rate · n.
+- **M4 (wording).** Figure titles now say "Marginal, finite-sample coverage ≥ 1 − α holds on
+  synthetic val_test (exchangeable with val_cal); on HIL poolB it is measured, not guaranteed".
+  The size figure says "beside set size and answer rate".
+- **Should-consider items adopted.**
+  - S1: synthetic `gt_crop` rows carry a "not deployable" footnote. `oracle` stays HIL-only, as
+    the results-provenance skill defines it. IMPLEMENTATION_PLAN's "gt_crop(**oracle**)" is read
+    as the HIL case.
+  - S2: TABLES.md explains degenerate weights (∞ or −∞ quantiles).
+  - S3: the label-scramble test also asserts that the per-frame Mondrian quantiles are unchanged.
+  - S4: TABLES.md states that the oracle arm's marginal coverage does hold under poolA/poolB
+    exchangeability.
+  - S5: the empty heading is removed.

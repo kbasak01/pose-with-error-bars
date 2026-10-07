@@ -28,6 +28,17 @@ FOOTNOTES = {
     "not_score": "not defined for this score (pose radii for A/C2, keypoint radii for B/C1)",
     "not_weighted": "classifier AUC / ESS apply to the weighted arm only",
     "no_iou": "gt_crop: the crop box is the GT box, so IoU is 1 by construction",
+    "mondrian_ar": (
+        "`mondrian` under `answer_required`: frames without a point estimate form their own group, "
+        "whose quantile is +∞, so each gets the whole-space set and counts as covered. The row is "
+        "numerically the `abstain_allowed` Mondrian row; the set-size columns cover answered "
+        "frames only and do not show those whole-space sets (their count is in the arm cell)"
+    ),
+    "synthetic_gt": (
+        "synthetic `gt_crop`: the crop box is the GT box (a label) on the evaluated frame, so this "
+        "is not a deployable number; calibration also used `gt_crop`, so the coverage is valid for "
+        "that pipeline. Only HIL `gt_crop` rows carry `oracle: true` (DECISIONS)"
+    ),
 }
 
 
@@ -81,6 +92,12 @@ class Notes:
         if key not in self.used:
             self.used.append(key)
         return f"{DASH}[^{key}]"
+
+    def mark(self, key: str) -> str:
+        """Register footnote `key` (the caller writes the `[^key]` marker itself)."""
+        if key not in self.used:
+            self.used.append(key)
+        return ""
 
     def render(self) -> list[str]:
         """Footnote definitions."""
@@ -153,12 +170,27 @@ HEADER = (
 SEP = "|" + "---|" * 13
 
 
+def _crop_cell(row: dict[str, Any], notes: Notes) -> str:
+    if row["domain"] == "synthetic" and row["crop_source"] == "gt_crop":
+        notes.mark("synthetic_gt")
+        return "gt_crop[^synthetic_gt]"
+    return row["crop_source"]
+
+
+def _arm_cell(row: dict[str, Any], notes: Notes) -> str:
+    if row["arm"] == "mondrian" and row["convention"] == "answer_required":
+        notes.mark("mondrian_ar")
+        whole = row["n_total"] - row["n_answered"]
+        return f"`mondrian`[^mondrian_ar] (+ whole-space set on {whole} frames)"
+    return f"`{row['arm']}`"
+
+
 def _row_line(row: dict[str, Any], notes: Notes) -> str:
     cells = [
         row["score"],
         row["domain"],
-        row["crop_source"],
-        f"`{row['arm']}`",
+        _crop_cell(row, notes),
+        _arm_cell(row, notes),
         f"{row['n_answered']} / {row['n_total']}",
         _cov(row),
         _cga(row, notes),
@@ -208,7 +240,7 @@ def _headline(rows: list[dict[str, Any]], convention: str, alpha: float, notes: 
 
 
 def _grid(
-    rows: list[dict[str, Any]], convention: str, alphas: list[float], oracle: bool
+    rows: list[dict[str, Any]], convention: str, alphas: list[float], oracle: bool, notes: Notes
 ) -> list[str]:
     sel = [
         r
@@ -237,9 +269,8 @@ def _grid(
             flag = " · **set ∞**" if _infinite_set(r) else ""
             parts.append(f"{_cov(r)} · ans {_num(r['answer_rate'], 3)}{flag}")
         lines.append(
-            f"| {first['score']} | {first['domain']} | {first['crop_source']} | `{first['arm']}` | "
-            + " | ".join(parts)
-            + " |"
+            f"| {first['score']} | {first['domain']} | {_crop_cell(first, notes)} | "
+            f"{_arm_cell(first, notes)} | " + " | ".join(parts) + " |"
         )
     return lines
 
@@ -302,22 +333,33 @@ def _classifiers(index: dict[str, Any]) -> list[str]:
     return out
 
 
-def _slices(rows: list[dict[str, Any]], alpha: float, notes: Notes, *, oracle: bool) -> list[str]:
+def _slices(
+    rows: list[dict[str, Any]], alpha: float, notes: Notes, *, oracle: bool, convention: str
+) -> list[str]:
     sel = sorted(
-        [r for r in rows if "slices" in r and r["alpha"] == alpha and _is_oracle(r) == oracle],
+        [
+            r
+            for r in rows
+            if "slices" in r
+            and r["alpha"] == alpha
+            and _is_oracle(r) == oracle
+            and r["convention"] == convention
+        ],
         key=_key,
     )
     out = []
     which = "oracle rows — HIL `gt_crop`" if oracle else "non-oracle rows"
+    which = f"{which}, `{convention}`"
     for slicing in ("gt_range_tertile", "confidence_quintile", "gt_bbox_iou_bin"):
         bins = sorted({b for r in sel for b in r["slices"].get(slicing, {})}, key=int)
         if not bins:
             continue
         out += [
-            f"#### `{slicing}` — {which}, `split`, α = {alpha} (cell: coverage [95 % CI], n)",
+            f"#### `{slicing}` — {which}, `split`, α = {alpha} "
+            "(cell: coverage [95 % CI] · answer rate · n)",
             "",
-            "| score | domain | crop | convention | " + " | ".join(f"bin {b}" for b in bins) + " |",
-            "|" + "---|" * (4 + len(bins)),
+            "| score | domain | crop | " + " | ".join(f"bin {b}" for b in bins) + " |",
+            "|" + "---|" * (3 + len(bins)),
         ]
         for r in sel:
             cells = []
@@ -330,10 +372,11 @@ def _slices(rows: list[dict[str, Any]], alpha: float, notes: Notes, *, oracle: b
                 else:
                     lo, hi = s["coverage_ci95"]
                     cells.append(
-                        f"{_num(s['coverage'], 3)} [{_num(lo, 3)}, {_num(hi, 3)}], {s['n_total']}"
+                        f"{_num(s['coverage'], 3)} [{_num(lo, 3)}, {_num(hi, 3)}] · ans "
+                        f"{_num(s['answer_rate'], 3)} · {s['n_total']}"
                     )
             out.append(
-                f"| {r['score']} | {r['domain']} | {r['crop_source']} | {r['convention']} | "
+                f"| {r['score']} | {r['domain']} | {_crop_cell(r, notes)} | "
                 + " | ".join(cells)
                 + " |"
             )
@@ -361,8 +404,13 @@ def build(shift_dir: Path) -> str:
         "set contains the truth (abstentions count as covered under `abstain_allowed`), with a "
         "Clopper–Pearson 95 % interval. The split-conformal guarantee is marginal, finite-sample "
         "and holds only under exchangeability of calibration and evaluation frames: on synthetic "
-        "`val_test`. On `lightbox_poolB` / `sunlamp_poolB` it is a measured number, not a "
-        "guarantee. An ∞ set covers everything, so read coverage with the set size and answer "
+        "`val_test`. For synthetic-calibrated arms on `lightbox_poolB` / `sunlamp_poolB` it is a "
+        "measured number, not a guarantee. `oracle_target_labels_n*` calibrates on a random half "
+        "(poolA) of the same HIL domain, so marginal coverage over draws does hold there under "
+        "exchangeability of poolA and poolB; those rows use target labels and are oracle. Under "
+        "`abstain_allowed` every abstention counts as covered, so coverage is at least "
+        "1 − answer rate whatever the sets do (sunlamp: answer rate about 0.13). An ∞ set covers "
+        "everything, so read coverage with the set size and answer "
         "rate beside it. `coverage given answered` is a slice reported beside the marginal "
         "coverage, not a conformal quantity. Sunlamp poolB has few answered frames; read its CIs.",
         "",
@@ -377,11 +425,15 @@ def build(shift_dir: Path) -> str:
     out += ["", "## Domain classifier (`weighted_unlabeled_target`)", "", *_classifiers(index), ""]
     out += [
         "Features: P1's pooled 512-d encoder output from the `predicted_crop` dumps. Weighted rows "
-        "use the val_cal weights above; per-row ESS and AUC repeat these values.",
+        "use the val_cal weights above; per-row ESS and AUC repeat these values. With AUC this "
+        "close to 1 the weights are degenerate: one or two calibration frames carry almost all "
+        "the mass, so each test frame's quantile is +∞ (whole space) or −∞ (abstain, when the "
+        "dominant calibration frame is a PnP failure under `abstain_allowed`). A weighted row "
+        "with coverage near 1 therefore reports ∞ sets or abstentions, not recovered coverage.",
         "",
     ]
     for convention in index["expected"]["conventions"]:
-        out += [f"## `{convention}`", "", f"### Headline α = {headline}", ""]
+        out += [f"## `{convention}` — headline α = {headline}", ""]
         out += _headline(rows, convention, headline, notes)
     out += [
         f"## Few-label recovery (`oracle_target_labels_n*`, oracle) — α = {headline}",
@@ -396,15 +448,16 @@ def build(shift_dir: Path) -> str:
     ]
     out += _recovery(rows, headline, notes)
     out += [f"## Conditional coverage slices (`split` arm, α = {headline})", ""]
-    out += ["### Non-oracle rows", ""]
-    out += _slices(rows, headline, notes, oracle=False)
-    out += ["### Oracle rows — HIL `gt_crop` (crop box = GT box)", ""]
-    out += _slices(rows, headline, notes, oracle=True)
+    for convention in index["expected"]["conventions"]:
+        out += [f"### Non-oracle rows — `{convention}`", ""]
+        out += _slices(rows, headline, notes, oracle=False, convention=convention)
+        out += [f"### Oracle rows — HIL `gt_crop` (crop box = GT box), `{convention}`", ""]
+        out += _slices(rows, headline, notes, oracle=True, convention=convention)
     for convention in index["expected"]["conventions"]:
         out += [f"## α grid — `{convention}`", "", "### Non-oracle rows", ""]
-        out += _grid(rows, convention, alphas, oracle=False)
+        out += _grid(rows, convention, alphas, oracle=False, notes=notes)
         out += ["", "### Oracle rows — HIL `gt_crop`", ""]
-        out += _grid(rows, convention, alphas, oracle=True)
+        out += _grid(rows, convention, alphas, oracle=True, notes=notes)
         out += [""]
     out += ["## Notes", "", *notes.render(), ""]
     return "\n".join(out)

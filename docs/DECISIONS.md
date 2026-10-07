@@ -599,3 +599,98 @@ is `level_b_overlay`, which writes `assets/level_b_overlay_<score>.png`.
 **Reason.** This is the visual check both geometry reviews asked for. Sets offset from the
 wireframe, or far too large, would show here first.
 
+
+## 2026-10-07 — Variance head: readout, parametrisation, frozen trunk
+
+**Decision.** `VarianceHead` is a 3×3 conv (256→64), ReLU, then a 1×1 conv (64→33). It predicts
+`(log σx, log σy, atanh ρ)` per heatmap pixel and keypoint.
+- **Readout.** Each keypoint's parameters are averaged under the exact distribution P1's
+  soft-argmax refines over, `relu(h)^2 · window / Σ`. That is the same distribution as
+  `heatmap_moments` (tested), so Σ̂ describes the point P1 returned. The ops are multiply, exp and
+  reduce, so the exported graph has no ArgMax, TopK or NonZero (tested).
+- **Parametrisation.** σ is clamped to [0.05, 64] crop px and |ρ| ≤ 0.99. The output is the lower
+  Cholesky factor `(σx, ρσy, σy√(1−ρ²))`, so Σ̂ is PD for every input.
+- **Initialisation.** The final conv starts at zero weight with bias log 2 px.
+- **Empty channel.** An empty heatmap channel has zero readout weight, which gives σ = 1, ρ = 0.
+  That is still PD. C1 marks the keypoint unconstrained (B2's rule), so the value is never used.
+- **Frozen trunk.** `VarianceKeypointNet.forward` calls P1's own `forward` under `no_grad`. It
+  reads the decoder input through a pre-hook that it removes after every call. `train()` keeps the
+  trunk in eval mode, so BatchNorm buffers never move. `p1_state_hash` hashes every state-dict
+  tensor. Training checks the hash before and after the run, and `load_variance_net` refuses a
+  checkpoint whose P1 SHA-256 or state hash differs.
+**Alternatives.**
+- Plain per-keypoint regression from pooled features. This would discard the spatial
+  correspondence with the heatmap.
+- An unconstrained 2×2 output with an eigenvalue clamp. This is not export-friendly.
+- Softplus σ. We chose clamped log σ so the clamp fractions can be audited directly.
+
+## 2026-10-07 — Variance-head training: numerics, loss, data, selection
+
+**Decision.**
+- **Numerics.** The trunk runs under P1's own autocast (`runtime.amp_dtype` = bf16; the script
+  checks that it matches), exactly as `PosePipeline.keypoints` runs it. TF32 is off. Training
+  residuals are therefore the inference residuals. This corrects the plan's draft, which said
+  "trunk fp32".
+- **Loss.** 2-D β-NLL with β = 0.5. The weight is `stopgrad(det Σ^{β/2}) = (l0·l2)^β`, the 2-D
+  analogue of `σ^{2β}`. The loss is masked by P1's `batch["mask"]` (visible ∧ in crop) and reduced
+  with P1's `_masked_mean` through the adapter.
+- **Data.** P1's `SpeedPlusCrop` on synthetic `train`, with A2, served from P1's crop cache. That
+  cache is a new optional local path, `p1_crop_cache`, and is read-only. Optimiser settings follow
+  P1: AdamW 1e-3, wd 0.01, ExponentialLR 0.95, clip 1.0, batch 48, seed 1337, 20 epochs.
+- **Selection.** We keep the epoch with the lowest plain NLL on `val_tune`, served as P1's a0 eval
+  crops (GT box from the cache, margin 1.3). `val_cal`, `val_test` and HIL are never loaded; the
+  script raises if a `val_cal`/`val_test` name is served. Selection crops are GT-box crops, while
+  the Level C numbers use predicted-box crops. This difference is disclosed, not corrected.
+- **Overfit gate** (`make train-var-smoke`). One fixed A2 batch, 400 steps. The "analytic floor"
+  is the mean NLL of the best homoscedastic zero-mean Gaussian for that batch's masked residuals
+  (its MLE, `½(2 + log det S) + log 2π`). The head must fall below it.
+**Note.** The A2 training residuals are heavy-tailed. The first batch's homoscedastic floor is
+about 7.8 nats, while `val_tune` NLL is about 3, so σ̂ is fitted to a harder distribution than the
+clean validation one. Conformal calibration absorbs the overall scale. The head-quality report
+gives NLL both raw and after one global rescaling fitted on `val_tune`.
+
+## 2026-10-07 — Variance sidecar instead of rewriting the parity-gated dump
+
+**Decision.** `scripts/dump_variance.py` writes `<domain>_<arm>_vhead.npz`. It re-runs only P1's
+keypoint stage, on the dump's own boxes, in the dump's batch order and size. The head reads the
+decoder features through `keypoint_hooks` under the pipeline's autocast.
+- The script raises unless every affine and every P1 coordinate equals the Phase 3 dump bit for bit.
+- The sidecar records the base dump's SHA-256 and the head checkpoint's SHA-256.
+- All domains × arms are produced now. The outputs are predictions only, and saves a Phase 6 GPU
+  run. Phase 5 opens only the synthetic one.
+**Alternatives.** Re-run the full dump with the head (detector, PnP) and re-gate parity; or store
+decoder features for every frame (~90 GB).
+
+## 2026-10-07 — C1 and C2 data roles
+
+**Decision.**
+- **C1** is B2's code with `cov_key="vhead_cov_full"` (`level_b.join_dump`), using B2's
+  empty-channel rule. Its valid mask is PnP success.
+- **C2's σ̂.** σ̂_R = √λ_max((H⁻¹)_ωω) and σ̂_t = √λ_max((H⁻¹)_tt). H uses C1's Σ̂ₖ at the PnP
+  estimate, over keypoints visible under the estimate and constrained. This is Phase 4's q-free
+  linearisation and uses predictions only.
+- **Undefined σ̂.** A solved frame with undefined σ̂ (|U| < 3 or singular H) is invalid for C2. It
+  abstains or scores +∞ by convention, and its count is reported per row (`n_solved_sigma_undefined`).
+- **`val_tune` in Level C.** It is read only for the head-quality NLL rescaling factor and the σ̂
+  ranking diagnostic. It never feeds a score.
+- **Re-splits** share Level B's seed, so C1 and B2 see the same R permutations.
+
+## 2026-10-07 — Variance-head run `vhead_a2_s1337`: diagnostician verdict
+
+**`uncertainty-head-diagnostician`: TRUSTWORTHY, as a ranking signal and conformal normaliser. σ̂ is
+not a calibrated Gaussian.**
+- **How the verdict was reached.** The agent's own shell calls were blocked, so its first pass was a
+  provisional SUSPECT: frozen trunk not re-verified. I then ran its recommended check.
+  - Both test files passed: 24 tests, including the real-checkpoint GPU bit-identity test.
+  - `load_variance_net(best.pt)` matched the P1 SHA-256 and the state hash.
+  - `torch.equal` of coordinates, confidences and heatmaps against bare P1 held under bf16 autocast
+    on 192 real `val_tune` crops.
+  - The agent re-judged that evidence and returned TRUSTWORTHY.
+- **Caveats it attached.** These are carried into the Phase 5 report.
+  - Raw ellipse reliability on `val_tune` is 0.529 / 0.891 at 1σ / 2σ, against the 2-D Gaussian
+    0.393 / 0.865. It is reported as measured.
+  - The selected epoch (15) is a flat-minimum pick: epochs 13–20 are within about 0.01 nats of it.
+  - Train NLL is about 0.85 nats above `val_tune`. The gap is stable, so it is not overfitting; A2 is
+    the plausible cause, but this was not verified.
+- **Values.** The values are in [`results/level_c/variance_head_training.json`](../results/level_c/variance_head_training.json)
+  (`diagnostics_val_tune`).

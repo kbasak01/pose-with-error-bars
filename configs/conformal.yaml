@@ -27,6 +27,18 @@ headline_alpha: 0.10
 
 conventions: [abstain_allowed, answer_required]
 
+level_a:                    # Phase 2: in-distribution only, synthetic val_test; no HIL
+  scores: [A1, A2, A3]
+  fit_split: synthetic_val_tune          # normalisers + g(conf)
+  calibration_split: synthetic_val_cal
+  test_split: synthetic_val_test
+  sidecar_check_tolerance:               # join check: recomputed vs P1-committed errors
+    e_r_rad: 1.0e-4
+    e_t_m: 1.0e-4
+  gate:
+    ks_min_p: 0.01                       # KS against the atom-aware re-split law
+    mean_band_se: 3                      # mean within this many MC s.e.
+
 repeated_splits:
   n_resplits: 1000          # random re-splits of val_cal ∪ val_test for coverage distributions
   seed: 1337

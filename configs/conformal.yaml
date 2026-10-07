@@ -88,6 +88,36 @@ dump:                       # Phase 3: per-frame prediction dump + P1 parity gat
     solved_count_exact: true             # "solve rates match P1's JSON to the reported precision"
   max_disagreements_listed: 10
 
+shift:                      # Phase 6: the coverage-under-shift matrix (engine/shift.py)
+  run: keypoint_a2
+  scores: [A1, A2, A3, B1, B2, C1, C2]
+  domains: [synthetic, lightbox, sunlamp]
+  crop_sources: [predicted_crop, gt_crop]  # gt_crop is oracle_gt_box on HIL (dump meta)
+  fit_split: synthetic_val_tune            # normalisers, g(conf), Mondrian edges, slice edges
+  calibration_split: synthetic_val_cal
+  test_subsets:                            # evaluation only
+    synthetic: synthetic_val_test
+    lightbox: lightbox_poolB
+    sunlamp: sunlamp_poolB
+  target_pools:                            # weighted: features only; oracle: labels (oracle tag)
+    lightbox: lightbox_poolA
+    sunlamp: sunlamp_poolA
+  arms:                                    # which arm runs where; every other cell is explained
+    synthetic: [split, mondrian]
+    hil: [split, mondrian, weighted_unlabeled_target, oracle_target_labels]
+  weighted_crop_sources: [predicted_crop]  # gt_crop features are GT-box-conditioned (L2)
+  classifier:                              # fixed up front; never tuned on HIL anything
+    C: 1.0
+    max_iter: 5000
+    standardise: true
+    cv_folds: 5
+    cv_seed: 1337
+  oracle_seed: 20261007
+  normaliser_check_rtol: 1.0e-4            # dump (float64) refit vs Phase 2 (P1 sidecar, float32)
+  level_a_result: results/level_a/keypoint_a2_predicted_crop_synthetic.json
+  slices_alpha: 0.10                       # conditional slices at the headline alpha only
+  out_dir: results/shift
+
 repeated_splits:
   n_resplits: 1000          # random re-splits of val_cal ∪ val_test for coverage distributions
   seed: 1337

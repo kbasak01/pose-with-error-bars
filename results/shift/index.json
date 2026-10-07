@@ -1,0 +1,648 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "shift_index",
+  "run": "keypoint_a2",
+  "expected": {
+    "domains": [
+      "synthetic",
+      "lightbox",
+      "sunlamp"
+    ],
+    "crop_sources": [
+      "predicted_crop",
+      "gt_crop"
+    ],
+    "arms": [
+      "split",
+      "mondrian",
+      "weighted_unlabeled_target",
+      "oracle_target_labels_n25",
+      "oracle_target_labels_n50",
+      "oracle_target_labels_n100",
+      "oracle_target_labels_n250",
+      "oracle_target_labels_n500",
+      "oracle_target_labels_n1000"
+    ],
+    "scores": [
+      "A1",
+      "A2",
+      "A3",
+      "B1",
+      "B2",
+      "C1",
+      "C2"
+    ],
+    "conventions": [
+      "abstain_allowed",
+      "answer_required"
+    ],
+    "alphas": [
+      0.01,
+      0.02,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.3,
+      0.5
+    ]
+  },
+  "checks": {
+    "predicted_crop_fit_vs_phase2": {
+      "reference": "results/level_a/keypoint_a2_predicted_crop_synthetic.json",
+      "why_not_bit_equal": "P1's sidecar stores q_pred, t_pred, confidence_mean as float32",
+      "rel_diff": {
+        "c_R_rad": 6.256100896646017e-07,
+        "c_t": 1.1359475949197423e-05,
+        "c_z": 1.0148056544508882e-05,
+        "c_xy": 1.2994551866680588e-06
+      },
+      "g_max_rel_diff_on_val_tune_conf": 1.88060154713389e-05,
+      "g_knots": [
+        70,
+        70
+      ],
+      "rtol": 0.0001,
+      "ok": true
+    }
+  },
+  "classifiers": {
+    "lightbox": {
+      "features": "p1_encoder_global_avgpool",
+      "source": "synthetic_val_tune",
+      "target": "lightbox_poolA",
+      "n_source": 2399,
+      "n_target": 3370,
+      "model": "StandardScaler + LogisticRegression (L2)",
+      "C": 1.0,
+      "max_iter": 5000,
+      "cv_folds": 5,
+      "cv_seed": 1337,
+      "cv_auc": [
+        0.981920746785361,
+        0.981611646884273,
+        0.9839793521266074,
+        0.9855155786350148,
+        0.9841317532198014
+      ],
+      "cv_auc_mean": 0.9834318155302115,
+      "cv_auc_sd": 0.001637690479147559,
+      "logit_shift": 49.69854467894592,
+      "logit_cal_p50": -8.915285650849324,
+      "logit_eval_p50": 12.174650246208074,
+      "weights": {
+        "ess_cal": 1.0407390076846208,
+        "n_cal": 4798,
+        "max_normalised_weight_cal": 0.9800342682573081,
+        "test_weight_over_median_cal_weight_p10_p50_p90": [
+          46329.54931288121,
+          1441764349.5890896,
+          272893502731031.03
+        ],
+        "clip": null
+      }
+    },
+    "sunlamp": {
+      "features": "p1_encoder_global_avgpool",
+      "source": "synthetic_val_tune",
+      "target": "sunlamp_poolA",
+      "n_source": 2399,
+      "n_target": 1395,
+      "model": "StandardScaler + LogisticRegression (L2)",
+      "C": 1.0,
+      "max_iter": 5000,
+      "cv_folds": 5,
+      "cv_seed": 1337,
+      "cv_auc": [
+        0.9983422939068101,
+        0.9991039426523297,
+        0.9983945639187575,
+        0.9985215053763441,
+        0.9968647346248531
+      ],
+      "cv_auc_mean": 0.998245408095819,
+      "cv_auc_sd": 0.0008293378151201649,
+      "logit_shift": 27.113307201060465,
+      "logit_cal_p50": -10.963653347307153,
+      "logit_eval_p50": 11.922851366486524,
+      "weights": {
+        "ess_cal": 1.596858365580229,
+        "n_cal": 4798,
+        "max_normalised_weight_cal": 0.7771252814607715,
+        "test_weight_over_median_cal_weight_p10_p50_p90": [
+          9713853.154407231,
+          8677999028.599577,
+          5973193537896.64
+        ],
+        "clip": null
+      }
+    }
+  },
+  "cells": [
+    {
+      "domain": "synthetic",
+      "crop_source": "predicted_crop",
+      "arm": "split",
+      "oracle": false,
+      "file": "keypoint_a2_synthetic_predicted_crop_split.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "predicted_crop",
+      "arm": "mondrian",
+      "oracle": false,
+      "file": "keypoint_a2_synthetic_predicted_crop_mondrian.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "predicted_crop",
+      "arm": "weighted_unlabeled_target",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n25",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n50",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n100",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n250",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n500",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n1000",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "predicted_crop",
+      "arm": "split",
+      "oracle": false,
+      "file": "keypoint_a2_lightbox_predicted_crop_split.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "predicted_crop",
+      "arm": "mondrian",
+      "oracle": false,
+      "file": "keypoint_a2_lightbox_predicted_crop_mondrian.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "predicted_crop",
+      "arm": "weighted_unlabeled_target",
+      "oracle": false,
+      "file": "keypoint_a2_lightbox_predicted_crop_weighted_unlabeled_target.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n25",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_predicted_crop_oracle_target_labels_n25.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n50",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_predicted_crop_oracle_target_labels_n50.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n100",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_predicted_crop_oracle_target_labels_n100.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n250",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_predicted_crop_oracle_target_labels_n250.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n500",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_predicted_crop_oracle_target_labels_n500.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n1000",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_predicted_crop_oracle_target_labels_n1000.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "predicted_crop",
+      "arm": "split",
+      "oracle": false,
+      "file": "keypoint_a2_sunlamp_predicted_crop_split.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "predicted_crop",
+      "arm": "mondrian",
+      "oracle": false,
+      "file": "keypoint_a2_sunlamp_predicted_crop_mondrian.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "predicted_crop",
+      "arm": "weighted_unlabeled_target",
+      "oracle": false,
+      "file": "keypoint_a2_sunlamp_predicted_crop_weighted_unlabeled_target.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n25",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_predicted_crop_oracle_target_labels_n25.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n50",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_predicted_crop_oracle_target_labels_n50.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n100",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_predicted_crop_oracle_target_labels_n100.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n250",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_predicted_crop_oracle_target_labels_n250.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n500",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_predicted_crop_oracle_target_labels_n500.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "predicted_crop",
+      "arm": "oracle_target_labels_n1000",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_predicted_crop_oracle_target_labels_n1000.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "gt_crop",
+      "arm": "split",
+      "oracle": false,
+      "file": "keypoint_a2_synthetic_gt_crop_split.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "gt_crop",
+      "arm": "mondrian",
+      "oracle": false,
+      "file": "keypoint_a2_synthetic_gt_crop_mondrian.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "gt_crop",
+      "arm": "weighted_unlabeled_target",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n25",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n50",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n100",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n250",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n500",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "synthetic",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n1000",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "no target shift: synthetic val_test is the source distribution"
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "gt_crop",
+      "arm": "split",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_gt_crop_split.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "gt_crop",
+      "arm": "mondrian",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_gt_crop_mondrian.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "gt_crop",
+      "arm": "weighted_unlabeled_target",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "gt_crop features are GT-box-conditioned on HIL (oracle_gt_box); the weighted arm may consume unlabeled poolA only (DECISIONS, Phase 3 item L2)"
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n25",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_gt_crop_oracle_target_labels_n25.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n50",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_gt_crop_oracle_target_labels_n50.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n100",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_gt_crop_oracle_target_labels_n100.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n250",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_gt_crop_oracle_target_labels_n250.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n500",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_gt_crop_oracle_target_labels_n500.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "lightbox",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n1000",
+      "oracle": true,
+      "file": "keypoint_a2_lightbox_gt_crop_oracle_target_labels_n1000.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "gt_crop",
+      "arm": "split",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_gt_crop_split.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "gt_crop",
+      "arm": "mondrian",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_gt_crop_mondrian.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "gt_crop",
+      "arm": "weighted_unlabeled_target",
+      "oracle": null,
+      "file": null,
+      "n_rows": 0,
+      "reason": "gt_crop features are GT-box-conditioned on HIL (oracle_gt_box); the weighted arm may consume unlabeled poolA only (DECISIONS, Phase 3 item L2)"
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n25",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_gt_crop_oracle_target_labels_n25.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n50",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_gt_crop_oracle_target_labels_n50.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n100",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_gt_crop_oracle_target_labels_n100.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n250",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_gt_crop_oracle_target_labels_n250.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n500",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_gt_crop_oracle_target_labels_n500.json",
+      "n_rows": 112,
+      "reason": null
+    },
+    {
+      "domain": "sunlamp",
+      "crop_source": "gt_crop",
+      "arm": "oracle_target_labels_n1000",
+      "oracle": true,
+      "file": "keypoint_a2_sunlamp_gt_crop_oracle_target_labels_n1000.json",
+      "n_rows": 112,
+      "reason": null
+    }
+  ],
+  "provenance": {
+    "poseconf_git_sha": "b3a2795b50981145a9628ade0e8e790e65ce9be8",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+    "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
+    "config_sha256": "ef573e1901e6db2b2c3b002f63a2fd3881ca3c5487960e0629faf104a96887e7",
+    "pnp_config": {
+      "method": "EPNP",
+      "reprojection_threshold_px": 5.0,
+      "min_inliers": 6,
+      "iterations": 1000,
+      "confidence": 0.99,
+      "refine": true,
+      "use_keypoint_confidence": true,
+      "confidence_min": 0.2
+    },
+    "created_at": "2026-10-07T19:05:24Z"
+  },
+  "unexplained": []
+}

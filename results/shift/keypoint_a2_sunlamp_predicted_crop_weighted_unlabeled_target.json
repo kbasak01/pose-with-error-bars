@@ -1,0 +1,5393 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "coverage",
+  "run": "keypoint_a2",
+  "domain": "sunlamp",
+  "subset": "sunlamp_poolB",
+  "crop_source": "predicted_crop",
+  "arm": "weighted_unlabeled_target",
+  "oracle": false,
+  "definitions": {
+    "coverage": "fraction of evaluated frames covered under the row's convention (docs/SCORES.md); Clopper-Pearson 95 % interval over n_total frames. Marginal and finite-sample only under exchangeability of calibration and evaluation frames; on HIL poolB this is a measured number, not a guarantee",
+    "answered": "frame has a point estimate for the score and q > -inf (an empty set abstains)",
+    "silent_failure_rate": "P(answered and not covered)",
+    "coverage_given_answered": "covered and answered / answered (null when nothing is answered): not a conformal quantity, reported beside the marginal coverage because abstentions count as covered under abstain_allowed; oracle rows: mean over draws with answers",
+    "mondrian_conventions": "invalid frames form their own Mondrian group, whose quantile is +inf (answer_required: whole-space set) or -inf (abstain_allowed: abstain); both count as covered and the other groups are identical, so the two conventions give the same Mondrian rows by construction",
+    "set_size": "median / p90 over answered frames of q_i x the frame's unit radius; +inf kept (order statistics). rot_deg: geodesic radius; *_frac: fraction of ||t_hat||; kp_px: largest keypoint radius in full-frame px (+inf with an unconstrained keypoint)",
+    "quantile": "split / oracle draw: the finite-sample quantile ceil((n+1)(1-alpha))-th order statistic, +inf if that exceeds n; mondrian: per-group quantiles; weighted: per-frame quantiles (Tibshirani et al. 2019), summarised",
+    "oracle": "true for every HIL gt_crop row (the crop box is the GT box) and every oracle_target_labels_n* arm (calibrated on labeled HIL poolA frames)",
+    "oracle_target_labels": "split CP on n labeled poolA frames, D draws; top-level coverage, answer_rate and silent_failure_rate are the mean over draws, coverage_min/max the range, coverage_ci95 the envelope of the per-draw Clopper-Pearson intervals, n_answered the rounded mean, set_size each statistic's median over draws; every draw is listed in `draws`",
+    "slices": "split arm, slices_alpha only: coverage by GT range tertile and by confidence quintile (edges from val_tune), and by GT-bbox IoU of the crop box (<0.5, 0.5-0.8, >0.8; predicted_crop only). GT quantities slice the evaluation; they never enter a score"
+  },
+  "calibration": {
+    "fit": "synthetic_val_tune",
+    "calibration": "synthetic_val_cal",
+    "n_cal": 4798,
+    "evaluation": "sunlamp_poolB",
+    "n_eval": 1396
+  },
+  "fit": {
+    "level_a": {
+      "c_R_rad": 0.012076750939645978,
+      "c_t": 0.0032808872504126183,
+      "c_z": 0.003094075662849757,
+      "c_xy": 0.0005715020080919428,
+      "g": {
+        "kind": "isotonic_decreasing_A1_on_confidence_mean",
+        "x": [
+          0.5571732954545454,
+          0.59765625,
+          0.6001420454545454,
+          0.6729403409090909,
+          0.6768465909090909,
+          0.6981534090909091,
+          0.7024147727272727,
+          0.7091619318181818,
+          0.7105823863636364,
+          0.7553267045454546,
+          0.7560369318181818,
+          0.7716619318181818,
+          0.7723721590909091,
+          0.7816051136363636,
+          0.7819602272727273,
+          0.7950994318181818,
+          0.7958096590909091,
+          0.8348721590909091,
+          0.8352272727272727,
+          0.8433948863636364,
+          0.8441051136363636,
+          0.859375,
+          0.8597301136363636,
+          0.8686079545454546,
+          0.8689630681818182,
+          0.8757102272727273,
+          0.8760653409090909,
+          0.8764204545454546,
+          0.90234375,
+          0.9026988636363636,
+          0.9041193181818182,
+          0.9044744318181818,
+          0.9204545454545454,
+          0.9208096590909091,
+          0.9268465909090909,
+          0.9272017045454546,
+          0.9300426136363636,
+          0.9303977272727273,
+          0.9343039772727273,
+          0.9346590909090909,
+          0.9513494318181818,
+          0.9517045454545454,
+          0.9520596590909091,
+          0.9588068181818182,
+          0.9591619318181818,
+          0.9616477272727273,
+          0.9620028409090909,
+          0.9623579545454546,
+          0.9637784090909091,
+          0.9641335227272727,
+          0.96484375,
+          0.9651988636363636,
+          0.96875,
+          0.9691051136363636,
+          0.9737215909090909,
+          0.9740767045454546,
+          0.9811789772727273,
+          0.9815340909090909,
+          0.9829545454545454,
+          0.9833096590909091,
+          0.9847301136363636,
+          0.9850852272727273,
+          0.9936079545454546,
+          0.9939630681818182,
+          1.0010653409090908,
+          1.0014204545454546,
+          1.0099431818181819,
+          1.0127840909090908,
+          1.0145596590909092,
+          1.0245028409090908
+        ],
+        "y": [
+          19.117029455740735,
+          19.117029455740735,
+          8.387750826690958,
+          8.387750826690958,
+          5.892745066539473,
+          5.892745066539473,
+          5.352048721603462,
+          5.352048721603462,
+          5.346973957921061,
+          5.346973957921061,
+          4.107485109404108,
+          4.107485109404108,
+          3.8374100611158095,
+          3.8374100611158095,
+          3.778830622874163,
+          3.778830622874163,
+          3.778283992526533,
+          3.778283992526533,
+          3.548565564000125,
+          3.548565564000125,
+          2.7734595157639528,
+          2.7734595157639528,
+          2.6283827994805518,
+          2.6283827994805518,
+          2.6240379863813237,
+          2.6240379863813237,
+          2.592667049420407,
+          2.4256288464488858,
+          2.4256288464488858,
+          2.1673288398051556,
+          2.1673288398051556,
+          2.159186373658911,
+          2.159186373658911,
+          1.9721209980788938,
+          1.9721209980788938,
+          1.955991484151699,
+          1.955991484151699,
+          1.8844987163454863,
+          1.8844987163454863,
+          1.776501476067324,
+          1.776501476067324,
+          1.7504459938007628,
+          1.5797944467707272,
+          1.5797944467707272,
+          1.408502383775936,
+          1.408502383775936,
+          1.3696804960098776,
+          1.3412966483522484,
+          1.3412966483522484,
+          1.315137375605408,
+          1.315137375605408,
+          1.3015572469995005,
+          1.3015572469995005,
+          1.2785152605528256,
+          1.2785152605528256,
+          1.1864453062195475,
+          1.1864453062195475,
+          1.05761019057973,
+          1.05761019057973,
+          1.0383536707787053,
+          1.0383536707787053,
+          0.9843137593419834,
+          0.9843137593419834,
+          0.9547457643909747,
+          0.9547457643909747,
+          0.9493435097845693,
+          0.9493435097845693,
+          0.8355272999836367,
+          0.5506611644211516,
+          0.5506611644211516
+        ]
+      },
+      "n_fit_solved": 2251
+    },
+    "mondrian_bins": {
+      "groups": "predicted_range_tertile x mean_confidence_tertile; invalid frames own group",
+      "range_edges_m": [
+        5.188219414414305,
+        7.599921257836165
+      ],
+      "conf_edges": [
+        0.9293323863636364,
+        0.9634232954545454
+      ],
+      "failure_group": 9,
+      "fit_on": "val_tune solved frames"
+    }
+  },
+  "classifier": {
+    "features": "p1_encoder_global_avgpool",
+    "source": "synthetic_val_tune",
+    "target": "sunlamp_poolA",
+    "n_source": 2399,
+    "n_target": 1395,
+    "model": "StandardScaler + LogisticRegression (L2)",
+    "C": 1.0,
+    "max_iter": 5000,
+    "cv_folds": 5,
+    "cv_seed": 1337,
+    "cv_auc": [
+      0.9983422939068101,
+      0.9991039426523297,
+      0.9983945639187575,
+      0.9985215053763441,
+      0.9968647346248531
+    ],
+    "cv_auc_mean": 0.998245408095819,
+    "cv_auc_sd": 0.0008293378151201649,
+    "logit_shift": 27.113307201060465,
+    "logit_cal_p50": -10.963653347307153,
+    "logit_eval_p50": 11.922851366486524,
+    "weights": {
+      "ess_cal": 1.596858365580229,
+      "n_cal": 4798,
+      "max_normalised_weight_cal": 0.7771252814607715,
+      "test_weight_over_median_cal_weight_p10_p50_p90": [
+        9713853.154407231,
+        8677999028.599577,
+        5973193537896.64
+      ],
+      "clip": null
+    }
+  },
+  "rows": [
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1384,
+      "n_answered": 153,
+      "coverage": 0.9914040114613181,
+      "coverage_ci95": [
+        0.9850327265335331,
+        0.9955506660902861
+      ],
+      "answer_rate": 0.10959885386819485,
+      "silent_failure_rate": 0.008595988538681949,
+      "coverage_given_answered": 0.9215686274509803,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.916189111747851,
+        "frac_neg_inf": 0.0494269340974212
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1391,
+      "n_answered": 138,
+      "coverage": 0.9964183381088825,
+      "coverage_ci95": [
+        0.991661543222824,
+        0.9988360527680232
+      ],
+      "answer_rate": 0.0988538681948424,
+      "silent_failure_rate": 0.0035816618911174787,
+      "coverage_given_answered": 0.9637681159420289,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8918338108882522,
+        "frac_neg_inf": 0.09025787965616046
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1394,
+      "n_answered": 126,
+      "coverage": 0.998567335243553,
+      "coverage_ci95": [
+        0.9948343977824309,
+        0.9998264505359432
+      ],
+      "answer_rate": 0.09025787965616046,
+      "silent_failure_rate": 0.0014326647564469914,
+      "coverage_given_answered": 0.9841269841269841,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8660458452722063,
+        "frac_neg_inf": 0.12607449856733524
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1393,
+      "n_answered": 114,
+      "coverage": 0.9978510028653295,
+      "coverage_ci95": [
+        0.9937326795545479,
+        0.9995566056793979
+      ],
+      "answer_rate": 0.08166189111747851,
+      "silent_failure_rate": 0.002148997134670487,
+      "coverage_given_answered": 0.9736842105263158,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8330945558739254,
+        "frac_neg_inf": 0.16117478510028654
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 103,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.07378223495702006,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8065902578796562,
+        "frac_neg_inf": 0.19197707736389685
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1395,
+      "n_answered": 99,
+      "coverage": 0.9992836676217765,
+      "coverage_ci95": [
+        0.9960153804481771,
+        0.9999818641988508
+      ],
+      "answer_rate": 0.07091690544412607,
+      "silent_failure_rate": 0.0007163323782234957,
+      "coverage_given_answered": 0.98989898989899,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7851002865329513,
+        "frac_neg_inf": 0.21060171919770773
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 90,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.06446991404011461,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7621776504297995,
+        "frac_neg_inf": 0.2356733524355301
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 75,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.053724928366762174,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7012893982808023,
+        "frac_neg_inf": 0.2987106017191977
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1383,
+      "n_answered": 153,
+      "coverage": 0.9906876790830945,
+      "coverage_ci95": [
+        0.984128291702887,
+        0.9950325299921426
+      ],
+      "answer_rate": 0.10959885386819485,
+      "silent_failure_rate": 0.009312320916905445,
+      "coverage_given_answered": 0.9150326797385621,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.916189111747851,
+        "frac_neg_inf": 0.0494269340974212
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1390,
+      "n_answered": 138,
+      "coverage": 0.995702005730659,
+      "coverage_ci95": [
+        0.9906687126827814,
+        0.9984211283002964
+      ],
+      "answer_rate": 0.0988538681948424,
+      "silent_failure_rate": 0.004297994269340974,
+      "coverage_given_answered": 0.9565217391304348,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8918338108882522,
+        "frac_neg_inf": 0.09025787965616046
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1394,
+      "n_answered": 126,
+      "coverage": 0.998567335243553,
+      "coverage_ci95": [
+        0.9948343977824309,
+        0.9998264505359432
+      ],
+      "answer_rate": 0.09025787965616046,
+      "silent_failure_rate": 0.0014326647564469914,
+      "coverage_given_answered": 0.9841269841269841,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8660458452722063,
+        "frac_neg_inf": 0.12607449856733524
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1393,
+      "n_answered": 114,
+      "coverage": 0.9978510028653295,
+      "coverage_ci95": [
+        0.9937326795545479,
+        0.9995566056793979
+      ],
+      "answer_rate": 0.08166189111747851,
+      "silent_failure_rate": 0.002148997134670487,
+      "coverage_given_answered": 0.9736842105263158,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8330945558739254,
+        "frac_neg_inf": 0.16117478510028654
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 103,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.07378223495702006,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8065902578796562,
+        "frac_neg_inf": 0.19197707736389685
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1395,
+      "n_answered": 99,
+      "coverage": 0.9992836676217765,
+      "coverage_ci95": [
+        0.9960153804481771,
+        0.9999818641988508
+      ],
+      "answer_rate": 0.07091690544412607,
+      "silent_failure_rate": 0.0007163323782234957,
+      "coverage_given_answered": 0.98989898989899,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7851002865329513,
+        "frac_neg_inf": 0.21060171919770773
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 90,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.06446991404011461,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7621776504297995,
+        "frac_neg_inf": 0.2356733524355301
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 75,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.053724928366762174,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7012893982808023,
+        "frac_neg_inf": 0.2987106017191977
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1386,
+      "n_answered": 153,
+      "coverage": 0.9928366762177651,
+      "coverage_ci95": [
+        0.9868659671326739,
+        0.9965597198257642
+      ],
+      "answer_rate": 0.10959885386819485,
+      "silent_failure_rate": 0.0071633237822349575,
+      "coverage_given_answered": 0.934640522875817,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.916189111747851,
+        "frac_neg_inf": 0.0494269340974212
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1392,
+      "n_answered": 138,
+      "coverage": 0.997134670487106,
+      "coverage_ci95": [
+        0.9926800051630119,
+        0.9992187593968466
+      ],
+      "answer_rate": 0.0988538681948424,
+      "silent_failure_rate": 0.0028653295128939827,
+      "coverage_given_answered": 0.9710144927536232,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8918338108882522,
+        "frac_neg_inf": 0.09025787965616046
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1394,
+      "n_answered": 126,
+      "coverage": 0.998567335243553,
+      "coverage_ci95": [
+        0.9948343977824309,
+        0.9998264505359432
+      ],
+      "answer_rate": 0.09025787965616046,
+      "silent_failure_rate": 0.0014326647564469914,
+      "coverage_given_answered": 0.9841269841269841,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8660458452722063,
+        "frac_neg_inf": 0.12607449856733524
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1393,
+      "n_answered": 114,
+      "coverage": 0.9978510028653295,
+      "coverage_ci95": [
+        0.9937326795545479,
+        0.9995566056793979
+      ],
+      "answer_rate": 0.08166189111747851,
+      "silent_failure_rate": 0.002148997134670487,
+      "coverage_given_answered": 0.9736842105263158,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8330945558739254,
+        "frac_neg_inf": 0.16117478510028654
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 103,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.07378223495702006,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8065902578796562,
+        "frac_neg_inf": 0.19197707736389685
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 99,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.07091690544412607,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7851002865329513,
+        "frac_neg_inf": 0.21060171919770773
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 90,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.06446991404011461,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7621776504297995,
+        "frac_neg_inf": 0.2356733524355301
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 75,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.053724928366762174,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7012893982808023,
+        "frac_neg_inf": 0.2987106017191977
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "A3",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1383,
+      "n_answered": 153,
+      "coverage": 0.9906876790830945,
+      "coverage_ci95": [
+        0.984128291702887,
+        0.9950325299921426
+      ],
+      "answer_rate": 0.10959885386819485,
+      "silent_failure_rate": 0.009312320916905445,
+      "coverage_given_answered": 0.9150326797385621,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.916189111747851,
+        "frac_neg_inf": 0.0494269340974212
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1391,
+      "n_answered": 138,
+      "coverage": 0.9964183381088825,
+      "coverage_ci95": [
+        0.991661543222824,
+        0.9988360527680232
+      ],
+      "answer_rate": 0.0988538681948424,
+      "silent_failure_rate": 0.0035816618911174787,
+      "coverage_given_answered": 0.9637681159420289,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8918338108882522,
+        "frac_neg_inf": 0.09025787965616046
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1393,
+      "n_answered": 126,
+      "coverage": 0.9978510028653295,
+      "coverage_ci95": [
+        0.9937326795545479,
+        0.9995566056793979
+      ],
+      "answer_rate": 0.09025787965616046,
+      "silent_failure_rate": 0.002148997134670487,
+      "coverage_given_answered": 0.9761904761904762,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8660458452722063,
+        "frac_neg_inf": 0.12607449856733524
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1392,
+      "n_answered": 114,
+      "coverage": 0.997134670487106,
+      "coverage_ci95": [
+        0.9926800051630119,
+        0.9992187593968466
+      ],
+      "answer_rate": 0.08166189111747851,
+      "silent_failure_rate": 0.0028653295128939827,
+      "coverage_given_answered": 0.9649122807017544,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8330945558739254,
+        "frac_neg_inf": 0.16117478510028654
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 103,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.07378223495702006,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8065902578796562,
+        "frac_neg_inf": 0.19197707736389685
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1395,
+      "n_answered": 99,
+      "coverage": 0.9992836676217765,
+      "coverage_ci95": [
+        0.9960153804481771,
+        0.9999818641988508
+      ],
+      "answer_rate": 0.07091690544412607,
+      "silent_failure_rate": 0.0007163323782234957,
+      "coverage_given_answered": 0.98989898989899,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7851002865329513,
+        "frac_neg_inf": 0.21060171919770773
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 90,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.06446991404011461,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7621776504297995,
+        "frac_neg_inf": 0.2356733524355301
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 75,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.053724928366762174,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7012893982808023,
+        "frac_neg_inf": 0.2987106017191977
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1383,
+      "n_answered": 153,
+      "coverage": 0.9906876790830945,
+      "coverage_ci95": [
+        0.984128291702887,
+        0.9950325299921426
+      ],
+      "answer_rate": 0.10959885386819485,
+      "silent_failure_rate": 0.009312320916905445,
+      "coverage_given_answered": 0.9150326797385621,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.916189111747851,
+        "frac_neg_inf": 0.0494269340974212
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1390,
+      "n_answered": 138,
+      "coverage": 0.995702005730659,
+      "coverage_ci95": [
+        0.9906687126827814,
+        0.9984211283002964
+      ],
+      "answer_rate": 0.0988538681948424,
+      "silent_failure_rate": 0.004297994269340974,
+      "coverage_given_answered": 0.9565217391304348,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8918338108882522,
+        "frac_neg_inf": 0.09025787965616046
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1393,
+      "n_answered": 126,
+      "coverage": 0.9978510028653295,
+      "coverage_ci95": [
+        0.9937326795545479,
+        0.9995566056793979
+      ],
+      "answer_rate": 0.09025787965616046,
+      "silent_failure_rate": 0.002148997134670487,
+      "coverage_given_answered": 0.9761904761904762,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8660458452722063,
+        "frac_neg_inf": 0.12607449856733524
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1392,
+      "n_answered": 114,
+      "coverage": 0.997134670487106,
+      "coverage_ci95": [
+        0.9926800051630119,
+        0.9992187593968466
+      ],
+      "answer_rate": 0.08166189111747851,
+      "silent_failure_rate": 0.0028653295128939827,
+      "coverage_given_answered": 0.9649122807017544,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8330945558739254,
+        "frac_neg_inf": 0.16117478510028654
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 103,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.07378223495702006,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8065902578796562,
+        "frac_neg_inf": 0.19197707736389685
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1395,
+      "n_answered": 99,
+      "coverage": 0.9992836676217765,
+      "coverage_ci95": [
+        0.9960153804481771,
+        0.9999818641988508
+      ],
+      "answer_rate": 0.07091690544412607,
+      "silent_failure_rate": 0.0007163323782234957,
+      "coverage_given_answered": 0.98989898989899,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7851002865329513,
+        "frac_neg_inf": 0.21060171919770773
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 90,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.06446991404011461,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7621776504297995,
+        "frac_neg_inf": 0.2356733524355301
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 75,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.053724928366762174,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7012893982808023,
+        "frac_neg_inf": 0.2987106017191977
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "B2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1383,
+      "n_answered": 153,
+      "coverage": 0.9906876790830945,
+      "coverage_ci95": [
+        0.984128291702887,
+        0.9950325299921426
+      ],
+      "answer_rate": 0.10959885386819485,
+      "silent_failure_rate": 0.009312320916905445,
+      "coverage_given_answered": 0.9150326797385621,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.916189111747851,
+        "frac_neg_inf": 0.0494269340974212
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1390,
+      "n_answered": 138,
+      "coverage": 0.995702005730659,
+      "coverage_ci95": [
+        0.9906687126827814,
+        0.9984211283002964
+      ],
+      "answer_rate": 0.0988538681948424,
+      "silent_failure_rate": 0.004297994269340974,
+      "coverage_given_answered": 0.9565217391304348,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8918338108882522,
+        "frac_neg_inf": 0.09025787965616046
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1394,
+      "n_answered": 126,
+      "coverage": 0.998567335243553,
+      "coverage_ci95": [
+        0.9948343977824309,
+        0.9998264505359432
+      ],
+      "answer_rate": 0.09025787965616046,
+      "silent_failure_rate": 0.0014326647564469914,
+      "coverage_given_answered": 0.9841269841269841,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8660458452722063,
+        "frac_neg_inf": 0.12607449856733524
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1392,
+      "n_answered": 114,
+      "coverage": 0.997134670487106,
+      "coverage_ci95": [
+        0.9926800051630119,
+        0.9992187593968466
+      ],
+      "answer_rate": 0.08166189111747851,
+      "silent_failure_rate": 0.0028653295128939827,
+      "coverage_given_answered": 0.9649122807017544,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8330945558739254,
+        "frac_neg_inf": 0.16117478510028654
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 103,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.07378223495702006,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8065902578796562,
+        "frac_neg_inf": 0.19197707736389685
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1395,
+      "n_answered": 99,
+      "coverage": 0.9992836676217765,
+      "coverage_ci95": [
+        0.9960153804481771,
+        0.9999818641988508
+      ],
+      "answer_rate": 0.07091690544412607,
+      "silent_failure_rate": 0.0007163323782234957,
+      "coverage_given_answered": 0.98989898989899,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7851002865329513,
+        "frac_neg_inf": 0.21060171919770773
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 90,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.06446991404011461,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7621776504297995,
+        "frac_neg_inf": 0.2356733524355301
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 75,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.053724928366762174,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7012893982808023,
+        "frac_neg_inf": 0.2987106017191977
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C1",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1384,
+      "n_answered": 153,
+      "coverage": 0.9914040114613181,
+      "coverage_ci95": [
+        0.9850327265335331,
+        0.9955506660902861
+      ],
+      "answer_rate": 0.10959885386819485,
+      "silent_failure_rate": 0.008595988538681949,
+      "coverage_given_answered": 0.9215686274509803,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.916189111747851,
+        "frac_neg_inf": 0.0494269340974212
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1392,
+      "n_answered": 138,
+      "coverage": 0.997134670487106,
+      "coverage_ci95": [
+        0.9926800051630119,
+        0.9992187593968466
+      ],
+      "answer_rate": 0.0988538681948424,
+      "silent_failure_rate": 0.0028653295128939827,
+      "coverage_given_answered": 0.9710144927536232,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8918338108882522,
+        "frac_neg_inf": 0.09025787965616046
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1394,
+      "n_answered": 126,
+      "coverage": 0.998567335243553,
+      "coverage_ci95": [
+        0.9948343977824309,
+        0.9998264505359432
+      ],
+      "answer_rate": 0.09025787965616046,
+      "silent_failure_rate": 0.0014326647564469914,
+      "coverage_given_answered": 0.9841269841269841,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8660458452722063,
+        "frac_neg_inf": 0.12607449856733524
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1394,
+      "n_answered": 114,
+      "coverage": 0.998567335243553,
+      "coverage_ci95": [
+        0.9948343977824309,
+        0.9998264505359432
+      ],
+      "answer_rate": 0.08166189111747851,
+      "silent_failure_rate": 0.0014326647564469914,
+      "coverage_given_answered": 0.9824561403508771,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8330945558739254,
+        "frac_neg_inf": 0.16117478510028654
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 103,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.07378223495702006,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.8065902578796562,
+        "frac_neg_inf": 0.19197707736389685
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 99,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.07091690544412607,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7851002865329513,
+        "frac_neg_inf": 0.21060171919770773
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 90,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.06446991404011461,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7621776504297995,
+        "frac_neg_inf": 0.2356733524355301
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 75,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.053724928366762174,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "-inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 0.7012893982808023,
+        "frac_neg_inf": 0.2987106017191977
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    },
+    {
+      "score": "C2",
+      "arm": "weighted_unlabeled_target",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": {
+        "min": "inf",
+        "median": "inf",
+        "p90": "inf",
+        "max": "inf",
+        "frac_pos_inf": 1.0,
+        "frac_neg_inf": 0.0
+      },
+      "n_cal": 4798,
+      "ess_cal": 1.596858365580229,
+      "classifier_cv_auc_mean": 0.998245408095819
+    }
+  ],
+  "provenance": {
+    "poseconf_git_sha": "b3a2795b50981145a9628ade0e8e790e65ce9be8",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+    "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
+    "config_sha256": "ef573e1901e6db2b2c3b002f63a2fd3881ca3c5487960e0629faf104a96887e7",
+    "pnp_config": {
+      "method": "EPNP",
+      "reprojection_threshold_px": 5.0,
+      "min_inliers": 6,
+      "iterations": 1000,
+      "confidence": 0.99,
+      "refine": true,
+      "use_keypoint_confidence": true,
+      "confidence_min": 0.2
+    },
+    "calibration_dump": {
+      "dump": "dumps/keypoint_a2/synthetic_predicted_crop.npz",
+      "dump_sha256": "07dc09268b4305904aa7ac43f641d001007f958993b262b75c372a39e544368f",
+      "variance_sidecar": "dumps/keypoint_a2/synthetic_predicted_crop_vhead.npz",
+      "variance_sidecar_sha256": "377b6e53b58662bfcc29879ecceebb292bd7a62c16f4b716a8678092a51530d1",
+      "variance_head_checkpoint_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
+      "p1_checkpoint_sha256_dump": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793"
+    },
+    "evaluation_dump": {
+      "dump": "dumps/keypoint_a2/sunlamp_predicted_crop.npz",
+      "dump_sha256": "b727a481ccdf6dc80339ca59ba6d6949ae62555ba47ce47b054e9de14ba3ac85",
+      "variance_sidecar": "dumps/keypoint_a2/sunlamp_predicted_crop_vhead.npz",
+      "variance_sidecar_sha256": "8624c34b15b16ec9c7d4eea76d3d008ee775b699a0618a6a2e3b76864e88eff0",
+      "variance_head_checkpoint_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
+      "p1_checkpoint_sha256_dump": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793"
+    },
+    "labels_all": "dumps/keypoint_a2/synthetic_labels.npz",
+    "labels_all_sha256": "c0996245e55f8d7dd457c5e010c7dd08556629133a2940dd099f73e6777cfe47",
+    "labels_poolB": "dumps/keypoint_a2/sunlamp_labels_poolB.npz",
+    "labels_poolB_sha256": "83ecd8ebfd1b127af58b846b90930d60534dfe99947266c59f60549975a6dadb",
+    "created_at": "2026-10-07T19:05:10Z"
+  }
+}

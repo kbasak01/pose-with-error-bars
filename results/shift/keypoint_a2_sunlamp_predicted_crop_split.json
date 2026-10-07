@@ -1,0 +1,5806 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "coverage",
+  "run": "keypoint_a2",
+  "domain": "sunlamp",
+  "subset": "sunlamp_poolB",
+  "crop_source": "predicted_crop",
+  "arm": "split",
+  "oracle": false,
+  "definitions": {
+    "coverage": "fraction of evaluated frames covered under the row's convention (docs/SCORES.md); Clopper-Pearson 95 % interval over n_total frames. Marginal and finite-sample only under exchangeability of calibration and evaluation frames; on HIL poolB this is a measured number, not a guarantee",
+    "answered": "frame has a point estimate for the score and q > -inf (an empty set abstains)",
+    "silent_failure_rate": "P(answered and not covered)",
+    "coverage_given_answered": "covered and answered / answered (null when nothing is answered): not a conformal quantity, reported beside the marginal coverage because abstentions count as covered under abstain_allowed; oracle rows: mean over draws with answers",
+    "mondrian_conventions": "invalid frames form their own Mondrian group, whose quantile is +inf (answer_required: whole-space set) or -inf (abstain_allowed: abstain); both count as covered and the other groups are identical, so the two conventions give the same Mondrian rows by construction",
+    "set_size": "median / p90 over answered frames of q_i x the frame's unit radius; +inf kept (order statistics). rot_deg: geodesic radius; *_frac: fraction of ||t_hat||; kp_px: largest keypoint radius in full-frame px (+inf with an unconstrained keypoint)",
+    "quantile": "split / oracle draw: the finite-sample quantile ceil((n+1)(1-alpha))-th order statistic, +inf if that exceeds n; mondrian: per-group quantiles; weighted: per-frame quantiles (Tibshirani et al. 2019), summarised",
+    "oracle": "true for every HIL gt_crop row (the crop box is the GT box) and every oracle_target_labels_n* arm (calibrated on labeled HIL poolA frames)",
+    "oracle_target_labels": "split CP on n labeled poolA frames, D draws; top-level coverage, answer_rate and silent_failure_rate are the mean over draws, coverage_min/max the range, coverage_ci95 the envelope of the per-draw Clopper-Pearson intervals, n_answered the rounded mean, set_size each statistic's median over draws; every draw is listed in `draws`",
+    "slices": "split arm, slices_alpha only: coverage by GT range tertile and by confidence quintile (edges from val_tune), and by GT-bbox IoU of the crop box (<0.5, 0.5-0.8, >0.8; predicted_crop only). GT quantities slice the evaluation; they never enter a score"
+  },
+  "calibration": {
+    "fit": "synthetic_val_tune",
+    "calibration": "synthetic_val_cal",
+    "n_cal": 4798,
+    "evaluation": "sunlamp_poolB",
+    "n_eval": 1396
+  },
+  "fit": {
+    "level_a": {
+      "c_R_rad": 0.012076750939645978,
+      "c_t": 0.0032808872504126183,
+      "c_z": 0.003094075662849757,
+      "c_xy": 0.0005715020080919428,
+      "g": {
+        "kind": "isotonic_decreasing_A1_on_confidence_mean",
+        "x": [
+          0.5571732954545454,
+          0.59765625,
+          0.6001420454545454,
+          0.6729403409090909,
+          0.6768465909090909,
+          0.6981534090909091,
+          0.7024147727272727,
+          0.7091619318181818,
+          0.7105823863636364,
+          0.7553267045454546,
+          0.7560369318181818,
+          0.7716619318181818,
+          0.7723721590909091,
+          0.7816051136363636,
+          0.7819602272727273,
+          0.7950994318181818,
+          0.7958096590909091,
+          0.8348721590909091,
+          0.8352272727272727,
+          0.8433948863636364,
+          0.8441051136363636,
+          0.859375,
+          0.8597301136363636,
+          0.8686079545454546,
+          0.8689630681818182,
+          0.8757102272727273,
+          0.8760653409090909,
+          0.8764204545454546,
+          0.90234375,
+          0.9026988636363636,
+          0.9041193181818182,
+          0.9044744318181818,
+          0.9204545454545454,
+          0.9208096590909091,
+          0.9268465909090909,
+          0.9272017045454546,
+          0.9300426136363636,
+          0.9303977272727273,
+          0.9343039772727273,
+          0.9346590909090909,
+          0.9513494318181818,
+          0.9517045454545454,
+          0.9520596590909091,
+          0.9588068181818182,
+          0.9591619318181818,
+          0.9616477272727273,
+          0.9620028409090909,
+          0.9623579545454546,
+          0.9637784090909091,
+          0.9641335227272727,
+          0.96484375,
+          0.9651988636363636,
+          0.96875,
+          0.9691051136363636,
+          0.9737215909090909,
+          0.9740767045454546,
+          0.9811789772727273,
+          0.9815340909090909,
+          0.9829545454545454,
+          0.9833096590909091,
+          0.9847301136363636,
+          0.9850852272727273,
+          0.9936079545454546,
+          0.9939630681818182,
+          1.0010653409090908,
+          1.0014204545454546,
+          1.0099431818181819,
+          1.0127840909090908,
+          1.0145596590909092,
+          1.0245028409090908
+        ],
+        "y": [
+          19.117029455740735,
+          19.117029455740735,
+          8.387750826690958,
+          8.387750826690958,
+          5.892745066539473,
+          5.892745066539473,
+          5.352048721603462,
+          5.352048721603462,
+          5.346973957921061,
+          5.346973957921061,
+          4.107485109404108,
+          4.107485109404108,
+          3.8374100611158095,
+          3.8374100611158095,
+          3.778830622874163,
+          3.778830622874163,
+          3.778283992526533,
+          3.778283992526533,
+          3.548565564000125,
+          3.548565564000125,
+          2.7734595157639528,
+          2.7734595157639528,
+          2.6283827994805518,
+          2.6283827994805518,
+          2.6240379863813237,
+          2.6240379863813237,
+          2.592667049420407,
+          2.4256288464488858,
+          2.4256288464488858,
+          2.1673288398051556,
+          2.1673288398051556,
+          2.159186373658911,
+          2.159186373658911,
+          1.9721209980788938,
+          1.9721209980788938,
+          1.955991484151699,
+          1.955991484151699,
+          1.8844987163454863,
+          1.8844987163454863,
+          1.776501476067324,
+          1.776501476067324,
+          1.7504459938007628,
+          1.5797944467707272,
+          1.5797944467707272,
+          1.408502383775936,
+          1.408502383775936,
+          1.3696804960098776,
+          1.3412966483522484,
+          1.3412966483522484,
+          1.315137375605408,
+          1.315137375605408,
+          1.3015572469995005,
+          1.3015572469995005,
+          1.2785152605528256,
+          1.2785152605528256,
+          1.1864453062195475,
+          1.1864453062195475,
+          1.05761019057973,
+          1.05761019057973,
+          1.0383536707787053,
+          1.0383536707787053,
+          0.9843137593419834,
+          0.9843137593419834,
+          0.9547457643909747,
+          0.9547457643909747,
+          0.9493435097845693,
+          0.9493435097845693,
+          0.8355272999836367,
+          0.5506611644211516,
+          0.5506611644211516
+        ]
+      },
+      "n_fit_solved": 2251
+    },
+    "mondrian_bins": {
+      "groups": "predicted_range_tertile x mean_confidence_tertile; invalid frames own group",
+      "range_edges_m": [
+        5.188219414414305,
+        7.599921257836165
+      ],
+      "conf_edges": [
+        0.9293323863636364,
+        0.9634232954545454
+      ],
+      "failure_group": 9,
+      "fit_on": "val_tune solved frames"
+    }
+  },
+  "rows": [
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1319,
+      "n_answered": 175,
+      "coverage": 0.9448424068767909,
+      "coverage_ci95": [
+        0.9315417200409392,
+        0.9562286373576331
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.05515759312320917,
+      "coverage_given_answered": 0.56,
+      "set_size": {
+        "rot_deg": {
+          "median": 6.295292387281159,
+          "p90": 6.295292387281159
+        },
+        "trans_frac": {
+          "median": 0.029849321895527674,
+          "p90": 0.029849321895527674
+        },
+        "trans_m": {
+          "median": 0.22407160358120615,
+          "p90": 0.2729904109372413
+        }
+      },
+      "quantile": 9.09794199473746,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1297,
+      "n_answered": 175,
+      "coverage": 0.9290830945558739,
+      "coverage_ci95": [
+        0.9143352982169846,
+        0.9419917747252109
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.07091690544412607,
+      "coverage_given_answered": 0.4342857142857143,
+      "set_size": {
+        "rot_deg": {
+          "median": 4.6286407892527395,
+          "p90": 4.6286407892527395
+        },
+        "trans_frac": {
+          "median": 0.021946842236639032,
+          "p90": 0.021946842236639032
+        },
+        "trans_m": {
+          "median": 0.164749609747224,
+          "p90": 0.20071737314248894
+        }
+      },
+      "quantile": 6.689300960854081,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1261,
+      "n_answered": 175,
+      "coverage": 0.9032951289398281,
+      "coverage_ci95": [
+        0.886573189938824,
+        0.9182959915902286
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.09670487106017192,
+      "coverage_given_answered": 0.22857142857142856,
+      "set_size": {
+        "rot_deg": {
+          "median": 3.151173484117256,
+          "p90": 3.151173484117256
+        },
+        "trans_frac": {
+          "median": 0.014941385703721173,
+          "p90": 0.014941385703721173
+        },
+        "trans_m": {
+          "median": 0.11216135046805648,
+          "p90": 0.1366481636503039
+        }
+      },
+      "quantile": 4.554068629405683,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1245,
+      "n_answered": 175,
+      "coverage": 0.8918338108882522,
+      "coverage_ci95": [
+        0.8743508625196847,
+        0.9076469345583426
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.10816618911174786,
+      "coverage_given_answered": 0.13714285714285715,
+      "set_size": {
+        "rot_deg": {
+          "median": 2.3280643340147678,
+          "p90": 2.3280643340147678
+        },
+        "trans_frac": {
+          "median": 0.011038588428378977,
+          "p90": 0.011038588428378977
+        },
+        "trans_m": {
+          "median": 0.08286400002910681,
+          "p90": 0.10095468171026545
+        }
+      },
+      "quantile": 3.364513189836291,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 448,
+            "n_answered": 17,
+            "coverage": 0.9676025917926566,
+            "coverage_ci95": [
+              0.9471277910014384,
+              0.9817562742434117
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.032397408207343416
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 449,
+            "n_answered": 69,
+            "coverage": 0.8803921568627451,
+            "coverage_ci95": [
+              0.8490220376675491,
+              0.9072624186014963
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.11960784313725491
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 348,
+            "n_answered": 89,
+            "coverage": 0.8226950354609929,
+            "coverage_ci95": [
+              0.7828956790846237,
+              0.8579076310197165
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.1773049645390071
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 1245,
+            "n_answered": 173,
+            "coverage": 0.8931133428981348,
+            "coverage_ci95": [
+              0.8756990217797743,
+              0.9088497094277885
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.10688665710186514
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 242,
+            "n_answered": 3,
+            "coverage": 0.9918032786885246,
+            "coverage_ci95": [
+              0.9707059429491128,
+              0.9990057929893995
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.00819672131147541
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 592,
+            "n_answered": 104,
+            "coverage": 0.8654970760233918,
+            "coverage_ci95": [
+              0.8376165009779415,
+              0.8901759523711367
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.13450292397660818
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 411,
+            "n_answered": 68,
+            "coverage": 0.8782051282051282,
+            "coverage_ci95": [
+              0.8450940434765164,
+              0.906434622124278
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.12179487179487179
+          }
+        }
+      }
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1234,
+      "n_answered": 175,
+      "coverage": 0.8839541547277937,
+      "coverage_ci95": [
+        0.8659816521570198,
+        0.9002917777633902
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.11604584527220631,
+      "coverage_given_answered": 0.07428571428571429,
+      "set_size": {
+        "rot_deg": {
+          "median": 1.9165727214138468,
+          "p90": 1.9165727214138468
+        },
+        "trans_frac": {
+          "median": 0.00908748832909679,
+          "p90": 0.00908748832909679
+        },
+        "trans_m": {
+          "median": 0.06821756586474764,
+          "p90": 0.08311067105746262
+        }
+      },
+      "quantile": 2.7698264632391463,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1230,
+      "n_answered": 175,
+      "coverage": 0.8810888252148997,
+      "coverage_ci95": [
+        0.8629445203663555,
+        0.8976109082887979
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.11891117478510028,
+      "coverage_given_answered": 0.05142857142857143,
+      "set_size": {
+        "rot_deg": {
+          "median": 1.6394064423321004,
+          "p90": 1.6394064423321004
+        },
+        "trans_frac": {
+          "median": 0.007773295917698756,
+          "p90": 0.007773295917698756
+        },
+        "trans_m": {
+          "median": 0.05835224289135271,
+          "p90": 0.07109157301249475
+        }
+      },
+      "quantile": 2.3692663978992736,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1225,
+      "n_answered": 175,
+      "coverage": 0.8775071633237822,
+      "coverage_ci95": [
+        0.8591525262827604,
+        0.8942553672022412
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12249283667621777,
+      "coverage_given_answered": 0.022857142857142857,
+      "set_size": {
+        "rot_deg": {
+          "median": 1.2807478287884444,
+          "p90": 1.2807478287884444
+        },
+        "trans_frac": {
+          "median": 0.006072705103537719,
+          "p90": 0.006072705103537719
+        },
+        "trans_m": {
+          "median": 0.045586321035632905,
+          "p90": 0.05553862387620374
+        }
+      },
+      "quantile": 1.8509337993172394,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "rot_deg": {
+          "median": 0.8756591534256499,
+          "p90": 0.8756591534256499
+        },
+        "trans_frac": {
+          "median": 0.004151964727512205,
+          "p90": 0.004151964727512205
+        },
+        "trans_m": {
+          "median": 0.03116778993380275,
+          "p90": 0.03797227156876594
+        }
+      },
+      "quantile": 1.2655005828042512,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 65,
+      "n_answered": 175,
+      "coverage": 0.04656160458452722,
+      "coverage_ci95": [
+        0.03611611703322955,
+        0.05896450968492372
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.07879656160458452,
+      "coverage_given_answered": 0.37142857142857144,
+      "set_size": {
+        "rot_deg": {
+          "median": 3.9918240458355827,
+          "p90": 3.9918240458355827
+        },
+        "trans_frac": {
+          "median": 0.01892735612013637,
+          "p90": 0.01892735612013637
+        },
+        "trans_m": {
+          "median": 0.1420830614589926,
+          "p90": 0.17310231513050572
+        }
+      },
+      "quantile": 5.768974876462452,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 5,
+            "n_answered": 17,
+            "coverage": 0.01079913606911447,
+            "coverage_ci95": [
+              0.0035154896520640977,
+              0.02502052773364
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.02591792656587473
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 26,
+            "n_answered": 69,
+            "coverage": 0.050980392156862744,
+            "coverage_ci95": [
+              0.033568775593523156,
+              0.0738084341179151
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.08431372549019608
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 34,
+            "n_answered": 89,
+            "coverage": 0.08037825059101655,
+            "coverage_ci95": [
+              0.05630471389819248,
+              0.11051062897135287
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.13002364066193853
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 65,
+            "n_answered": 173,
+            "coverage": 0.046628407460545196,
+            "coverage_ci95": [
+              0.03616819752331748,
+              0.05904855430181354
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.07747489239598278
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 1,
+            "n_answered": 3,
+            "coverage": 0.004098360655737705,
+            "coverage_ci95": [
+              0.00010375612509323639,
+              0.02262183100982745
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.00819672131147541
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 37,
+            "n_answered": 104,
+            "coverage": 0.054093567251461985,
+            "coverage_ci95": [
+              0.03836922750229207,
+              0.07379303851735805
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.097953216374269
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 27,
+            "n_answered": 68,
+            "coverage": 0.057692307692307696,
+            "coverage_ci95": [
+              0.03836012006043877,
+              0.082832064272406
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.0876068376068376
+          }
+        }
+      }
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 27,
+      "n_answered": 175,
+      "coverage": 0.019340974212034383,
+      "coverage_ci95": [
+        0.012783553760693303,
+        0.02801609176392042
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.10601719197707736,
+      "coverage_given_answered": 0.15428571428571428,
+      "set_size": {
+        "rot_deg": {
+          "median": 2.5764186950639885,
+          "p90": 2.5764186950639885
+        },
+        "trans_frac": {
+          "median": 0.012216168246926205,
+          "p90": 0.012216168246926205
+        },
+        "trans_m": {
+          "median": 0.09170380547628774,
+          "p90": 0.11172437355458086
+        }
+      },
+      "quantile": 3.7234343378882793,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 16,
+      "n_answered": 175,
+      "coverage": 0.011461318051575931,
+      "coverage_ci95": [
+        0.00656493147737695,
+        0.01854589245292046
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.11389684813753581,
+      "coverage_given_answered": 0.09142857142857143,
+      "set_size": {
+        "rot_deg": {
+          "median": 2.071915626879701,
+          "p90": 2.071915626879701
+        },
+        "trans_frac": {
+          "median": 0.009824051478856925,
+          "p90": 0.009824051478856925
+        },
+        "trans_m": {
+          "median": 0.07374676638338007,
+          "p90": 0.08984699416852046
+        }
+      },
+      "quantile": 2.9943276708522704,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 8,
+      "n_answered": 175,
+      "coverage": 0.0057306590257879654,
+      "coverage_ci95": [
+        0.002477241566911611,
+        0.01126030319153422
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.11962750716332378,
+      "coverage_given_answered": 0.045714285714285714,
+      "set_size": {
+        "rot_deg": {
+          "median": 1.5040701364398987,
+          "p90": 1.5040701364398987
+        },
+        "trans_frac": {
+          "median": 0.007131594673307055,
+          "p90": 0.007131594673307055
+        },
+        "trans_m": {
+          "median": 0.053535147636922575,
+          "p90": 0.06522282038157898
+        }
+      },
+      "quantile": 2.1736786817072593,
+      "n_cal": 4798
+    },
+    {
+      "score": "A1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 2,
+      "n_answered": 175,
+      "coverage": 0.0014326647564469914,
+      "coverage_ci95": [
+        0.0001735494640568102,
+        0.005165602217569119
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12392550143266476,
+      "coverage_given_answered": 0.011428571428571429,
+      "set_size": {
+        "rot_deg": {
+          "median": 0.9917462733570064,
+          "p90": 0.9917462733570064
+        },
+        "trans_frac": {
+          "median": 0.004702395366406219,
+          "p90": 0.004702395366406219
+        },
+        "trans_m": {
+          "median": 0.03529973893917325,
+          "p90": 0.043006298366092904
+        }
+      },
+      "quantile": 1.4332694199762048,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1333,
+      "n_answered": 175,
+      "coverage": 0.9548710601719198,
+      "coverage_ci95": [
+        0.9426270310366657,
+        0.9651503257394837
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.04512893982808023,
+      "coverage_given_answered": 0.64,
+      "set_size": {
+        "rot_deg": {
+          "median": 7.784974639540016,
+          "p90": 7.784974639540016
+        },
+        "boresight_frac": {
+          "median": 0.03481091105810512,
+          "p90": 0.03481091105810512
+        },
+        "boresight_m": {
+          "median": 0.2613170473424071,
+          "p90": 0.31836719601579005
+        },
+        "lateral_frac": {
+          "median": 0.006429870417226166,
+          "p90": 0.006429870417226166
+        },
+        "lateral_m": {
+          "median": 0.04826747422436734,
+          "p90": 0.058805120384821136
+        }
+      },
+      "quantile": 11.250827339510824,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1295,
+      "n_answered": 175,
+      "coverage": 0.9276504297994269,
+      "coverage_ci95": [
+        0.9127815240693118,
+        0.9406869147722338
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.07234957020057306,
+      "coverage_given_answered": 0.4228571428571429,
+      "set_size": {
+        "rot_deg": {
+          "median": 5.500803386156459,
+          "p90": 5.500803386156459
+        },
+        "boresight_frac": {
+          "median": 0.024597122828255,
+          "p90": 0.024597122828255
+        },
+        "boresight_m": {
+          "median": 0.18464462190803674,
+          "p90": 0.22495581950775262
+        },
+        "lateral_frac": {
+          "median": 0.004543297133427115,
+          "p90": 0.004543297133427115
+        },
+        "lateral_m": {
+          "median": 0.034105427178412424,
+          "p90": 0.04155124715413013
+        }
+      },
+      "quantile": 7.949748328261679,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1268,
+      "n_answered": 175,
+      "coverage": 0.9083094555873925,
+      "coverage_ci95": [
+        0.891940689824399,
+        0.9229345315848972
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.09169054441260745,
+      "coverage_given_answered": 0.26857142857142857,
+      "set_size": {
+        "rot_deg": {
+          "median": 3.8977728599535006,
+          "p90": 3.8977728599535006
+        },
+        "boresight_frac": {
+          "median": 0.01742909009149379,
+          "p90": 0.01742909009149379
+        },
+        "boresight_m": {
+          "median": 0.1308359425862691,
+          "p90": 0.15939975062053177
+        },
+        "lateral_frac": {
+          "median": 0.003219300712681945,
+          "p90": 0.003219300712681945
+        },
+        "lateral_m": {
+          "median": 0.02416650789004502,
+          "p90": 0.029442485412617507
+        }
+      },
+      "quantile": 5.633052320201168,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1243,
+      "n_answered": 175,
+      "coverage": 0.8904011461318052,
+      "coverage_ci95": [
+        0.8728272551694929,
+        0.9063115819603877
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.10959885386819485,
+      "coverage_given_answered": 0.12571428571428572,
+      "set_size": {
+        "rot_deg": {
+          "median": 2.8297841177237646,
+          "p90": 2.8297841177237646
+        },
+        "boresight_frac": {
+          "median": 0.012653523973655597,
+          "p90": 0.012653523973655597
+        },
+        "boresight_m": {
+          "median": 0.09498692860272505,
+          "p90": 0.11572426072064412
+        },
+        "lateral_frac": {
+          "median": 0.002337213161013401,
+          "p90": 0.002337213161013401
+        },
+        "lateral_m": {
+          "median": 0.017544891060920175,
+          "p90": 0.021375252124858957
+        }
+      },
+      "quantile": 4.0895974605873855,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 447,
+            "n_answered": 17,
+            "coverage": 0.9654427645788337,
+            "coverage_ci95": [
+              0.9444867891386406,
+              0.9801209860317384
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.03455723542116631
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 450,
+            "n_answered": 69,
+            "coverage": 0.8823529411764706,
+            "coverage_ci95": [
+              0.8511699187623566,
+              0.9090115445165745
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.11764705882352941
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 346,
+            "n_answered": 89,
+            "coverage": 0.817966903073286,
+            "coverage_ci95": [
+              0.7778287139298512,
+              0.8535873638665343
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.18203309692671396
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 1243,
+            "n_answered": 173,
+            "coverage": 0.8916786226685797,
+            "coverage_ci95": [
+              0.874172369806384,
+              0.9075133158574635
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.10832137733142037
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 241,
+            "n_answered": 3,
+            "coverage": 0.9877049180327869,
+            "coverage_ci95": [
+              0.9644910159259151,
+              0.9974572458802701
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.012295081967213115
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 590,
+            "n_answered": 104,
+            "coverage": 0.8625730994152047,
+            "coverage_ci95": [
+              0.8344741963183516,
+              0.8874969259786595
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.13742690058479531
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 412,
+            "n_answered": 68,
+            "coverage": 0.8803418803418803,
+            "coverage_ci95": [
+              0.8474399256406258,
+              0.9083330304966034
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.11965811965811966
+          }
+        }
+      }
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1234,
+      "n_answered": 175,
+      "coverage": 0.8839541547277937,
+      "coverage_ci95": [
+        0.8659816521570198,
+        0.9002917777633902
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.11604584527220631,
+      "coverage_given_answered": 0.07428571428571429,
+      "set_size": {
+        "rot_deg": {
+          "median": 2.2806682434733996,
+          "p90": 2.2806682434733996
+        },
+        "boresight_frac": {
+          "median": 0.01019812434241768,
+          "p90": 0.01019812434241768
+        },
+        "boresight_m": {
+          "median": 0.07655484043905336,
+          "p90": 0.09326812062162163
+        },
+        "lateral_frac": {
+          "median": 0.0018836800309837926,
+          "p90": 0.0018836800309837926
+        },
+        "lateral_m": {
+          "median": 0.01414032810037385,
+          "p90": 0.01722741265387297
+        }
+      },
+      "quantile": 3.296016469430756,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1225,
+      "n_answered": 175,
+      "coverage": 0.8775071633237822,
+      "coverage_ci95": [
+        0.8591525262827604,
+        0.8942553672022412
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12249283667621777,
+      "coverage_given_answered": 0.022857142857142857,
+      "set_size": {
+        "rot_deg": {
+          "median": 1.9481856232802983,
+          "p90": 1.9481856232802983
+        },
+        "boresight_frac": {
+          "median": 0.008711411352869437,
+          "p90": 0.008711411352869437
+        },
+        "boresight_m": {
+          "median": 0.06539444742245365,
+          "p90": 0.07967121576116919
+        },
+        "lateral_frac": {
+          "median": 0.0016090715366974474,
+          "p90": 0.0016090715366974474
+        },
+        "lateral_m": {
+          "median": 0.012078908886660283,
+          "p90": 0.014715949044600208
+        }
+      },
+      "quantile": 2.8155133558840992,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1223,
+      "n_answered": 175,
+      "coverage": 0.8760744985673352,
+      "coverage_ci95": [
+        0.8576370657943115,
+        0.892911803719521
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12392550143266476,
+      "coverage_given_answered": 0.011428571428571429,
+      "set_size": {
+        "rot_deg": {
+          "median": 1.5070267343000894,
+          "p90": 1.5070267343000894
+        },
+        "boresight_frac": {
+          "median": 0.006738746886015128,
+          "p90": 0.006738746886015128
+        },
+        "boresight_m": {
+          "median": 0.050586134792680384,
+          "p90": 0.06162998570131519
+        },
+        "lateral_frac": {
+          "median": 0.0012447036844063048,
+          "p90": 0.0012447036844063048
+        },
+        "lateral_m": {
+          "median": 0.009343687991456323,
+          "p90": 0.011383580889724887
+        }
+      },
+      "quantile": 2.1779515500950923,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "rot_deg": {
+          "median": 1.0090416223538823,
+          "p90": 1.0090416223538823
+        },
+        "boresight_frac": {
+          "median": 0.004511981065587971,
+          "p90": 0.004511981065587971
+        },
+        "boresight_m": {
+          "median": 0.03387034506957476,
+          "p90": 0.04126484244925047
+        },
+        "lateral_frac": {
+          "median": 0.0008334011577083925,
+          "p90": 0.0008334011577083925
+        },
+        "lateral_m": {
+          "median": 0.0062561399045427775,
+          "p90": 0.0076219662649178845
+        }
+      },
+      "quantile": 1.4582646183358914,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "boresight_m": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "lateral_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 61,
+      "n_answered": 175,
+      "coverage": 0.04369627507163324,
+      "coverage_ci95": [
+        0.033586248255445,
+        0.05577847573247386
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.08166189111747851,
+      "coverage_given_answered": 0.3485714285714286,
+      "set_size": {
+        "rot_deg": {
+          "median": 4.828533485018025,
+          "p90": 4.828533485018025
+        },
+        "boresight_frac": {
+          "median": 0.02159103368613881,
+          "p90": 0.02159103368613881
+        },
+        "boresight_m": {
+          "median": 0.1620786414499363,
+          "p90": 0.19746328506785857
+        },
+        "lateral_frac": {
+          "median": 0.003988046981709603,
+          "p90": 0.003988046981709603
+        },
+        "lateral_m": {
+          "median": 0.029937299261821725,
+          "p90": 0.036473142947245615
+        }
+      },
+      "quantile": 6.978185422347648,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 4,
+            "n_answered": 17,
+            "coverage": 0.008639308855291577,
+            "coverage_ci95": [
+              0.002358793877800965,
+              0.021971345671085236
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.028077753779697623
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 24,
+            "n_answered": 69,
+            "coverage": 0.047058823529411764,
+            "coverage_ci95": [
+              0.03038078996435062,
+              0.06921305525088699
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.08823529411764706
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 33,
+            "n_answered": 89,
+            "coverage": 0.07801418439716312,
+            "coverage_ci95": [
+              0.05430766154018378,
+              0.10781815191012892
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.13238770685579196
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 61,
+            "n_answered": 173,
+            "coverage": 0.04375896700143472,
+            "coverage_ci95": [
+              0.03363467144928426,
+              0.05585799426019085
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.08034433285509325
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 1,
+            "n_answered": 3,
+            "coverage": 0.004098360655737705,
+            "coverage_ci95": [
+              0.00010375612509323639,
+              0.02262183100982745
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.00819672131147541
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 34,
+            "n_answered": 104,
+            "coverage": 0.049707602339181284,
+            "coverage_ci95": [
+              0.03466613598816878,
+              0.06877161788473041
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.1023391812865497
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 26,
+            "n_answered": 68,
+            "coverage": 0.05555555555555555,
+            "coverage_ci95": [
+              0.03660798616125252,
+              0.08034483653938206
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.08974358974358974
+          }
+        }
+      }
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 27,
+      "n_answered": 175,
+      "coverage": 0.019340974212034383,
+      "coverage_ci95": [
+        0.012783553760693303,
+        0.02801609176392042
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.10601719197707736,
+      "coverage_given_answered": 0.15428571428571428,
+      "set_size": {
+        "rot_deg": {
+          "median": 3.1327431448800542,
+          "p90": 3.1327431448800542
+        },
+        "boresight_frac": {
+          "median": 0.01400822071152587,
+          "p90": 0.01400822071152587
+        },
+        "boresight_m": {
+          "median": 0.10515630770899886,
+          "p90": 0.12811379574796936
+        },
+        "lateral_frac": {
+          "median": 0.002587437134313196,
+          "p90": 0.002587437134313196
+        },
+        "lateral_m": {
+          "median": 0.019423261603071312,
+          "p90": 0.02366370428925118
+        }
+      },
+      "quantile": 4.5274331457763335,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 14,
+      "n_answered": 175,
+      "coverage": 0.01002865329512894,
+      "coverage_ci95": [
+        0.005493297467051249,
+        0.01676918160725626
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.11532951289398281,
+      "coverage_given_answered": 0.08,
+      "set_size": {
+        "rot_deg": {
+          "median": 2.495980508394241,
+          "p90": 2.495980508394241
+        },
+        "boresight_frac": {
+          "median": 0.011160904113826342,
+          "p90": 0.011160904113826342
+        },
+        "boresight_m": {
+          "median": 0.08378219414679065,
+          "p90": 0.10207333389778296
+        },
+        "lateral_frac": {
+          "median": 0.002061513617704671,
+          "p90": 0.002061513617704671
+        },
+        "lateral_m": {
+          "median": 0.01547528160741198,
+          "p90": 0.018853810201103344
+        }
+      },
+      "quantile": 3.607185256596712,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 2,
+      "n_answered": 175,
+      "coverage": 0.0014326647564469914,
+      "coverage_ci95": [
+        0.0001735494640568102,
+        0.005165602217569119
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12392550143266476,
+      "coverage_given_answered": 0.011428571428571429,
+      "set_size": {
+        "rot_deg": {
+          "median": 1.7883182277579053,
+          "p90": 1.7883182277579053
+        },
+        "boresight_frac": {
+          "median": 0.007996556142120831,
+          "p90": 0.007996556142120831
+        },
+        "boresight_m": {
+          "median": 0.060028203125131074,
+          "p90": 0.07313342510629574
+        },
+        "lateral_frac": {
+          "median": 0.0014770317183623212,
+          "p90": 0.0014770317183623212
+        },
+        "lateral_m": {
+          "median": 0.011087718067167802,
+          "p90": 0.013508363679895974
+        }
+      },
+      "quantile": 2.5844733657081,
+      "n_cal": 4798
+    },
+    {
+      "score": "A2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1,
+      "n_answered": 175,
+      "coverage": 0.0007163323782234957,
+      "coverage_ci95": [
+        1.8135801149162173e-05,
+        0.003984619551822906
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12464183381088825,
+      "coverage_given_answered": 0.005714285714285714,
+      "set_size": {
+        "rot_deg": {
+          "median": 1.1593161889321608,
+          "p90": 1.1593161889321608
+        },
+        "boresight_frac": {
+          "median": 0.005183941452572717,
+          "p90": 0.005183941452572717
+        },
+        "boresight_m": {
+          "median": 0.03891458835194157,
+          "p90": 0.04741033355348887
+        },
+        "lateral_frac": {
+          "median": 0.0009575179384099734,
+          "p90": 0.0009575179384099734
+        },
+        "lateral_m": {
+          "median": 0.007187854406482839,
+          "p90": 0.00875709057650262
+        }
+      },
+      "quantile": 1.6754410743136507,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1384,
+      "n_answered": 175,
+      "coverage": 0.9914040114613181,
+      "coverage_ci95": [
+        0.9850327265335331,
+        0.9955506660902861
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.008595988538681949,
+      "coverage_given_answered": 0.9314285714285714,
+      "set_size": {
+        "rot_deg": {
+          "median": 21.5312801912657,
+          "p90": 49.073240984510605
+        },
+        "trans_frac": {
+          "median": 0.1020912252702306,
+          "p90": 0.23268227692853588
+        },
+        "trans_m": {
+          "median": 0.6814544851801936,
+          "p90": 2.00127502353255
+        }
+      },
+      "quantile": 3.7098093357173054,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1379,
+      "n_answered": 175,
+      "coverage": 0.9878223495702005,
+      "coverage_ci95": [
+        0.980573792254121,
+        0.9928905066391711
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.012177650429799427,
+      "coverage_given_answered": 0.9028571428571428,
+      "set_size": {
+        "rot_deg": {
+          "median": 17.44127108672603,
+          "p90": 39.751454233654194
+        },
+        "trans_frac": {
+          "median": 0.0826983216834649,
+          "p90": 0.1884827392025448
+        },
+        "trans_m": {
+          "median": 0.5520076978104852,
+          "p90": 1.6211195941189118
+        }
+      },
+      "quantile": 3.005106511528285,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1364,
+      "n_answered": 175,
+      "coverage": 0.9770773638968482,
+      "coverage_ci95": [
+        0.9677931283093232,
+        0.9842693421746198
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.022922636103151862,
+      "coverage_given_answered": 0.8171428571428572,
+      "set_size": {
+        "rot_deg": {
+          "median": 12.621098209551269,
+          "p90": 28.765507133093333
+        },
+        "trans_frac": {
+          "median": 0.059843324178731,
+          "p90": 0.13639253414798577
+        },
+        "trans_m": {
+          "median": 0.3994515842252312,
+          "p90": 1.1730973909564617
+        }
+      },
+      "quantile": 2.17459749484807,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1350,
+      "n_answered": 175,
+      "coverage": 0.9670487106017192,
+      "coverage_ci95": [
+        0.9562903994923075,
+        0.9757765659540821
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0329512893982808,
+      "coverage_given_answered": 0.7371428571428571,
+      "set_size": {
+        "rot_deg": {
+          "median": 10.065608784569788,
+          "p90": 22.94113685545622
+        },
+        "trans_frac": {
+          "median": 0.047726392707684084,
+          "p90": 0.10877610387586957
+        },
+        "trans_m": {
+          "median": 0.31857159404282603,
+          "p90": 0.9355714698924825
+        }
+      },
+      "quantile": 1.7342902561744995,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 457,
+            "n_answered": 17,
+            "coverage": 0.9870410367170627,
+            "coverage_ci95": [
+              0.9720083662281233,
+              0.9952298409690944
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.012958963282937365
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 491,
+            "n_answered": 69,
+            "coverage": 0.9627450980392157,
+            "coverage_ci95": [
+              0.9424316137832924,
+              0.9774237824992213
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.03725490196078431
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 402,
+            "n_answered": 89,
+            "coverage": 0.950354609929078,
+            "coverage_ci95": [
+              0.9251105696201071,
+              0.9690095985604598
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.04964539007092199
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 1350,
+            "n_answered": 173,
+            "coverage": 0.9684361549497847,
+            "coverage_ci95": [
+              0.9578569388339904,
+              0.976973934423532
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.03156384505021521
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 243,
+            "n_answered": 3,
+            "coverage": 0.9959016393442623,
+            "coverage_ci95": [
+              0.9773781689901726,
+              0.9998962438749067
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.004098360655737705
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 660,
+            "n_answered": 104,
+            "coverage": 0.9649122807017544,
+            "coverage_ci95": [
+              0.9482403362648697,
+              0.9773917253064504
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.03508771929824561
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 447,
+            "n_answered": 68,
+            "coverage": 0.9551282051282052,
+            "coverage_ci95": [
+              0.932224418947921,
+              0.9720123525636721
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.04487179487179487
+          }
+        }
+      }
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1339,
+      "n_answered": 175,
+      "coverage": 0.9591690544412608,
+      "coverage_ci95": [
+        0.9474199301368773,
+        0.9689309698565984
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.04083094555873926,
+      "coverage_given_answered": 0.6742857142857143,
+      "set_size": {
+        "rot_deg": {
+          "median": 8.503749811268616,
+          "p90": 19.381409746813585
+        },
+        "trans_frac": {
+          "median": 0.04032079049234049,
+          "p90": 0.09189754863341797
+        },
+        "trans_m": {
+          "median": 0.26913952158264925,
+          "p90": 0.7904008471621262
+        }
+      },
+      "quantile": 1.4651841487458763,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1328,
+      "n_answered": 175,
+      "coverage": 0.9512893982808023,
+      "coverage_ci95": [
+        0.9386534393080954,
+        0.9619788484539732
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.04871060171919771,
+      "coverage_given_answered": 0.6114285714285714,
+      "set_size": {
+        "rot_deg": {
+          "median": 7.637938258665077,
+          "p90": 17.40808634984612
+        },
+        "trans_frac": {
+          "median": 0.036215518466096885,
+          "p90": 0.08254097523595945
+        },
+        "trans_m": {
+          "median": 0.24173700948855412,
+          "p90": 0.7099259743297021
+        }
+      },
+      "quantile": 1.3160060342869195,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1311,
+      "n_answered": 175,
+      "coverage": 0.9391117478510028,
+      "coverage_ci95": [
+        0.9252584144714097,
+        0.9510784344014667
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.06088825214899714,
+      "coverage_given_answered": 0.5142857142857142,
+      "set_size": {
+        "rot_deg": {
+          "median": 6.2611983723571925,
+          "p90": 14.270275331940127
+        },
+        "trans_frac": {
+          "median": 0.029687664078293874,
+          "p90": 0.06766294807553072
+        },
+        "trans_m": {
+          "median": 0.19816386557342552,
+          "p90": 0.5819616766245107
+        }
+      },
+      "quantile": 1.0787956855427125,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1288,
+      "n_answered": 175,
+      "coverage": 0.9226361031518625,
+      "coverage_ci95": [
+        0.907355098217761,
+        0.9361079678133075
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.07736389684813753,
+      "coverage_given_answered": 0.38285714285714284,
+      "set_size": {
+        "rot_deg": {
+          "median": 4.504199982368259,
+          "p90": 10.265794194014088
+        },
+        "trans_frac": {
+          "median": 0.02135680233489615,
+          "p90": 0.048675577965125574
+        },
+        "trans_m": {
+          "median": 0.14255572603520913,
+          "p90": 0.4186533659696645
+        }
+      },
+      "quantile": 0.7760673306971265,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 152,
+      "n_answered": 175,
+      "coverage": 0.10888252148997135,
+      "coverage_ci95": [
+        0.09302063038905868,
+        0.12641105157636598
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0164756446991404,
+      "coverage_given_answered": 0.8685714285714285,
+      "set_size": {
+        "rot_deg": {
+          "median": 15.427085337324515,
+          "p90": 35.16080185302874
+        },
+        "trans_frac": {
+          "median": 0.07314799818892166,
+          "p90": 0.166716020170303
+        },
+        "trans_m": {
+          "median": 0.48825970416018255,
+          "p90": 1.4339064048786538
+        }
+      },
+      "quantile": 2.658065135882184,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 16,
+            "n_answered": 17,
+            "coverage": 0.03455723542116631,
+            "coverage_ci95": [
+              0.019879013968261694,
+              0.055513210861359456
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.0021598272138228943
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 58,
+            "n_answered": 69,
+            "coverage": 0.11372549019607843,
+            "coverage_ci95": [
+              0.0874977418301525,
+              0.14452693514355847
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.021568627450980392
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 78,
+            "n_answered": 89,
+            "coverage": 0.18439716312056736,
+            "coverage_ci95": [
+              0.1485762575372175,
+              0.2247013311971726
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.026004728132387706
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 152,
+            "n_answered": 173,
+            "coverage": 0.10903873744619799,
+            "coverage_ci95": [
+              0.09315521946572161,
+              0.1265906204994368
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.015064562410329985
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 2,
+            "n_answered": 3,
+            "coverage": 0.00819672131147541,
+            "coverage_ci95": [
+              0.000994207010600526,
+              0.029294057050887147
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.004098360655737705
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 93,
+            "n_answered": 104,
+            "coverage": 0.13596491228070176,
+            "coverage_ci95": [
+              0.11116306373338573,
+              0.16395514200377412
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.01608187134502924
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 57,
+            "n_answered": 68,
+            "coverage": 0.12179487179487179,
+            "coverage_ci95": [
+              0.0935653778757219,
+              0.15490595652348355
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.023504273504273504
+          }
+        }
+      }
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 133,
+      "n_answered": 175,
+      "coverage": 0.09527220630372493,
+      "coverage_ci95": [
+        0.08037736726455384,
+        0.11189456951364368
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.03008595988538682,
+      "coverage_given_answered": 0.76,
+      "set_size": {
+        "rot_deg": {
+          "median": 10.960208922645203,
+          "p90": 24.980074056150862
+        },
+        "trans_frac": {
+          "median": 0.05196816669472669,
+          "p90": 0.11844378713570707
+        },
+        "trans_m": {
+          "median": 0.34688525078403604,
+          "p90": 1.0187221649034257
+        }
+      },
+      "quantile": 1.8884286034759503,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 121,
+      "n_answered": 175,
+      "coverage": 0.08667621776504297,
+      "coverage_ci95": [
+        0.07244066600597458,
+        0.10267821193770031
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.03868194842406877,
+      "coverage_given_answered": 0.6914285714285714,
+      "set_size": {
+        "rot_deg": {
+          "median": 9.061074510708892,
+          "p90": 20.651642126834687
+        },
+        "trans_frac": {
+          "median": 0.042963362644752576,
+          "p90": 0.09792039441417562
+        },
+        "trans_m": {
+          "median": 0.28677857568261605,
+          "p90": 0.8422026903911258
+        }
+      },
+      "quantile": 1.5612104116825363,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 103,
+      "n_answered": 175,
+      "coverage": 0.07378223495702006,
+      "coverage_ci95": [
+        0.06061949498326259,
+        0.08877072053447227
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.05157593123209169,
+      "coverage_given_answered": 0.5885714285714285,
+      "set_size": {
+        "rot_deg": {
+          "median": 7.165949029518169,
+          "p90": 16.332347193685056
+        },
+        "trans_frac": {
+          "median": 0.03397756706284004,
+          "p90": 0.07744032504014817
+        },
+        "trans_m": {
+          "median": 0.22679878127816755,
+          "p90": 0.6660558352911852
+        }
+      },
+      "quantile": 1.2346829530259402,
+      "n_cal": 4798
+    },
+    {
+      "score": "A3",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 75,
+      "n_answered": 175,
+      "coverage": 0.053724928366762174,
+      "coverage_ci95": [
+        0.042489282803192946,
+        0.06688207528758296
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.07163323782234957,
+      "coverage_given_answered": 0.42857142857142855,
+      "set_size": {
+        "rot_deg": {
+          "median": 5.046400856432457,
+          "p90": 11.50155695027408
+        },
+        "trans_frac": {
+          "median": 0.023927664405524848,
+          "p90": 0.05453498496783031
+        },
+        "trans_m": {
+          "median": 0.15971611846043768,
+          "p90": 0.4690494899977366
+        }
+      },
+      "quantile": 0.8694877797632906,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1298,
+      "n_answered": 175,
+      "coverage": 0.9297994269340975,
+      "coverage_ci95": [
+        0.9151127720902898,
+        0.9426436099904945
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.07020057306590258,
+      "coverage_given_answered": 0.44,
+      "set_size": {
+        "kp_px": {
+          "median": 38.272374645896285,
+          "p90": 58.261046372176885
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.06396732268476592,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1269,
+      "n_answered": 175,
+      "coverage": 0.9090257879656161,
+      "coverage_ci95": [
+        0.8927085622412423,
+        0.9235960825085372
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.09097421203438395,
+      "coverage_given_answered": 0.2742857142857143,
+      "set_size": {
+        "kp_px": {
+          "median": 28.293358372379114,
+          "p90": 43.07024791142785
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.04728868803116604,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1241,
+      "n_answered": 175,
+      "coverage": 0.8889684813753582,
+      "coverage_ci95": [
+        0.8713045236718056,
+        0.9049753461830399
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.11103151862464183,
+      "coverage_given_answered": 0.11428571428571428,
+      "set_size": {
+        "kp_px": {
+          "median": 19.762300380275974,
+          "p90": 30.08363890479427
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.03303012831355453,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1226,
+      "n_answered": 175,
+      "coverage": 0.8782234957020058,
+      "coverage_ci95": [
+        0.859910540170304,
+        0.8949268632190599
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12177650429799428,
+      "coverage_given_answered": 0.02857142857142857,
+      "set_size": {
+        "kp_px": {
+          "median": 14.242776931052767,
+          "p90": 21.681411068064225
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.023804958963357166,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 447,
+            "n_answered": 17,
+            "coverage": 0.9654427645788337,
+            "coverage_ci95": [
+              0.9444867891386406,
+              0.9801209860317384
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.03455723542116631
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 444,
+            "n_answered": 69,
+            "coverage": 0.8705882352941177,
+            "coverage_ci95": [
+              0.8383175649475567,
+              0.8984811618911446
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.12941176470588237
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 335,
+            "n_answered": 89,
+            "coverage": 0.7919621749408984,
+            "coverage_ci95": [
+              0.7501167353849922,
+              0.8296673939590244
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.20803782505910165
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 1225,
+            "n_answered": 173,
+            "coverage": 0.8787661406025825,
+            "coverage_ci95": [
+              0.8604709357993177,
+              0.8954470257395254
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.1212338593974175
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 1,
+            "n_answered": 2,
+            "coverage": 0.5,
+            "coverage_ci95": [
+              0.01257911709342506,
+              0.9874208829065749
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 0.5
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 241,
+            "n_answered": 3,
+            "coverage": 0.9877049180327869,
+            "coverage_ci95": [
+              0.9644910159259151,
+              0.9974572458802701
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.012295081967213115
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 582,
+            "n_answered": 104,
+            "coverage": 0.8508771929824561,
+            "coverage_ci95": [
+              0.8219427341286347,
+              0.876742586406436
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.14912280701754385
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 403,
+            "n_answered": 68,
+            "coverage": 0.8611111111111112,
+            "coverage_ci95": [
+              0.8264261415710256,
+              0.8911461419408764
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.1388888888888889
+          }
+        }
+      }
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 11.606540872961716,
+          "p90": 17.66833707802593
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.019398831458561562,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 10.288633350305494,
+          "p90": 15.662120531440472
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.017196119540358955,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 8.442598447758538,
+          "p90": 12.85194932944328
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.014110711033802565,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 6.1803445592810515,
+          "p90": 9.408178726712817
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.010329646341109862,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 38,
+      "n_answered": 175,
+      "coverage": 0.027220630372492838,
+      "coverage_ci95": [
+        0.019333353481197742,
+        0.03717238196330288
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.09813753581661891,
+      "coverage_given_answered": 0.21714285714285714,
+      "set_size": {
+        "kp_px": {
+          "median": 24.658989713777977,
+          "p90": 37.53774247084759
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.04121431101925867,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 7,
+            "n_answered": 17,
+            "coverage": 0.01511879049676026,
+            "coverage_ci95": [
+              0.006099580287779134,
+              0.030901261386683653
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.02159827213822894
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 17,
+            "n_answered": 69,
+            "coverage": 0.03333333333333333,
+            "coverage_ci95": [
+              0.019535460740128952,
+              0.052834592872053145
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.10196078431372549
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 14,
+            "n_answered": 89,
+            "coverage": 0.03309692671394799,
+            "coverage_ci95": [
+              0.018210236302202712,
+              0.05490795414695216
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.1773049645390071
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 36,
+            "n_answered": 173,
+            "coverage": 0.02582496413199426,
+            "coverage_ci95": [
+              0.018151557529262844,
+              0.03557465376223855
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.09827833572453372
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 2,
+            "n_answered": 2,
+            "coverage": 1.0,
+            "coverage_ci95": [
+              0.15811388300841903,
+              1.0
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 0.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 0,
+            "n_answered": 3,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.015004649788349866
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.012295081967213115
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 21,
+            "n_answered": 104,
+            "coverage": 0.03070175438596491,
+            "coverage_ci95": [
+              0.019103254860762395,
+              0.0465493594277313
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.12134502923976608
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 17,
+            "n_answered": 68,
+            "coverage": 0.03632478632478633,
+            "coverage_ci95": [
+              0.021300303571478878,
+              0.05752373659251032
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.10897435897435898
+          }
+        }
+      }
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 7,
+      "n_answered": 175,
+      "coverage": 0.00501432664756447,
+      "coverage_ci95": [
+        0.0020183243816455664,
+        0.01030398001084465
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12034383954154727,
+      "coverage_given_answered": 0.04,
+      "set_size": {
+        "kp_px": {
+          "median": 16.14112515840314,
+          "p90": 24.57121749182264
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.026977802424221306,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1,
+      "n_answered": 175,
+      "coverage": 0.0007163323782234957,
+      "coverage_ci95": [
+        1.8135801149162173e-05,
+        0.003984619551822906
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12464183381088825,
+      "coverage_given_answered": 0.005714285714285714,
+      "set_size": {
+        "kp_px": {
+          "median": 12.566938935617632,
+          "p90": 19.130326217237723
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.021004012567602627,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 0,
+      "n_answered": 175,
+      "coverage": 0.0,
+      "coverage_ci95": [
+        0.0,
+        0.002638975558085672
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 9.643370953964988,
+          "p90": 14.679854269071326
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.01611764692649714,
+      "n_cal": 4798
+    },
+    {
+      "score": "B1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 0,
+      "n_answered": 175,
+      "coverage": 0.0,
+      "coverage_ci95": [
+        0.0,
+        0.002638975558085672
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 6.848237255483331,
+          "p90": 10.424894509443888
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.011445942573367571,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1315,
+      "n_answered": 175,
+      "coverage": 0.9419770773638968,
+      "coverage_ci95": [
+        0.9283959143565914,
+        0.9536577583860696
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.058022922636103154,
+      "coverage_given_answered": 0.5371428571428571,
+      "set_size": {
+        "kp_px": {
+          "median": 66.20521069736404,
+          "p90": 117.82467795554531
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 3.056719254895349,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1291,
+      "n_answered": 175,
+      "coverage": 0.9247851002865329,
+      "coverage_ci95": [
+        0.9096785238556062,
+        0.938072586957839
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.07521489971346705,
+      "coverage_given_answered": 0.4,
+      "set_size": {
+        "kp_px": {
+          "median": 47.085935703500375,
+          "p90": 83.7983166591045
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 2.1739752020060332,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1239,
+      "n_answered": 175,
+      "coverage": 0.8875358166189111,
+      "coverage_ci95": [
+        0.8697826532932611,
+        0.9036382421893366
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.11246418338108882,
+      "coverage_given_answered": 0.10285714285714286,
+      "set_size": {
+        "kp_px": {
+          "median": 29.19355957778694,
+          "p90": 51.95545364778552
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 1.3478775271673415,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1224,
+      "n_answered": 175,
+      "coverage": 0.8767908309455588,
+      "coverage_ci95": [
+        0.8583947019616752,
+        0.893583680224875
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12320916905444126,
+      "coverage_given_answered": 0.017142857142857144,
+      "set_size": {
+        "kp_px": {
+          "median": 21.261249131386695,
+          "p90": 37.83840887221881
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.9816397972074468,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 446,
+            "n_answered": 17,
+            "coverage": 0.9632829373650108,
+            "coverage_ci95": [
+              0.9418620061749818,
+              0.9784681239258219
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.0367170626349892
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 442,
+            "n_answered": 69,
+            "coverage": 0.8666666666666667,
+            "coverage_ci95": [
+              0.8340512367135707,
+              0.8949529056714147
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.13333333333333333
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 336,
+            "n_answered": 89,
+            "coverage": 0.7943262411347518,
+            "coverage_ci95": [
+              0.7526256631944788,
+              0.8318524138100596
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.20567375886524822
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 1224,
+            "n_answered": 173,
+            "coverage": 0.8780487804878049,
+            "coverage_ci95": [
+              0.8597116610602774,
+              0.8947747453596194
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.12195121951219512
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 241,
+            "n_answered": 3,
+            "coverage": 0.9877049180327869,
+            "coverage_ci95": [
+              0.9644910159259151,
+              0.9974572458802701
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.012295081967213115
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 581,
+            "n_answered": 104,
+            "coverage": 0.8494152046783626,
+            "coverage_ci95": [
+              0.8203803558872386,
+              0.8753941904438577
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.15058479532163743
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 402,
+            "n_answered": 68,
+            "coverage": 0.8589743589743589,
+            "coverage_ci95": [
+              0.8241042245557877,
+              0.889223286130728
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.14102564102564102
+          }
+        }
+      }
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 17.63950401017986,
+          "p90": 31.392829316646857
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.8144224750102228,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 15.746152694682529,
+          "p90": 28.02325301509356
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.7270057390554416,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 13.247612688175527,
+          "p90": 23.576629123638217
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.6116472156617477,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1221,
+      "n_answered": 175,
+      "coverage": 0.8746418338108882,
+      "coverage_ci95": [
+        0.8561223523698909,
+        0.8915674877530482
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 10.049873357149375,
+          "p90": 17.88564796225754
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.46400639883895667,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 48,
+      "n_answered": 175,
+      "coverage": 0.034383954154727794,
+      "coverage_ci95": [
+        0.025458674756414362,
+        0.04533157403329083
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.09097421203438395,
+      "coverage_given_answered": 0.2742857142857143,
+      "set_size": {
+        "kp_px": {
+          "median": 40.08080726946144,
+          "p90": 71.33136741018785
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 1.850545811150031,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 7,
+            "n_answered": 17,
+            "coverage": 0.01511879049676026,
+            "coverage_ci95": [
+              0.006099580287779134,
+              0.030901261386683653
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.02159827213822894
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 22,
+            "n_answered": 69,
+            "coverage": 0.043137254901960784,
+            "coverage_ci95": [
+              0.027228173887570088,
+              0.06458417539227551
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.09215686274509804
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 19,
+            "n_answered": 89,
+            "coverage": 0.04491725768321513,
+            "coverage_ci95": [
+              0.027256471160634958,
+              0.06925713382383374
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.16548463356973994
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 46,
+            "n_answered": 173,
+            "coverage": 0.03299856527977044,
+            "coverage_ci95": [
+              0.02425833170135782,
+              0.043771961177681416
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.09110473457675754
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 2,
+            "n_answered": 2,
+            "coverage": 1.0,
+            "coverage_ci95": [
+              0.15811388300841903,
+              1.0
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 0.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 1,
+            "n_answered": 3,
+            "coverage": 0.004098360655737705,
+            "coverage_ci95": [
+              0.00010375612509323639,
+              0.02262183100982745
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.00819672131147541
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 24,
+            "n_answered": 104,
+            "coverage": 0.03508771929824561,
+            "coverage_ci95": [
+              0.02260827469354963,
+              0.051759663735130294
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.11695906432748537
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 23,
+            "n_answered": 68,
+            "coverage": 0.049145299145299144,
+            "coverage_ci95": [
+              0.03140545723085228,
+              0.07283196725420658
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.09615384615384616
+          }
+        }
+      }
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 7,
+      "n_answered": 175,
+      "coverage": 0.00501432664756447,
+      "coverage_ci95": [
+        0.0020183243816455664,
+        0.01030398001084465
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12034383954154727,
+      "coverage_given_answered": 0.04,
+      "set_size": {
+        "kp_px": {
+          "median": 24.050208904567594,
+          "p90": 42.801889595936125
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 1.1104071094780812,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 0,
+      "n_answered": 175,
+      "coverage": 0.0,
+      "coverage_ci95": [
+        0.0,
+        0.002638975558085672
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 18.93288829248074,
+          "p90": 33.69465095469707
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.8741385094136224,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 0,
+      "n_answered": 175,
+      "coverage": 0.0,
+      "coverage_ci95": [
+        0.0,
+        0.002638975558085672
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 14.826938456726383,
+          "p90": 26.38733764803247
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.6845652750657034,
+      "n_cal": 4798
+    },
+    {
+      "score": "B2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 0,
+      "n_answered": 175,
+      "coverage": 0.0,
+      "coverage_ci95": [
+        0.0,
+        0.002638975558085672
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.12535816618911175,
+      "coverage_given_answered": 0.0,
+      "set_size": {
+        "kp_px": {
+          "median": 11.055142663010805,
+          "p90": 19.674714577620392
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 0.510420057389616,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1318,
+      "n_answered": 175,
+      "coverage": 0.9441260744985673,
+      "coverage_ci95": [
+        0.9307544579673473,
+        0.9555867422682258
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.055873925501432664,
+      "coverage_given_answered": 0.5542857142857143,
+      "set_size": {
+        "kp_px": {
+          "median": 189.53086359409357,
+          "p90": 590.1785884812512
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 5.247538657962562,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1308,
+      "n_answered": 175,
+      "coverage": 0.9369627507163324,
+      "coverage_ci95": [
+        0.9229104136357092,
+        0.9491387353902213
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.06303724928366762,
+      "coverage_given_answered": 0.49714285714285716,
+      "set_size": {
+        "kp_px": {
+          "median": 170.59168126663238,
+          "p90": 531.2040252832052
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 4.723169752925551,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1285,
+      "n_answered": 175,
+      "coverage": 0.920487106017192,
+      "coverage_ci95": [
+        0.9050348130938713,
+        0.9341401694552199
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.07951289398280802,
+      "coverage_given_answered": 0.3657142857142857,
+      "set_size": {
+        "kp_px": {
+          "median": 144.8104521143248,
+          "p90": 450.92406906981125
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 4.009365182730254,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1273,
+      "n_answered": 175,
+      "coverage": 0.91189111747851,
+      "coverage_ci95": [
+        0.8957828843066322,
+        0.9262394243260208
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.08810888252148998,
+      "coverage_given_answered": 0.29714285714285715,
+      "set_size": {
+        "kp_px": {
+          "median": 125.29849643665491,
+          "p90": 390.1659516741239
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 3.469137909085226,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 453,
+            "n_answered": 17,
+            "coverage": 0.978401727861771,
+            "coverage_ci95": [
+              0.9606395292921193,
+              0.9895953490623087
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.02159827213822894
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 459,
+            "n_answered": 69,
+            "coverage": 0.9,
+            "coverage_ci95": [
+              0.8706177050331209,
+              0.9246342555901752
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.1
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 361,
+            "n_answered": 89,
+            "coverage": 0.8534278959810875,
+            "coverage_ci95": [
+              0.8160747556880994,
+              0.8857416140441119
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.14657210401891252
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 1273,
+            "n_answered": 173,
+            "coverage": 0.9131994261119082,
+            "coverage_ci95": [
+              0.8971757719162607,
+              0.9274546347500331
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.08680057388809183
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 241,
+            "n_answered": 3,
+            "coverage": 0.9877049180327869,
+            "coverage_ci95": [
+              0.9644910159259151,
+              0.9974572458802701
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.012295081967213115
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 616,
+            "n_answered": 104,
+            "coverage": 0.9005847953216374,
+            "coverage_ci95": [
+              0.8756716282330794,
+              0.9219716300673884
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.09941520467836257
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 416,
+            "n_answered": 68,
+            "coverage": 0.8888888888888888,
+            "coverage_ci95": [
+              0.8568537492793263,
+              0.9158956835761181
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.1111111111111111
+          }
+        }
+      }
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1264,
+      "n_answered": 175,
+      "coverage": 0.9054441260744985,
+      "coverage_ci95": [
+        0.8888719446331703,
+        0.920285555585975
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.09455587392550144,
+      "coverage_given_answered": 0.24571428571428572,
+      "set_size": {
+        "kp_px": {
+          "median": 113.23669754625442,
+          "p90": 352.6068158759207
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 3.1351830335484325,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1254,
+      "n_answered": 175,
+      "coverage": 0.8982808022922636,
+      "coverage_ci95": [
+        0.8812183543274108,
+        0.9136446651344531
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.1017191977077364,
+      "coverage_given_answered": 0.18857142857142858,
+      "set_size": {
+        "kp_px": {
+          "median": 105.03567192179194,
+          "p90": 327.06971001695354
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 2.9081213393038783,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1247,
+      "n_answered": 175,
+      "coverage": 0.8932664756446992,
+      "coverage_ci95": [
+        0.8758753609373382,
+        0.9089813885217037
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.10673352435530085,
+      "coverage_given_answered": 0.14857142857142858,
+      "set_size": {
+        "kp_px": {
+          "median": 93.32176384975942,
+          "p90": 290.59386856056113
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 2.5837985125190275,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1232,
+      "n_answered": 175,
+      "coverage": 0.8825214899713467,
+      "coverage_ci95": [
+        0.8644626861418249,
+        0.8989517462356795
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.1174785100286533,
+      "coverage_given_answered": 0.06285714285714286,
+      "set_size": {
+        "kp_px": {
+          "median": 76.48859615598047,
+          "p90": 238.17720691088428
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 2.1177388083948054,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "kp_px": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 84,
+      "n_answered": 175,
+      "coverage": 0.06017191977077364,
+      "coverage_ci95": [
+        0.048275974336107155,
+        0.07395795866327305
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0651862464183381,
+      "coverage_given_answered": 0.48,
+      "set_size": {
+        "kp_px": {
+          "median": 160.34202911780525,
+          "p90": 499.2877182347994
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 4.439387761635582,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 10,
+            "n_answered": 17,
+            "coverage": 0.02159827213822894,
+            "coverage_ci95": [
+              0.010404650937691237,
+              0.03936047070788078
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.01511879049676026
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 33,
+            "n_answered": 69,
+            "coverage": 0.06470588235294118,
+            "coverage_ci95": [
+              0.044955572330042985,
+              0.08967401904756821
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.07058823529411765
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 41,
+            "n_answered": 89,
+            "coverage": 0.09692671394799054,
+            "coverage_ci95": [
+              0.07045661079938927,
+              0.1291914314860435
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.11347517730496454
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 83,
+            "n_answered": 173,
+            "coverage": 0.05954088952654232,
+            "coverage_ci95": [
+              0.047699623956024444,
+              0.07327805291325351
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.06456241032998565
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 1,
+            "n_answered": 2,
+            "coverage": 0.5,
+            "coverage_ci95": [
+              0.01257911709342506,
+              0.9874208829065749
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 0.5
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 1,
+            "n_answered": 3,
+            "coverage": 0.004098360655737705,
+            "coverage_ci95": [
+              0.00010375612509323639,
+              0.02262183100982745
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.00819672131147541
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 49,
+            "n_answered": 104,
+            "coverage": 0.07163742690058479,
+            "coverage_ci95": [
+              0.05346442286788696,
+              0.09360516894796878
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.0804093567251462
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 34,
+            "n_answered": 68,
+            "coverage": 0.07264957264957266,
+            "coverage_ci95": [
+              0.05083363749133072,
+              0.10004322752469895
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.07264957264957266
+          }
+        }
+      }
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 59,
+      "n_answered": 175,
+      "coverage": 0.042263610315186245,
+      "coverage_ci95": [
+        0.032325981879813954,
+        0.054180892401974365
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0830945558739255,
+      "coverage_given_answered": 0.33714285714285713,
+      "set_size": {
+        "kp_px": {
+          "median": 133.05966986693642,
+          "p90": 414.3334054237752
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 3.684021421111936,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 46,
+      "n_answered": 175,
+      "coverage": 0.0329512893982808,
+      "coverage_ci95": [
+        0.024223434045917824,
+        0.04370960050769251
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.09240687679083094,
+      "coverage_given_answered": 0.26285714285714284,
+      "set_size": {
+        "kp_px": {
+          "median": 118.13774318980731,
+          "p90": 367.868141367419
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 3.2708782231934412,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 29,
+      "n_answered": 175,
+      "coverage": 0.020773638968481375,
+      "coverage_ci95": [
+        0.013955499147743185,
+        0.02969898867050227
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.10458452722063037,
+      "coverage_given_answered": 0.1657142857142857,
+      "set_size": {
+        "kp_px": {
+          "median": 101.4774059628223,
+          "p90": 315.9896550787612
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 2.8096036740491344,
+      "n_cal": 4798
+    },
+    {
+      "score": "C1",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success",
+      "n_total": 1396,
+      "n_covered": 15,
+      "n_answered": 175,
+      "coverage": 0.010744985673352435,
+      "coverage_ci95": [
+        0.006026009396284912,
+        0.017660382470956592
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.11461318051575932,
+      "coverage_given_answered": 0.08571428571428572,
+      "set_size": {
+        "kp_px": {
+          "median": 82.02246371738725,
+          "p90": 255.40907133813536
+        }
+      },
+      "n_vacuous": 0,
+      "n_frames_with_unconstrained_keypoint": 0,
+      "quantile": 2.2709549305917607,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1378,
+      "n_answered": 175,
+      "coverage": 0.9871060171919771,
+      "coverage_ci95": [
+        0.9796982442314606,
+        0.9923407924699501
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.012893982808022923,
+      "coverage_given_answered": 0.8971428571428571,
+      "set_size": {
+        "rot_deg": {
+          "median": 10.523019394475957,
+          "p90": 23.648320256544
+        },
+        "trans_frac": {
+          "median": 0.08217579959115519,
+          "p90": 0.18350669516249574
+        },
+        "trans_m": {
+          "median": 0.590820146970083,
+          "p90": 1.4542571230532926
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 7.54484387931511,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1364,
+      "n_answered": 175,
+      "coverage": 0.9770773638968482,
+      "coverage_ci95": [
+        0.9677931283093232,
+        0.9842693421746198
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.022922636103151862,
+      "coverage_given_answered": 0.8171428571428572,
+      "set_size": {
+        "rot_deg": {
+          "median": 8.474163527146017,
+          "p90": 19.043938387253476
+        },
+        "trans_frac": {
+          "median": 0.06617598405976396,
+          "p90": 0.14777752324104365
+        },
+        "trans_m": {
+          "median": 0.47578611735574583,
+          "p90": 1.1711099456625322
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 6.075845574670916,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1339,
+      "n_answered": 175,
+      "coverage": 0.9591690544412608,
+      "coverage_ci95": [
+        0.9474199301368773,
+        0.9689309698565984
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.04083094555873926,
+      "coverage_given_answered": 0.6742857142857143,
+      "set_size": {
+        "rot_deg": {
+          "median": 6.504291337125555,
+          "p90": 14.617056076410462
+        },
+        "trans_frac": {
+          "median": 0.0507929636319685,
+          "p90": 0.11342571584316663
+        },
+        "trans_m": {
+          "median": 0.3651866655072465,
+          "p90": 0.8988781311563586
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 4.6634773580247595,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1326,
+      "n_answered": 175,
+      "coverage": 0.9498567335243553,
+      "coverage_ci95": [
+        0.9370687429743557,
+        0.9607054203005265
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.050143266475644696,
+      "coverage_given_answered": 0.6,
+      "set_size": {
+        "rot_deg": {
+          "median": 5.2240456856937225,
+          "p90": 11.73996747311463
+        },
+        "trans_frac": {
+          "median": 0.04079533784266914,
+          "p90": 0.09110002777936431
+        },
+        "trans_m": {
+          "median": 0.2933066379617462,
+          "p90": 0.7219511211358223
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 3.7455608166663104,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 454,
+            "n_answered": 17,
+            "coverage": 0.980561555075594,
+            "coverage_ci95": [
+              0.9634215158552757,
+              0.9910739213941997
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.019438444924406047
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 483,
+            "n_answered": 69,
+            "coverage": 0.9470588235294117,
+            "coverage_ci95": [
+              0.9239053191067563,
+              0.9648251939922458
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.052941176470588235
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 389,
+            "n_answered": 89,
+            "coverage": 0.9196217494089834,
+            "coverage_ci95": [
+              0.8894893710286471,
+              0.9436952861018075
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.08037825059101655
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 1326,
+            "n_answered": 173,
+            "coverage": 0.9512195121951219,
+            "coverage_ci95": [
+              0.9385660116276034,
+              0.9619240132566949
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.04878048780487805
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 243,
+            "n_answered": 3,
+            "coverage": 0.9959016393442623,
+            "coverage_ci95": [
+              0.9773781689901726,
+              0.9998962438749067
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.004098360655737705
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 643,
+            "n_answered": 104,
+            "coverage": 0.9400584795321637,
+            "coverage_ci95": [
+              0.9195581561032812,
+              0.9566452230461501
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.059941520467836254
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 440,
+            "n_answered": 68,
+            "coverage": 0.9401709401709402,
+            "coverage_ci95": [
+              0.9146885154251703,
+              0.9598795558663302
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.05982905982905983
+          }
+        }
+      }
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1318,
+      "n_answered": 175,
+      "coverage": 0.9441260744985673,
+      "coverage_ci95": [
+        0.9307544579673473,
+        0.9555867422682258
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.055873925501432664,
+      "coverage_given_answered": 0.5542857142857143,
+      "set_size": {
+        "rot_deg": {
+          "median": 4.494246902073671,
+          "p90": 10.099894913052347
+        },
+        "trans_frac": {
+          "median": 0.03509623225933131,
+          "p90": 0.07837336085085635
+        },
+        "trans_m": {
+          "median": 0.2523317230220917,
+          "p90": 0.6210946046086149
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 3.2223062564192926,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1305,
+      "n_answered": 175,
+      "coverage": 0.9348137535816619,
+      "coverage_ci95": [
+        0.920566575097397,
+        0.9471948101977399
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0651862464183381,
+      "coverage_given_answered": 0.48,
+      "set_size": {
+        "rot_deg": {
+          "median": 3.997948065624896,
+          "p90": 8.984565425638126
+        },
+        "trans_frac": {
+          "median": 0.031220561960486524,
+          "p90": 0.06971860541654479
+        },
+        "trans_m": {
+          "median": 0.2244667785133252,
+          "p90": 0.5525072447442424
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 2.866467585205076,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1286,
+      "n_answered": 175,
+      "coverage": 0.9212034383954155,
+      "coverage_ci95": [
+        0.9058078997814091,
+        0.9347964480684711
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.07879656160458452,
+      "coverage_given_answered": 0.37142857142857144,
+      "set_size": {
+        "rot_deg": {
+          "median": 3.337818256037713,
+          "p90": 7.501059545547848
+        },
+        "trans_frac": {
+          "median": 0.02606551159868063,
+          "p90": 0.05820686765436003
+        },
+        "trans_m": {
+          "median": 0.18740346270071997,
+          "p90": 0.46127882049217617
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 2.39316461324326,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "abstain_allowed",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1266,
+      "n_answered": 175,
+      "coverage": 0.9068767908309455,
+      "coverage_ci95": [
+        0.890405773999978,
+        0.9216105922749426
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.09312320916905444,
+      "coverage_given_answered": 0.2571428571428571,
+      "set_size": {
+        "rot_deg": {
+          "median": 2.4342396886740825,
+          "p90": 5.4704526886241105
+        },
+        "trans_frac": {
+          "median": 0.019009334233321455,
+          "p90": 0.04244972509852614
+        },
+        "trans_m": {
+          "median": 0.13667159554773892,
+          "p90": 0.33640633679071585
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 1.7453126072845357,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.01,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.02,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.05,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 1396,
+      "n_answered": 175,
+      "coverage": 1.0,
+      "coverage_ci95": [
+        0.9973610244419143,
+        1.0
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0,
+      "coverage_given_answered": 1.0,
+      "set_size": {
+        "rot_deg": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_frac": {
+          "median": "inf",
+          "p90": "inf"
+        },
+        "trans_m": {
+          "median": "inf",
+          "p90": "inf"
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": "inf",
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 134,
+      "n_answered": 175,
+      "coverage": 0.09598853868194843,
+      "coverage_ci95": [
+        0.0810405561509015,
+        0.11266082020630366
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.029369627507163324,
+      "coverage_given_answered": 0.7657142857142857,
+      "set_size": {
+        "rot_deg": {
+          "median": 7.527832608624464,
+          "p90": 16.91725442032902
+        },
+        "trans_frac": {
+          "median": 0.05878594732295401,
+          "p90": 0.13127483965964298
+        },
+        "trans_m": {
+          "median": 0.4226538982270096,
+          "p90": 1.0403291851758631
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 5.397340787141771,
+      "n_cal": 4798,
+      "slices": {
+        "gt_range_tertile": {
+          "0": {
+            "n_total": 463,
+            "n_covered": 11,
+            "n_answered": 17,
+            "coverage": 0.023758099352051837,
+            "coverage_ci95": [
+              0.011918257864742472,
+              0.04211153095857712
+            ],
+            "answer_rate": 0.0367170626349892,
+            "silent_failure_rate": 0.012958963282937365
+          },
+          "1": {
+            "n_total": 510,
+            "n_covered": 56,
+            "n_answered": 69,
+            "coverage": 0.10980392156862745,
+            "coverage_ci95": [
+              0.08401746007995879,
+              0.14021357760726583
+            ],
+            "answer_rate": 0.13529411764705881,
+            "silent_failure_rate": 0.025490196078431372
+          },
+          "2": {
+            "n_total": 423,
+            "n_covered": 67,
+            "n_answered": 89,
+            "coverage": 0.15839243498817968,
+            "coverage_ci95": [
+              0.12490997395792698,
+              0.19673930877510307
+            ],
+            "answer_rate": 0.21040189125295508,
+            "silent_failure_rate": 0.05200945626477541
+          }
+        },
+        "confidence_quintile": {
+          "0": {
+            "n_total": 1394,
+            "n_covered": 134,
+            "n_answered": 173,
+            "coverage": 0.09612625538020086,
+            "coverage_ci95": [
+              0.08115773922724259,
+              0.11282095705722926
+            ],
+            "answer_rate": 0.12410329985652797,
+            "silent_failure_rate": 0.027977044476327116
+          },
+          "1": {
+            "n_total": 2,
+            "n_covered": 0,
+            "n_answered": 2,
+            "coverage": 0.0,
+            "coverage_ci95": [
+              0.0,
+              0.841886116991581
+            ],
+            "answer_rate": 1.0,
+            "silent_failure_rate": 1.0
+          }
+        },
+        "gt_bbox_iou_bin": {
+          "0": {
+            "n_total": 244,
+            "n_covered": 2,
+            "n_answered": 3,
+            "coverage": 0.00819672131147541,
+            "coverage_ci95": [
+              0.000994207010600526,
+              0.029294057050887147
+            ],
+            "answer_rate": 0.012295081967213115,
+            "silent_failure_rate": 0.004098360655737705
+          },
+          "1": {
+            "n_total": 684,
+            "n_covered": 82,
+            "n_answered": 104,
+            "coverage": 0.11988304093567251,
+            "coverage_ci95": [
+              0.09649178401776844,
+              0.14660996326247763
+            ],
+            "answer_rate": 0.15204678362573099,
+            "silent_failure_rate": 0.03216374269005848
+          },
+          "2": {
+            "n_total": 468,
+            "n_covered": 50,
+            "n_answered": 68,
+            "coverage": 0.10683760683760683,
+            "coverage_ci95": [
+              0.08034266896326969,
+              0.13842011709802046
+            ],
+            "answer_rate": 0.1452991452991453,
+            "silent_failure_rate": 0.038461538461538464
+          }
+        }
+      }
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.15,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 111,
+      "n_answered": 175,
+      "coverage": 0.07951289398280802,
+      "coverage_ci95": [
+        0.06585983054478006,
+        0.09496518690612869
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.045845272206303724,
+      "coverage_given_answered": 0.6342857142857142,
+      "set_size": {
+        "rot_deg": {
+          "median": 5.6452809562928525,
+          "p90": 12.686607045755679
+        },
+        "trans_frac": {
+          "median": 0.04408482576242451,
+          "p90": 0.09844577993431178
+        },
+        "trans_m": {
+          "median": 0.31695710130832205,
+          "p90": 0.7801648685201178
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 4.0475800598124225,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.2,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 99,
+      "n_answered": 175,
+      "coverage": 0.07091690544412607,
+      "coverage_ci95": [
+        0.05800822527478914,
+        0.08566470178301545
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.054441260744985676,
+      "coverage_given_answered": 0.5657142857142857,
+      "set_size": {
+        "rot_deg": {
+          "median": 4.747822798222281,
+          "p90": 10.669754549024358
+        },
+        "trans_frac": {
+          "median": 0.037076443569594074,
+          "p90": 0.08279536873003283
+        },
+        "trans_m": {
+          "median": 0.26656886757294557,
+          "p90": 0.6561382113325861
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 3.404116293660411,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.3,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 80,
+      "n_answered": 175,
+      "coverage": 0.05730659025787966,
+      "coverage_ci95": [
+        0.045698706991723854,
+        0.07081843538658487
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.0680515759312321,
+      "coverage_given_answered": 0.45714285714285713,
+      "set_size": {
+        "rot_deg": {
+          "median": 3.781826726163378,
+          "p90": 8.498877196977995
+        },
+        "trans_frac": {
+          "median": 0.029532838768767927,
+          "p90": 0.06594975245980746
+        },
+        "trans_m": {
+          "median": 0.21233253863811835,
+          "p90": 0.5226397717715403
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 2.711511891967297,
+      "n_cal": 4798
+    },
+    {
+      "score": "C2",
+      "arm": "split",
+      "convention": "answer_required",
+      "alpha": 0.5,
+      "domain": "sunlamp",
+      "subset": "sunlamp_poolB",
+      "crop_source": "predicted_crop",
+      "oracle": false,
+      "valid_mask": "pnp_success_and_sigma_defined",
+      "n_total": 1396,
+      "n_covered": 49,
+      "n_answered": 175,
+      "coverage": 0.03510028653295129,
+      "coverage_ci95": [
+        0.02607798654118921,
+        0.04614091696468232
+      ],
+      "answer_rate": 0.12535816618911175,
+      "silent_failure_rate": 0.09025787965616046,
+      "coverage_given_answered": 0.28,
+      "set_size": {
+        "rot_deg": {
+          "median": 2.694173693676759,
+          "p90": 6.054600865628922
+        },
+        "trans_frac": {
+          "median": 0.021039196946796953,
+          "p90": 0.04698260947612528
+        },
+        "trans_m": {
+          "median": 0.1512657192760314,
+          "p90": 0.37232861956226987
+        }
+      },
+      "n_solved_sigma_undefined": 0,
+      "quantile": 1.9316813112802553,
+      "n_cal": 4798
+    }
+  ],
+  "provenance": {
+    "poseconf_git_sha": "b3a2795b50981145a9628ade0e8e790e65ce9be8",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+    "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
+    "config_sha256": "ef573e1901e6db2b2c3b002f63a2fd3881ca3c5487960e0629faf104a96887e7",
+    "pnp_config": {
+      "method": "EPNP",
+      "reprojection_threshold_px": 5.0,
+      "min_inliers": 6,
+      "iterations": 1000,
+      "confidence": 0.99,
+      "refine": true,
+      "use_keypoint_confidence": true,
+      "confidence_min": 0.2
+    },
+    "calibration_dump": {
+      "dump": "dumps/keypoint_a2/synthetic_predicted_crop.npz",
+      "dump_sha256": "07dc09268b4305904aa7ac43f641d001007f958993b262b75c372a39e544368f",
+      "variance_sidecar": "dumps/keypoint_a2/synthetic_predicted_crop_vhead.npz",
+      "variance_sidecar_sha256": "377b6e53b58662bfcc29879ecceebb292bd7a62c16f4b716a8678092a51530d1",
+      "variance_head_checkpoint_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
+      "p1_checkpoint_sha256_dump": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793"
+    },
+    "evaluation_dump": {
+      "dump": "dumps/keypoint_a2/sunlamp_predicted_crop.npz",
+      "dump_sha256": "b727a481ccdf6dc80339ca59ba6d6949ae62555ba47ce47b054e9de14ba3ac85",
+      "variance_sidecar": "dumps/keypoint_a2/sunlamp_predicted_crop_vhead.npz",
+      "variance_sidecar_sha256": "8624c34b15b16ec9c7d4eea76d3d008ee775b699a0618a6a2e3b76864e88eff0",
+      "variance_head_checkpoint_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
+      "p1_checkpoint_sha256_dump": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793"
+    },
+    "labels_all": "dumps/keypoint_a2/synthetic_labels.npz",
+    "labels_all_sha256": "c0996245e55f8d7dd457c5e010c7dd08556629133a2940dd099f73e6777cfe47",
+    "labels_poolB": "dumps/keypoint_a2/sunlamp_labels_poolB.npz",
+    "labels_poolB_sha256": "83ecd8ebfd1b127af58b846b90930d60534dfe99947266c59f60549975a6dadb",
+    "created_at": "2026-10-07T19:05:07Z"
+  }
+}

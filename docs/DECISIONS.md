@@ -721,3 +721,119 @@ not a calibrated Gaussian.**
   - *Disjointness of training and calibration frames.* `train` is disjoint from
     `val_cal`/`val_test` because SPEED+ ships separate official splits. No runtime check enforces
     it. Phase 8 can add a manifest-level assertion.
+
+## 2026-10-07 — Shift-matrix result layout: one JSON per domain × crop × arm tag
+
+**Decision (user choice, Phase 6 planning).** `results/shift/<run>_<domain>_<crop>_<arm>.json`
+(`kind: coverage`) holds `rows` over score × convention × α. Every row is self-contained and
+carries the full results-provenance field set. Each `oracle_target_labels_n<n>` is its own arm tag,
+so it gets its own file. `results/shift/index.json` lists every expected domain × crop × arm cell
+with its file or the reason it is empty. `make_tables.py` and the gate read the index, and
+`run_shift_matrix.py` exits 1 on any unexplained cell.
+**Alternatives.** One file per score × arm × convention × α × domain × crop (about 4,300 files);
+one file per domain × crop, which would mix oracle and non-oracle rows.
+
+## 2026-10-07 — Shift matrix reads the dumps for every level; per-crop fits
+
+**Decision.**
+- **Frames.** All frames (A1–C2) come from the Phase 3 dumps plus the Phase 5 variance sidecar,
+  not P1's sidecars, so every level sees one frame set on every domain × crop.
+- **Fitting.** Each crop source is its own pipeline. Normalisers, g(conf̄), Mondrian edges and
+  slice edges are fitted on that crop's synthetic `val_tune`, and calibration uses that crop's
+  synthetic `val_cal`.
+- **Fit check.** The `predicted_crop` refit is checked against the committed Phase 2 fit
+  (`index.json`, `checks.predicted_crop_fit_vs_phase2`).
+  - The two are not bit-equal: P1's sidecar stores `q_pred`, `t_pred` and `confidence_mean` as
+    float32, while the dump stores float64.
+  - The first draft compared g's isotonic knots at rtol 1e-6 and failed on a run that was not
+    committed.
+  - g is now compared as a function on the `val_tune` confidences, at rtol 1e-4, a float32-level
+    tolerance. The measured differences are in the same `checks` record
+    (`rel_diff`, `g_max_rel_diff_on_val_tune_conf`).
+  - Synthetic `split` rows reproduce the Phases 2/4/5 `val_test` counts (pinned by
+    `test_shift_matrix_end_to_end` for A1).
+- **Scope.** `keypoint_a1`, the config's `secondary_runs`, was never dumped, so it is outside the
+  matrix.
+
+## 2026-10-07 — Shift-matrix arms: Mondrian failure group, weighted logits, oracle draws
+
+**Decision.**
+- **Per-frame q.** Each arm returns one quantile per test frame. `metrics.outcomes` accepts an
+  (m,) q, which closes Phase 1 item S5; the scalar behaviour is unchanged and pinned by tests.
+- **`mondrian`.**
+  - Groups are predicted-‖t̂‖ tertiles × mean-confidence tertiles, with edges from `val_tune`
+    solved frames.
+  - Frames without a point estimate for the score form a tenth group: for C2, a solved frame with
+    an undefined σ̂ also falls there.
+  - That group's quantile is +∞ under `answer_required` (the whole-space set) and −∞ under
+    `abstain_allowed` (abstain). Both count as covered, and the other nine groups are identical.
+    So Mondrian rows are the same under both conventions, by construction; the result
+    `definitions` say so.
+  - Alternative rejected: pooling failures into a range group. A failed frame has no t̂.
+- **`weighted_unlabeled_target`.**
+  - **Classifier.** Standardised L2 logistic regression (C = 1, max_iter 5000) on P1's pooled
+    512-d encoder features: synthetic `val_tune` (source) vs `<hil>_poolA` (target), both
+    `predicted_crop`.
+  - **Validation.** 5-fold stratified CV AUC (seed 1337).
+  - **Weights.** The model is refit on every training row. Weights are
+    `exp(logit − c)·n_s/n_t`, with one shift c = the max logit over `val_cal` ∪ poolB. A common
+    scale cancels in every normalised mass, so the quantiles are those of Tibshirani et al.
+    without overflow when AUC ≈ 1 (`test_logit_shift_leaves_weighted_quantiles_unchanged`).
+  - **Fixed in advance.** The hyperparameters and the clip (none) were set in config before any
+    HIL number existed, and are not tuned.
+  - **Disjointness.** Training rows are asserted disjoint from `val_cal`, `val_test` and every
+    poolB, keyed on (domain, filename), because filenames repeat across domains.
+- **`gt_crop` × weighted on HIL.** Not run, and explained in the index (Phase 3 item L2). The
+  features of a GT-box crop are label-conditioned. `require_label_free_dump` raises if a
+  non-oracle arm reads an oracle dump.
+- **`oracle_target_labels_n<n>`.**
+  - For n ∈ {25, 50, 100, 250, 500, 1000}, 5 draws without replacement from poolA, every frame
+    kept (failures included). The seed is `SeedSequence([20261007, DOMAIN_KEYS[domain], n, draw])`.
+  - Normalisers and σ̂ stay the synthetic fits.
+  - **Row summary.**
+    - The top-level row gives the mean over draws, plus min and max.
+    - `coverage_ci95` is the envelope of the per-draw Clopper–Pearson intervals.
+    - `set_size` is each statistic's median over draws.
+    - Every draw is listed in full.
+- **Synthetic.** Only `split` and `mondrian` run. The weighted and oracle arms have no target
+  domain there and are explained in the index.
+- **Slices (§1.5).** These are for the `split` arm at the headline α only, to keep files small:
+  - GT-range tertiles and confidence quintiles, with edges from `val_tune`;
+  - GT-bbox IoU bins (<0.5, 0.5–0.8, >0.8) on `predicted_crop` only (on `gt_crop` the IoU is 1).
+- **`coverage_given_answered`.** It is reported beside every marginal coverage and labelled as a
+  slice, not a conformal quantity. Under `abstain_allowed` an abstention counts as covered, so a
+  near-nominal marginal coverage at a low answer rate can hide a poor answered-frame coverage.
+
+## 2026-10-07 — Shift figures and P1's wireframe edges
+
+**Decision.**
+- **Figures.** `make figures` gains five Phase 6 entries:
+  - `shift_coverage_vs_nominal_<convention>`, `shift_silent_failure`, `shift_few_label_recovery`
+    and `shift_size_vs_coverage` are light-surface data charts. They use the reference palette's
+    categorical slots in fixed order, each series with its own marker. No `node` is available, so
+    the validator was not run; the slots are the pre-validated ones. ∞ sets are drawn hollow or on
+    a labelled rail, never dropped.
+  - `shift_gallery` shows 8 seeded synthetic `val_test` frames on the dark surface:
+    - P1's wireframe at the estimate;
+    - 24 sampled boundary poses of the A1 set (rotation exactly q·c_R about random axes,
+      translation q·c_t·‖t̂‖ in random directions);
+    - C1 ellipses and the true pose.
+    It uses synthetic imagery only, and its caption carries the CC BY-NC-SA notice.
+- **Wireframe edges.** They come from P1 through the new `p1_adapter.wireframe_edges()`. P1 marks
+  `WIREFRAME_EDGES` as figures-only.
+
+## 2026-10-07 — Phase 6 leakage audit: carried items closed
+
+`split-leakage-auditor` on the whole repo at `1103ba2`: **clean**, no critical findings.
+- **Closed.**
+  - W1/W2: the weighted, domain-classifier and oracle paths exist and are guarded.
+  - L1: the only consumer of `<hil>_labels_poolA.npz` is `shift.oracle_target_labels`, through
+    `load_dump_labels` with the `oracle_target_labels` tag.
+  - L2: HIL `gt_crop` rows carry `oracle: true`, and the weighted arm refuses those dumps.
+- **Adopted.** W-c: a runtime assertion that `val_tune` and `val_cal` are disjoint (poolA vs poolB
+  was already asserted through the evaluation-set check).
+- **Carried, notes.**
+  - W-a: the oracle guard is a tag-prefix convention, pinned by tests (one poolA request in
+    `shift.py`, one oracle call in the script), not a hard barrier.
+  - L3: `load_eval_labels` parses before slicing; it is producer-side only.
+  - N3: `hil_label_access_allowed` returns True for an empty frame list, which returns no rows.

@@ -3,3 +3,4 @@ speedplus_root: /home/YOU/datasets/speedplusv2          # existing SPEED+ tree, 
 p1_runs: /home/YOU/code/spacecraft-pose-baseline/runs   # P1 checkpoints: <run>/best.pt
 dumps_root: dumps
 p1_release_sums: /home/YOU/code/spacecraft-pose-baseline/release/SHA256SUMS.txt  # P1 phase-9-complete release manifest
+p1_keypoint_labels: /home/YOU/code/spacecraft-pose-baseline/data/labels  # P1 Phase 2d keypoint labels (<domain>_<split>.npz), read-only; needed from Phase 3

@@ -187,7 +187,7 @@
     "source_result_sha256": "42f63ae2622f166a24ca3c811cb6ffb4a682946e537944f89f69c3652a3f2cef",
     "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
     "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
-    "poseconf_git_sha": "1c9a16ba5777e3913d04a4f789d3eff18094175d",
-    "created_at": "2026-10-07T20:04:42Z"
+    "poseconf_git_sha": "16d49c0aef0bd26a8171722ac08b2cfcdff05d93",
+    "created_at": "2026-10-07T20:05:15Z"
   }
 }

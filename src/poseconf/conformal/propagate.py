@@ -32,10 +32,11 @@ Pose-space extent near the PnP estimate, two estimators, neither a bound:
   E_in = {sum <= q^2} and lies inside E_out = {sum <= |U| q^2}: ellipsoids centred at delta* with
   squared H-radii q^2 - c and |U| q^2 - c. With lambda the largest eigenvalue of the (H^-1)
   rotation (translation) block and o that block of delta*:
-  - *inner* radius sqrt(||o||^2 + (q^2 - c) lambda): attained by a point of E_in, so it is at most
-    the extent of L about the estimate;
+  - *inner* radius sqrt(||o||^2 + (q^2 - c) lambda): reached or exceeded by a point of E_in, so
+    it is at most the extent of L about the estimate (a loose lower estimate);
   - *outer* radius ||o|| + sqrt((|U| q^2 - c) lambda): at least the extent of E_out, hence of L.
-  E_in is empty when c > q^2 (inner NaN); L is empty when c > |U| q^2 (both NaN). With zero
+  E_in is empty when c > q^2 (inner NaN); L is empty when c > |U| q^2 (both NaN), and may also be
+  empty with a finite outer radius. With zero
   residual they reduce to q sqrt(lambda) and sqrt(|U|) q sqrt(lambda). Linearisation and a fixed U
   make both an approximation, not a bound.
 * `sampled_extent`: M keypoint configurations drawn uniformly inside the sets, iterative PnP

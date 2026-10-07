@@ -552,6 +552,14 @@ findings; its three must-fix items are closed.
   channels, so no Phase 4 number depends on it. On HIL the two scores will diverge for this reason
   alone. Whether B1 should share the rule is a user decision before Phase 6; `n_vacuous` must be
   read beside B2's HIL coverage.
+- **Follow-up `pose-geometry-verifier` on the residual-aware linearisation: VERIFIED.**
+  - Inner ≤ brute-force linearised extent ≤ outer held on every frame of its 400-frame sample.
+  - The inner radius is a loose lower estimate and the outer is the closer one. The verifier's
+    measured ratios are in its report, not in a committed file.
+  - Inner medians exclude the high-residual frames where inner is NaN.
+  - The outer radius can be finite when the linearised PURSE is empty.
+  - The definitions now say all of this. No table may use "linearised inner" as the size of the
+    pose set.
 - **Notes.**
   - The 100 % PURSE agreement holds by construction: same projection path, same error helper. It
     confirms frame order, quaternion order and mask plumbing. The independent evidence is the exact

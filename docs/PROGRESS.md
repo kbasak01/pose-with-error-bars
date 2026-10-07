@@ -6,7 +6,7 @@
 | 1 Conformal core ⚠️ | **complete** 2026-10-06 | synthetic validity 16/16 cases VALID; split CP Beta-law KS p ∈ [0.033, 0.773] over 12 cases, R = 2,000 each; weighted CP with true weights 0.9050 vs split 0.7502 at α = 0.10 under a known shift ([`results/validity/conformal_core_synthetic.json`](../results/validity/conformal_core_synthetic.json)); `conformal-validity-auditor` SOUND | `phase-1-complete` |
 | 2 Splits + Level A | **complete** 2026-10-07 | splits 2,399 / 4,798 / 4,797 + HIL 3,370/3,370, 1,395/1,396, byte-identical ([`splits/SHA256SUMS`](../splits/SHA256SUMS)); A1–A3 × 2 conventions × 8 α: 39 VALID, 9 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES vs the exact re-split law, R = 1,000 ([`results/level_a/keypoint_a2_predicted_crop_synthetic.json`](../results/level_a/keypoint_a2_predicted_crop_synthetic.json)); `split-leakage-auditor` no critical, `conformal-validity-auditor` SOUND | `phase-2-complete` |
 | 3 Dump + P1 parity | **complete** 2026-10-07 | 6/6 domain × arm cells reproduce P1: success-flag agreement 1.0 (0 disagreements), solved counts equal P1's JSON (synthetic 11,159 / 11,146; lightbox 3,630 / 4,399; sunlamp 362 / 675, predicted / GT box), median \|Δe_r\| ≤ 1.38e-09 rad ([`results/dump_summary.json`](../results/dump_summary.json)); `p1-parity-auditor` REPRODUCED | `phase-3-complete` |
-| 4 Level B | not started | | |
+| 4 Level B | **complete** 2026-10-07 | B1/B2 × 2 conventions × 8 α: 26 VALID, 6 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES against the exact re-split law, R = 1,000. PURSE(label pose) ≡ joint coverage on 142,528/142,528 checks. α = 0.10 abstain_allowed, B2: coverage 0.8985 [0.8896, 0.9069]; sampled rotation radius (median) 2.93° vs A1 2.33° ([`results/level_b/`](../results/level_b/)). `pose-geometry-verifier` VERIFIED, `conformal-validity-auditor` SOUND | `phase-4-complete` |
 | 5 Variance head | not started | | |
 | 6 Coverage under shift ⭐ | not started | | |
 | 7 Head, ONNX, latency | not started | | |
@@ -139,4 +139,76 @@ Update at the end of each phase via `/phase-gate N`.
   warnings are closed by new tests and three are carried into Phase 6 (`docs/DECISIONS.md`, "Phase 3
   audits: carried items").
 - **Carried into Phase 4.** B2 must treat `heatmap_empty` channels, which have zero covariance, explicitly.
+
+## Phase 4 — Level B (complete, 2026-10-07)
+
+- **Modules.**
+  - `conformal/propagate.py` holds the crop→full covariance map, the numpy port of P1's projection
+    and visibility rule, PURSE membership, the cv2 Jacobian mapped to a left tangent perturbation,
+    the residual-aware linearised extent and the sampled extent. It is the only conformal module
+    allowed to import cv2.
+  - `engine/level_b.py` and `scripts/run_level_b.py` run the study.
+  - B2 treats an empty heatmap channel as an unconstrained keypoint. Synthetic has none.
+- **Data.**
+  - Keypoints are synthetic `keypoint_a2` `predicted_crop`, read from the Phase 3 dump. We calibrate
+    on `val_cal` (n = 4,798) and evaluate on `val_test` (n = 4,797).
+  - The valid mask is PnP success, so the answer rate is 0.9285, the same as Level A.
+  - `val_tune` is not read, because B1/B2 fit nothing. No HIL file is opened.
+- **Checks** ([`results/level_b/keypoint_a2_predicted_crop_synthetic.json`](../results/level_b/keypoint_a2_predicted_crop_synthetic.json),
+  `checks`, generated at `16d1241`):
+  - The stored full-frame covariances equal `crop_cov_to_full`, with max relative difference 0.0.
+  - The projected label pose has the same visibility as P1's `in_frame`. It sits within 0.0030 px
+    (`val_test`) and 0.0025 px (`val_cal`) of P1's stored label keypoints.
+  - PURSE membership of the label pose equals joint keypoint coverage on 142,528 / 142,528 checks
+    (`val_test` valid frames × score × convention × α). This agreement holds by construction (same
+    projection path); the independent evidence is the two checks above.
+- **Validity** (same protocol as Phase 2: R = 1,000, the exact atom-aware law):
+  - Results: 26 VALID, 6 DEGENERATE (`answer_required`, α ≤ 0.05, q = ∞), 0 DEVIATES.
+  - Law KS p ranges from 0.030 to 0.951. Observed/law sd ranges from 0.985 to 1.047.
+  - Every VALID cell is inside the plan's literal mean band.
+  - `n_vacuous` = 0 in every row.
+- **α = 0.10, `val_test`, n = 4,797** (largest keypoint radius in px, median):
+
+  | Score | Convention | Coverage | 95 % CI | Silent-failure rate | q | Keypoint radius (median) |
+  |---|---|---|---|---|---|---|
+  | B1 | abstain_allowed | 0.8943 | [0.8853, 0.9029] | 0.1057 | 0.0238 × d̂ | 15.7 px |
+  | B2 | abstain_allowed | 0.8985 | [0.8896, 0.9069] | 0.1015 | 0.982 | 16.4 px |
+  | B1 | answer_required | 0.9024 | [0.8937, 0.9107] | 0.0261 | 0.0412 × d̂ | 27.2 px |
+  | B2 | answer_required | 0.9058 | [0.8972, 0.9139] | 0.0227 | 1.851 | 30.8 px |
+
+- **Pose-space extent near the PnP estimate**
+  ([`results/level_b/keypoint_a2_predicted_crop_synthetic_propagation.json`](../results/level_b/keypoint_a2_predicted_crop_synthetic_propagation.json)):
+  - The PURSE itself is unbounded: any pose that projects no keypoint into the frame is a member.
+  - The table gives median rotation radii (°) at α = 0.10, `abstain_allowed`. Level A is read from the
+    Phase 2 JSON.
+
+    | Estimator | A1 | A3 | B1 | B2 |
+    |---|---|---|---|---|
+    | Level A ball | 2.33 | 2.13 | — | — |
+    | Linearised inner (loose lower approximation; excludes 528 / 617 NaN frames) | — | — | 1.71 | 1.51 |
+    | Sampled (inner approximation, lower bound near the estimate) | — | — | 3.19 | 2.93 |
+    | Linearised outer (approximation) | — | — | 6.46 | 6.00 |
+
+    — : that estimator is not defined for that score.
+  - The sampled lower bound is already above Level A's A1 ball (3.19° and 2.93° vs 2.33°). The
+    literature's expectation that B is looser is measured, not assumed. Under `answer_required`,
+    sampled is 5.46° / 5.49° vs A1 3.99°.
+  - The PnP estimate lies inside its own PURSE on 0.906 (B1) and 0.900 (B2) of answered frames
+    under `abstain_allowed`. That residual is why the linearisation is residual-aware.
+- **Runtime per frame** (CPU, p50):
+  - Linearised: 0.33 ms.
+  - Sampled, M = 256: 34.7–42.2 ms, with p99 ≤ 83.5 ms. A full pass takes 14–17 s on 16 workers.
+  - Sampled is offline only.
+- **Measured pose-ball coverage** (no guarantee; answered frames, with CI, in the propagation JSON):
+  - B2 `abstain_allowed`: linearised inner 0.877, sampled 0.990 on frames with an accepted sample.
+    The NaN-as-uncovered variant is also in the JSON.
+- **Audits.**
+  - `pose-geometry-verifier`: VERIFIED, with a follow-up on the residual-aware linearisation.
+  - `conformal-validity-auditor`: SOUND. Its 3 must-fix items (wording and labelling, no number
+    changed) are closed.
+  - Items closed and carried: `docs/DECISIONS.md`, "Phase 4 audits: carried items".
+- **Carried into Phase 6.**
+  - Whether B1 should also treat empty heatmap channels as unconstrained (user decision). Read
+    `n_vacuous` beside any HIL B2 coverage.
+  - The PURSE is unbounded, and no figure may imply otherwise.
 

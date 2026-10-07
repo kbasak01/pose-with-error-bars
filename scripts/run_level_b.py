@@ -80,14 +80,17 @@ DEFINITIONS = {
     "linearised_inner": (
         "first order about the PnP estimate over keypoints U visible under it, residual-aware: "
         "sqrt(||o||^2 + (q^2 - c) lambda), o = block of delta* = -H^-1 g, c = residual floor, "
-        "lambda = lambda_max of the (H^-1) block; attained by a point of the inner ellipsoid "
-        "(sum_k Mahalanobis^2 <= q^2) inside the linearised PURSE. NaN when c > q^2. "
-        "Approximation (linearisation, fixed U), not a bound"
+        "lambda = lambda_max of the (H^-1) block; reached or exceeded by a point of the inner "
+        "ellipsoid (sum_k Mahalanobis^2 <= q^2) inside the linearised PURSE, so a loose lower "
+        "estimate of the linearised extent. NaN when c > q^2; those frames (n_nan, the "
+        "high-residual ones) are excluded from the radius summaries, which therefore describe a "
+        "selected subset. Approximation (linearisation, fixed U), not a bound"
     ),
     "linearised_outer": (
-        "||o|| + sqrt((|U| q^2 - c) lambda): the extent of the ellipsoid sum_k Mahalanobis^2 <= "
-        "|U| q^2, which contains the linearised PURSE. NaN when c > |U| q^2 (linearised PURSE "
-        "empty). Approximation, not a bound"
+        "||o|| + sqrt((|U| q^2 - c) lambda): bounds the extent of the ellipsoid sum_k "
+        "Mahalanobis^2 <= |U| q^2, which contains the linearised PURSE. NaN when c > |U| q^2 "
+        "(then the linearised PURSE is empty; it can also be empty with a finite outer). "
+        "Approximation, not a bound"
     ),
     "sampled": (
         "M keypoint configurations uniform in the sets, cv2.solvePnP ITERATIVE warm-started at the "

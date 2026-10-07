@@ -874,3 +874,120 @@ items were about presentation and are closed; no number changed.
   - c is a common factor that cancels in every normalised mass, so no quantile depends on it
     (`test_logit_shift_leaves_weighted_quantiles_unchanged`).
   - It is not a fitted normaliser.
+
+## 2026-10-07 — `ConformalPoseHead`: artifact, locks and output types
+
+**Decision.** `conformal/head.py` (numpy only) loads one JSON artifact per (score, convention, α).
+- The `payload` holds everything that changes a set:
+  - score and score version, α, convention, quantile, n_cal;
+  - normalisers (and A3's g knots);
+  - the camera geometry (C2 only) and the quaternion order;
+  - the locks: P1 keypoint, detector (predicted crop) and variance-head (C1/C2) SHA-256;
+  - a `context` with run, crop source, arm, calibration subset, P1 commit and PnP config.
+- `calibration_id` = SHA-256 of the canonical payload.
+- `from_json` hashes the checkpoint files actually in use and refuses a mismatch. It also refuses
+  an edited payload, an unknown schema or score version, and any payload failing
+  `build_artifact`'s validation.
+- `predict(estimate, cov)` returns `Answer(set, …, calibration_id)` or `Abstain(reason,
+  covered_if_abstained)`, following the plan's ANSWER/ABSTAIN diagram rather than returning a bare
+  `PoseSet`. A frame is answered iff `metrics.outcomes` would count it answered;
+  `covered_if_abstained` carries that function's convention rule.
+
+**Alternatives.**
+- Recompute quantiles from the dumps inside the build: rejected, because it duplicates Phases 2,
+  4 and 5 and invites drift.
+- Lock only the keypoint checkpoint (the plan's literal list): rejected after the
+  conformal-validity audit. For predicted crops the detector decides every crop and sets B1's
+  radius.
+- A keyed MAC: unnecessary. The id detects edits; it is not presented as forgery-proof.
+
+**Reason.**
+- Artifacts copy each quantile, n_cal and normaliser from the committed Level A/B/C row (invariant 8).
+- `--verify` replays `val_test` frame by frame through `predict` and reproduces every row's
+  n_covered and n_answered exactly ([`results/calibration/index.json`](../results/calibration/index.json)).
+
+**Score versions.** `SCORE_VERSIONS` starts at 1 for every deployable score. Any change to a score's
+definition, normaliser or set construction bumps its version, and old artifacts are then refused.
+
+**B2 is not deployable.** It needs heatmap second moments, which the exported graph does not output.
+The deployable scores are A1–A3, B1, C1 and C2.
+
+**C2 in the head.** σ̂ comes from the linearisation of `engine.level_b.linearised_frames` +
+`engine.level_c.pose_sigma`, and its covariances are validated by the C1 set constructor. The camera
+geometry lives in the artifact because σ̂, and so the calibration, depends on it.
+
+## 2026-10-07 — Exported variance graph: `keypoint_empty` output, no `heatmaps`
+
+**Decision.** The plan names the outputs `coords, confidence, cov_chol`. The graph instead emits
+`coords, confidence, cov_chol, keypoint_empty` and drops P1's `heatmaps`.
+
+**Reason.**
+- C1 and C2 treat an empty heatmap channel as unconstrained: its set is the whole image, and it is
+  excluded from C2's U.
+- On such a channel the readout returns σ = 1 px. A deployed head without the mask would read that
+  as a real covariance, a fabricated tight ellipse.
+- `keypoint_empty` is computed by the same `refine_weights` the readout uses: mass 0 in P1's refine
+  window, the dump's `heatmap_empty`.
+- No deployed score needs the heatmaps.
+- Graph checks: opset 17, no forbidden ops, static non-batch shapes
+  ([`results/export/onnx_export.json`](../results/export/onnx_export.json)).
+
+**Head-off baseline.** P1's own `keypoint_a2` graph, re-exported from the pinned checkpoint with
+P1's `spec_for_config` into gitignored `exports/`; the detector graph likewise.
+
+## 2026-10-07 — ONNX parity: the fp32 variance gate is missed; reported, not moved
+
+**Measured** ([`results/export/onnx_parity.json`](../results/export/onnx_parity.json)): 512
+`val_test` crops; ORT CUDA with `use_tf32 = 0` against torch with TF32 off.
+- **`cov_chol`:** max |Δ| 2.857e-3, mean 1.44e-6, p99 1.29e-5, against the plan's gate of 1e-4.
+  **Unmet.**
+- **Σ̂:** max |Δ| 0.233 px². Unmet.
+- **`keypoint_empty`:** 0 mismatches.
+- **Relative σ_max:** max 6.95e-5.
+- **C1 set radius (what ships):** relative max 6.95e-5, p99 4.74e-6.
+- **Decode stability:** 5,630 of 5,632 keypoints decode to within 1e-3 px. On those, `cov_chol`
+  max |Δ| is 6.71e-4, still above 1e-4.
+
+**Diagnosis.** It is not TF32 or cuDNN. The CPU control (torch CPU vs ORT CPU, same graph, 256
+crops) also misses: `cov_chol` max 7.02e-4, C1 radius relative max 1.76e-5. The TF32-off/off cell
+of P1's four-cell ablation gives 2.94e-3, against 0.268 with both on. What is left is the two
+frameworks' fp32 arithmetic in a sharp readout: `relu(h)^p` × window, normalised over 4,096 pixels.
+That arithmetic amplifies heatmap differences of order 1e-6. Set radii agree to < 1e-4 relative.
+
+**fp16.** Halving the trunk flips P1's decode on most keypoints (112 of 5,632 stable). The C1
+radius differs by up to 8.3 % (p99 1.69 %), and `cov_chol` misses P1's stated fp16 relaxation (5e-2).
+**fp16 is not a faithful export of the variance outputs.**
+
+**Coords.** These are P1's outputs, and P1's keypoint parity gate is inherited unmet. With TF32 off
+here, the coords max |Δ| is 6.1e-3 px. P1's committed record (TF32 on) gives 3.23 px. Both numbers
+are in the parity file.
+
+**Not done.** Loosening the 1e-4 gate, or gating on the relative or set-level number instead
+(invariant 11). The gate stays as planned; Phase 8 records G2 as unmet, with this evidence.
+
+## 2026-10-07 — Latency: the head and propagation timed on CPU with P1's minimums
+
+Network rows use P1's `benchmark_onnx` unchanged.
+- The conformal head and the propagation estimators have no P1 counterpart. `export.bench.time_calls`
+  times them, one frame per call, 64 real `val_test` frames from the dumps cycled, under P1's
+  minimums (≥ 50 warmup, ≥ 500 timed).
+- The full frame uses P1's `end_to_end_frame_budget` on the ORT pipeline. The head-on row adds one
+  `uncertainty` stage (covariance mapping + C1 and C2 `predict`) through `UncertaintyFrame`, a
+  callable with P1's pipeline signature.
+- Every file carries the A4000-is-not-a-Jetson caveat.
+
+## 2026-10-07 — Result kinds `calibration` and `onnx_export`
+
+Added to `poseconf.result.v1`:
+- `calibration`: the head replay index;
+- `onnx_export`: per-graph SHA-256 + `graph_summary`.
+
+Parity and latency use the existing `parity` and `latency` kinds. The artifacts themselves use
+their own schema, `poseconf.calibration.v1`.
+
+## 2026-10-07 — I run the Phase 7 GPU jobs myself, on the user's instruction
+
+As in Phase 3: the user asked for the GPU commands to be generated *and then run*. `make export`,
+`make parity-onnx` and `make bench` print the commands; I ran them in that order on a clean tree.
+The phase came to about 3,300 lines of src, scripts and tests, well beyond the 200–800 guide. Most of that is the
+replay check, the CPU control and the tests that pin the head to the evaluation path.

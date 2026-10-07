@@ -1,0 +1,514 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "onnx_export",
+  "run": "keypoint_a2",
+  "variance_head_run": "vhead_a2_s1337",
+  "opset": 17,
+  "forbidden_ops": [
+    "ArgMax",
+    "ArgMin",
+    "NonZero",
+    "TopK"
+  ],
+  "variance_outputs": [
+    "coords",
+    "confidence",
+    "cov_chol",
+    "keypoint_empty"
+  ],
+  "export_convention": "P1's export_model: eval mode, opset 17, constant folding, dynamic batch only, onnx.checker + strict shape inference, forbidden ops refused, named I/O; fp16 = halved module (decode and variance readout keep explicit fp32 casts)",
+  "graphs": [
+    {
+      "role": "head_on",
+      "precision": "fp32",
+      "path": "exports/vhead_a2_s1337.onnx",
+      "sha256": "5f54b3b997fb1aa6daed309355bb44f4504315f89ee7aeb0498a37fcd91a198a",
+      "size_bytes": 62129745,
+      "source_checkpoints_sha256": {
+        "p1_keypoint": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+        "variance_head": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c"
+      },
+      "graph": {
+        "path": "exports/vhead_a2_s1337.onnx",
+        "opset": 17,
+        "ir_version": 8,
+        "node_count": 357,
+        "initializer_count": 64,
+        "op_histogram": {
+          "Add": 12,
+          "BatchNormalization": 3,
+          "Cast": 10,
+          "Clip": 8,
+          "Concat": 12,
+          "Constant": 107,
+          "Conv": 23,
+          "ConvTranspose": 3,
+          "Div": 8,
+          "Equal": 1,
+          "Exp": 5,
+          "Gather": 18,
+          "MaxPool": 1,
+          "Mul": 22,
+          "Neg": 3,
+          "Pow": 6,
+          "Range": 6,
+          "ReduceMax": 1,
+          "ReduceSum": 23,
+          "Relu": 24,
+          "Reshape": 7,
+          "Shape": 9,
+          "Sqrt": 1,
+          "Squeeze": 2,
+          "Sub": 8,
+          "Tanh": 1,
+          "Unsqueeze": 33
+        },
+        "cast_nodes": 10,
+        "forbidden_ops_present": [],
+        "inputs": [
+          {
+            "name": "images",
+            "shape": [
+              "batch",
+              1,
+              256,
+              256
+            ],
+            "elem_type": "FLOAT"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "coords",
+            "shape": [
+              "batch",
+              11,
+              2
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "confidence",
+            "shape": [
+              "batch",
+              11
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "cov_chol",
+            "shape": [
+              "batch",
+              11,
+              3
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "keypoint_empty",
+            "shape": [
+              "batch",
+              11
+            ],
+            "elem_type": "BOOL"
+          }
+        ]
+      }
+    },
+    {
+      "role": "head_off",
+      "precision": "fp32",
+      "path": "exports/keypoint_a2.onnx",
+      "sha256": "9bbab51a5341f78981392691f8d5601edffcb654586d5b6eb3440f532078687b",
+      "size_bytes": 61496547,
+      "source_checkpoints_sha256": {
+        "keypoint_a2": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793"
+      },
+      "graph": {
+        "path": "exports/keypoint_a2.onnx",
+        "opset": 17,
+        "ir_version": 8,
+        "node_count": 152,
+        "initializer_count": 60,
+        "op_histogram": {
+          "Add": 10,
+          "BatchNormalization": 3,
+          "Cast": 3,
+          "Clip": 2,
+          "Concat": 4,
+          "Constant": 35,
+          "Conv": 21,
+          "ConvTranspose": 3,
+          "Div": 3,
+          "Exp": 1,
+          "Gather": 4,
+          "MaxPool": 1,
+          "Mul": 8,
+          "Neg": 1,
+          "Pow": 2,
+          "Range": 2,
+          "ReduceMax": 1,
+          "ReduceSum": 10,
+          "Relu": 21,
+          "Reshape": 2,
+          "Shape": 2,
+          "Sub": 3,
+          "Unsqueeze": 10
+        },
+        "cast_nodes": 3,
+        "forbidden_ops_present": [],
+        "inputs": [
+          {
+            "name": "images",
+            "shape": [
+              "batch",
+              1,
+              256,
+              256
+            ],
+            "elem_type": "FLOAT"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "coords",
+            "shape": [
+              "batch",
+              11,
+              2
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "confidence",
+            "shape": [
+              "batch",
+              11
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "heatmaps",
+            "shape": [
+              "batch",
+              11,
+              64,
+              64
+            ],
+            "elem_type": "FLOAT"
+          }
+        ]
+      }
+    },
+    {
+      "role": "detector",
+      "precision": "fp32",
+      "path": "exports/detector.onnx",
+      "sha256": "8e99a8365b988fb3f97c6fca19aedb1abd160efc3bcac57a3b9692b17ee17744",
+      "size_bytes": 6110566,
+      "source_checkpoints_sha256": {
+        "detector": "d254f0174de72b999c9da5dbfabc37509de0d42a41c3511518d531c0d1521e31"
+      },
+      "graph": {
+        "path": "exports/detector.onnx",
+        "opset": 17,
+        "ir_version": 8,
+        "node_count": 139,
+        "initializer_count": 108,
+        "op_histogram": {
+          "Add": 7,
+          "Cast": 1,
+          "Concat": 1,
+          "Constant": 9,
+          "Conv": 53,
+          "Div": 1,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "HardSigmoid": 9,
+          "HardSwish": 19,
+          "Mul": 9,
+          "ReduceMean": 9,
+          "Relu": 14,
+          "Sigmoid": 1,
+          "Slice": 2,
+          "Sub": 1
+        },
+        "cast_nodes": 1,
+        "forbidden_ops_present": [],
+        "inputs": [
+          {
+            "name": "images",
+            "shape": [
+              "batch",
+              1,
+              224,
+              224
+            ],
+            "elem_type": "FLOAT"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "boxes",
+            "shape": [
+              "batch",
+              4
+            ],
+            "elem_type": "FLOAT"
+          }
+        ]
+      }
+    },
+    {
+      "role": "head_on",
+      "precision": "fp16",
+      "path": "exports/vhead_a2_s1337_fp16.onnx",
+      "sha256": "7cd375c6301875228fe2aa9f168b882914d5bc9a65f8dc53375e1fdefd4766f8",
+      "size_bytes": 31097611,
+      "source_checkpoints_sha256": {
+        "p1_keypoint": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+        "variance_head": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c"
+      },
+      "graph": {
+        "path": "exports/vhead_a2_s1337_fp16.onnx",
+        "opset": 17,
+        "ir_version": 8,
+        "node_count": 357,
+        "initializer_count": 64,
+        "op_histogram": {
+          "Add": 12,
+          "BatchNormalization": 3,
+          "Cast": 10,
+          "Clip": 8,
+          "Concat": 12,
+          "Constant": 107,
+          "Conv": 23,
+          "ConvTranspose": 3,
+          "Div": 8,
+          "Equal": 1,
+          "Exp": 5,
+          "Gather": 18,
+          "MaxPool": 1,
+          "Mul": 22,
+          "Neg": 3,
+          "Pow": 6,
+          "Range": 6,
+          "ReduceMax": 1,
+          "ReduceSum": 23,
+          "Relu": 24,
+          "Reshape": 7,
+          "Shape": 9,
+          "Sqrt": 1,
+          "Squeeze": 2,
+          "Sub": 8,
+          "Tanh": 1,
+          "Unsqueeze": 33
+        },
+        "cast_nodes": 10,
+        "forbidden_ops_present": [],
+        "inputs": [
+          {
+            "name": "images",
+            "shape": [
+              "batch",
+              1,
+              256,
+              256
+            ],
+            "elem_type": "FLOAT16"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "coords",
+            "shape": [
+              "batch",
+              11,
+              2
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "confidence",
+            "shape": [
+              "batch",
+              11
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "cov_chol",
+            "shape": [
+              "batch",
+              11,
+              3
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "keypoint_empty",
+            "shape": [
+              "batch",
+              11
+            ],
+            "elem_type": "BOOL"
+          }
+        ]
+      }
+    },
+    {
+      "role": "head_off",
+      "precision": "fp16",
+      "path": "exports/keypoint_a2_fp16.onnx",
+      "sha256": "b1ee1680035988069a7286bab533d4ab0a77f26846f57556a8681b72f67aa2db",
+      "size_bytes": 30763713,
+      "source_checkpoints_sha256": {
+        "keypoint_a2": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793"
+      },
+      "graph": {
+        "path": "exports/keypoint_a2_fp16.onnx",
+        "opset": 17,
+        "ir_version": 8,
+        "node_count": 152,
+        "initializer_count": 60,
+        "op_histogram": {
+          "Add": 10,
+          "BatchNormalization": 3,
+          "Cast": 3,
+          "Clip": 2,
+          "Concat": 4,
+          "Constant": 35,
+          "Conv": 21,
+          "ConvTranspose": 3,
+          "Div": 3,
+          "Exp": 1,
+          "Gather": 4,
+          "MaxPool": 1,
+          "Mul": 8,
+          "Neg": 1,
+          "Pow": 2,
+          "Range": 2,
+          "ReduceMax": 1,
+          "ReduceSum": 10,
+          "Relu": 21,
+          "Reshape": 2,
+          "Shape": 2,
+          "Sub": 3,
+          "Unsqueeze": 10
+        },
+        "cast_nodes": 3,
+        "forbidden_ops_present": [],
+        "inputs": [
+          {
+            "name": "images",
+            "shape": [
+              "batch",
+              1,
+              256,
+              256
+            ],
+            "elem_type": "FLOAT16"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "coords",
+            "shape": [
+              "batch",
+              11,
+              2
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "confidence",
+            "shape": [
+              "batch",
+              11
+            ],
+            "elem_type": "FLOAT"
+          },
+          {
+            "name": "heatmaps",
+            "shape": [
+              "batch",
+              11,
+              64,
+              64
+            ],
+            "elem_type": "FLOAT16"
+          }
+        ]
+      }
+    },
+    {
+      "role": "detector",
+      "precision": "fp16",
+      "path": "exports/detector_fp16.onnx",
+      "sha256": "98f84fc1a04fd3e05f0c5101ee4f2d885b5d79a86365c5775b7cb88b6f8c01e7",
+      "size_bytes": 3079305,
+      "source_checkpoints_sha256": {
+        "detector": "d254f0174de72b999c9da5dbfabc37509de0d42a41c3511518d531c0d1521e31"
+      },
+      "graph": {
+        "path": "exports/detector_fp16.onnx",
+        "opset": 17,
+        "ir_version": 8,
+        "node_count": 139,
+        "initializer_count": 108,
+        "op_histogram": {
+          "Add": 7,
+          "Cast": 1,
+          "Concat": 1,
+          "Constant": 9,
+          "Conv": 53,
+          "Div": 1,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "HardSigmoid": 9,
+          "HardSwish": 19,
+          "Mul": 9,
+          "ReduceMean": 9,
+          "Relu": 14,
+          "Sigmoid": 1,
+          "Slice": 2,
+          "Sub": 1
+        },
+        "cast_nodes": 1,
+        "forbidden_ops_present": [],
+        "inputs": [
+          {
+            "name": "images",
+            "shape": [
+              "batch",
+              1,
+              224,
+              224
+            ],
+            "elem_type": "FLOAT16"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "boxes",
+            "shape": [
+              "batch",
+              4
+            ],
+            "elem_type": "FLOAT"
+          }
+        ]
+      }
+    }
+  ],
+  "provenance": {
+    "poseconf_git_sha": "ef7bdb4f5e826bb48895c54c08f049a849f73fbb",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+    "variance_head_checkpoint_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
+    "torch": "2.11.0+cu128",
+    "created_at": "2026-10-07T20:05:50Z"
+  }
+}

@@ -1198,3 +1198,73 @@ Cell: coverage [95 % CI] · answer rate; **set ∞** marks a row whose median an
 [^synthetic_gt]: synthetic `gt_crop`: the crop box is the GT box (a label) on the evaluated frame, so this is not a deployable number; calibration also used `gt_crop`, so the coverage is valid for that pipeline. Only HIL `gt_crop` rows carry `oracle: true` (DECISIONS)
 [^mondrian_ar]: `mondrian` under `answer_required`: frames without a point estimate form their own group, whose quantile is +∞, so each gets the whole-space set and counts as covered. The row is numerically the `abstain_allowed` Mondrian row; the set-size columns cover answered frames only and do not show those whole-space sets (their count is in the arm cell)
 [^no_iou]: gt_crop: the crop box is the GT box, so IoU is 1 by construction
+
+## Deployment: ONNX parity and latency (Phase 7)
+
+### ONNX parity of the variance graph
+
+From `results/export/onnx_parity.json`: 512 `synthetic_val_test` crops, CUDAExecutionProvider, reference torch_fp32 on CUDA, TF32 off (cudnn and matmul); ORT `use_tf32 = 0`. Gate on the variance outputs: max |Δ| < 1e-4 in fp32; fp16 against P1's stated relaxation. `coords` are P1's outputs and P1's keypoint parity gate is **inherited unmet**.
+
+| backend | cov_chol max / p99 abs Δ (crop px) | Σ̂ max abs Δ (px²) | σ_max rel. max | C1 radius rel. max / p99 | keypoint_empty mismatches | coords max abs Δ (px) | gate |
+|---|---|---|---|---|---|---|---|
+| ort_fp32 | 0.00286 / 1.29e-05 | 0.233 | 6.95e-05 | 6.95e-05 / 4.74e-06 | 0 | 0.0061 | **unmet** |
+| ort_fp16 | 3.54 / 0.0234 | 288 | 0.0831 | 0.0831 / 0.0169 | 0 | 2.15 | **unmet** |
+| cpu_reference | 0.000702 / 1.07e-05 | 0.0764 | 1.76e-05 | 1.76e-05 / 9.88e-06 | 0 | 0.00312 | **unmet** |
+
+P1's committed `keypoint_a2` record (`external/spacecraft-pose-baseline/results/onnx_parity_keypoint_a2.json`, TF32 on): coords max |Δ| 3.23 px (fp32), 13.8 px (fp16). cpu_reference: torch CPU vs ORT CPU on 256 of the crops.
+
+### Keypoint stage: head off vs head on
+
+From `results/latency/keypoint_stage.json`. Measured on an RTX A4000 (16 GB, Ampere, 140 W desktop workstation card) and its host CPU. The A4000 is a stand-in for a Jetson-class embedded target, not a proxy for one: it has roughly an order of magnitude more memory bandwidth and power budget. These absolute latencies will NOT transfer to a Jetson. The ratios (head on vs off, post-process vs network) and the shape of the frame budget are the transferable parts. Compute only (H2D/D2H timed apart); provider is the one the session reported.
+
+| provider | precision | batch | head off p50 / p99 (ms) | head on p50 / p99 (ms) | Δp50 (ms) | on/off p50 |
+|---|---|---|---|---|---|---|
+| Tensorrt | fp32 | 1 | 1.128 / 1.731 | 1.289 / 1.409 | 0.161 | 1.142 |
+| Tensorrt | fp32 | 4 | 2.166 / 2.878 | 2.640 / 2.782 | 0.473 | 1.218 |
+| Tensorrt | fp32 | 8 | 3.630 / 4.316 | 4.439 / 4.689 | 0.809 | 1.223 |
+| Tensorrt | fp32 | 16 | 6.484 / 7.591 | 8.029 / 8.753 | 1.545 | 1.238 |
+| Tensorrt | fp16 | 1 | 1.165 / 1.463 | 1.294 / 1.400 | 0.130 | 1.112 |
+| Tensorrt | fp16 | 4 | 2.250 / 2.403 | 2.621 / 2.795 | 0.371 | 1.165 |
+| Tensorrt | fp16 | 8 | 3.745 / 3.930 | 4.429 / 4.753 | 0.683 | 1.182 |
+| Tensorrt | fp16 | 16 | 6.632 / 7.389 | 8.025 / 8.440 | 1.393 | 1.210 |
+| CUDA | fp32 | 1 | 1.891 / 3.887 | 2.102 / 4.235 | 0.211 | 1.111 |
+| CUDA | fp32 | 4 | 3.741 / 4.052 | 4.065 / 4.382 | 0.324 | 1.087 |
+| CUDA | fp32 | 8 | 6.251 / 6.533 | 7.088 / 7.409 | 0.837 | 1.134 |
+| CUDA | fp32 | 16 | 11.438 / 12.100 | 13.091 / 13.963 | 1.653 | 1.145 |
+| CUDA | fp16 | 1 | 1.948 / 4.552 | 2.179 / 5.425 | 0.231 | 1.119 |
+| CUDA | fp16 | 4 | 2.377 / 4.324 | 2.703 / 4.813 | 0.326 | 1.137 |
+| CUDA | fp16 | 8 | 3.913 / 4.259 | 4.384 / 4.720 | 0.471 | 1.120 |
+| CUDA | fp16 | 16 | 6.804 / 7.056 | 7.817 / 8.263 | 1.012 | 1.149 |
+
+### Uncertainty post-process (CPU, one frame per call)
+
+From `results/latency/postprocess.json`: 64 `synthetic_val_test` frames cycled (60 solved). Measured on an RTX A4000 (16 GB, Ampere, 140 W desktop workstation card) and its host CPU. The A4000 is a stand-in for a Jetson-class embedded target, not a proxy for one: it has roughly an order of magnitude more memory bandwidth and power budget. These absolute latencies will NOT transfer to a Jetson. The ratios (head on vs off, post-process vs network) and the shape of the frame budget are the transferable parts.
+
+| step | p50 (ms) | p90 (ms) | p99 (ms) | max (ms) |
+|---|---|---|---|---|
+| `predict_A1` | 0.0995 | 0.1200 | 0.1553 | 0.1877 |
+| `predict_A2` | 0.1008 | 0.1197 | 0.1451 | 0.2015 |
+| `predict_A3` | 0.1170 | 0.1396 | 0.1673 | 0.2074 |
+| `predict_B1` | 0.0800 | 0.0940 | 0.1251 | 0.1635 |
+| `predict_C1` | 0.1123 | 0.1346 | 0.1699 | 0.1867 |
+| `predict_C2` | 0.6397 | 0.7138 | 0.7739 | 0.8740 |
+| `linearised_propagation` | 0.5730 | 0.6303 | 0.6948 | 0.7570 |
+| `sampled_propagation_M16` | 2.4367 | 2.6099 | 2.9160 | 3.0044 |
+| `sampled_propagation_M64` | 7.4788 | 8.1744 | 9.3681 | 9.7219 |
+| `sampled_propagation_M256` | 26.7262 | 28.8779 | 33.3259 | 34.0180 |
+
+Sampled propagation is an offline inner approximation, not a deployed stage.
+
+### Full frame, with and without uncertainty
+
+From `results/latency/frame_budget.json`: 64 `synthetic_val_test` frames, predicted_crop (end to end, detector graph on ORT, no ground-truth box), CUDAExecutionProvider; uncertainty = C1, C2. Measured on an RTX A4000 (16 GB, Ampere, 140 W desktop workstation card) and its host CPU. The A4000 is a stand-in for a Jetson-class embedded target, not a proxy for one: it has roughly an order of magnitude more memory bandwidth and power budget. These absolute latencies will NOT transfer to a Jetson. The ratios (head on vs off, post-process vs network) and the shape of the frame budget are the transferable parts.
+
+| pipeline | preprocess p50 / p99 | detect p50 / p99 | crop p50 / p99 | keypoints p50 / p99 | pnp p50 / p99 | postprocess p50 / p99 | uncertainty p50 / p99 | total p50 / p99 |
+|---|---|---|---|---|---|---|---|---|
+| onnxruntime_cuda_fp32_head_off | 4.09 / 4.57 | 2.69 / 4.54 | 3.23 / 8.96 | 3.33 / 10.67 | 0.79 / 47.82 | 0.06 / 0.13 | — | 15.85 / 65.43 |
+| onnxruntime_cuda_fp32_head_on | 4.16 / 4.57 | 2.70 / 4.52 | 3.28 / 9.14 | 3.96 / 10.75 | 0.81 / 48.69 | 0.06 / 0.12 | 0.95 / 1.19 | 17.81 / 69.63 |
+| onnxruntime_cuda_fp16_head_off | 4.09 / 4.45 | 3.50 / 4.55 | 3.07 / 8.87 | 6.16 / 8.37 | 0.78 / 47.67 | 0.06 / 0.12 | — | 18.19 / 66.17 |
+| onnxruntime_cuda_fp16_head_on | 4.12 / 4.57 | 3.62 / 4.57 | 3.25 / 9.09 | 6.92 / 8.88 | 0.80 / 48.03 | 0.06 / 0.12 | 0.93 / 1.14 | 20.10 / 68.57 |
+
+—: the stage does not run in that pipeline (head off has no uncertainty stage).
+

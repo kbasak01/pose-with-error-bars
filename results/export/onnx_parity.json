@@ -1,0 +1,476 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "parity",
+  "run": "keypoint_a2",
+  "variance_head_run": "vhead_a2_s1337",
+  "domain": "synthetic",
+  "subset": "synthetic_val_test",
+  "samples": 512,
+  "inputs": "P1 crop-cache crops (GT-box, margin_eval), first N names of the manifest",
+  "provider": "CUDAExecutionProvider",
+  "reference": "torch_fp32 on CUDA, TF32 off (cudnn and matmul)",
+  "ort_options": {
+    "use_tf32": 0
+  },
+  "onnx_fp32": {
+    "path": "exports/vhead_a2_s1337.onnx",
+    "sha256": "5f54b3b997fb1aa6daed309355bb44f4504315f89ee7aeb0498a37fcd91a198a"
+  },
+  "onnx_fp16": {
+    "path": "exports/vhead_a2_s1337_fp16.onnx",
+    "sha256": "7cd375c6301875228fe2aa9f168b882914d5bc9a65f8dc53375e1fdefd4766f8"
+  },
+  "tolerances": {
+    "variance_fp32_tensor_max_abs": 0.0001,
+    "p1": {
+      "fp32": {
+        "tensor_max_abs": 0.0001,
+        "pose_rotation_deg": 0.01,
+        "pose_translation_normalised": 0.0001,
+        "rationale": "The plan's gate. An fp32 graph must reproduce fp32 PyTorch to this."
+      },
+      "fp16": {
+        "tensor_max_abs": 0.05,
+        "pose_rotation_deg": 0.5,
+        "pose_translation_normalised": 0.005,
+        "rationale": "Relaxed from the fp32 gate by construction, not by observation: fp16 has a 10-bit mantissa, so values near 1.0 are quantised at ~5e-4 and coordinates near 256 at ~0.125. These bounds are what half precision can achieve; the end-task E_pose delta reported beside them is the number to judge the export on."
+      }
+    },
+    "fp16_note": "fp16 is held to P1's stated fp16 relaxation (tensor max abs 0.05), by construction not by observation; the measured deltas are reported unrelaxed beside it"
+  },
+  "tensor_parity": {
+    "ort_fp32": {
+      "coords": {
+        "max": 0.006103515625,
+        "mean": 1.076001419939778e-05,
+        "p99": 4.57763671875e-05,
+        "n": 11264
+      },
+      "confidence": {
+        "max": 2.0265579223632812e-06,
+        "mean": 1.884658228267323e-07,
+        "p99": 8.344650268554688e-07,
+        "n": 5632
+      },
+      "cov_chol": {
+        "max": 0.002857208251953125,
+        "mean": 1.4419988097396355e-06,
+        "p99": 1.2874603271484375e-05,
+        "n": 16896
+      },
+      "cov_chol_relative": {
+        "max": 0.0027658066211501625,
+        "p99": 1.1864231382181495e-05,
+        "n": 16896
+      },
+      "cov": {
+        "max": 0.23283768095416235,
+        "mean": 5.155922609637019e-05,
+        "p99": 0.00017768425582772595,
+        "n": 22528
+      },
+      "sigma_max_relative": {
+        "max": 6.94644480367874e-05,
+        "p99": 2.39936553565793e-06,
+        "n": 5632
+      },
+      "keypoint_empty": {
+        "mismatches": 0,
+        "n": 5632,
+        "n_empty_reference": 0
+      }
+    },
+    "ort_fp16": {
+      "coords": {
+        "max": 2.145477294921875,
+        "mean": 0.007893936560404572,
+        "p99": 0.044682769775390735,
+        "n": 11264
+      },
+      "confidence": {
+        "max": 0.00441431999206543,
+        "mean": 0.00048536903605881065,
+        "p99": 0.0016947197914123518,
+        "n": 5632
+      },
+      "cov_chol": {
+        "max": 3.5433883666992188,
+        "mean": 0.003284722942073913,
+        "p99": 0.023404717445373306,
+        "n": 16896
+      },
+      "cov_chol_relative": {
+        "max": 12.966351783107063,
+        "p99": 0.03505666550261532,
+        "n": 16896
+      },
+      "cov": {
+        "max": 287.69090014428366,
+        "mean": 0.12354158282751654,
+        "p99": 0.39015227263725505,
+        "n": 22528
+      },
+      "sigma_max_relative": {
+        "max": 0.0830522206808205,
+        "p99": 0.005264934730579684,
+        "n": 5632
+      },
+      "keypoint_empty": {
+        "mismatches": 0,
+        "n": 5632,
+        "n_empty_reference": 0
+      }
+    }
+  },
+  "decode_stable": {
+    "ort_fp32": {
+      "threshold_px": 0.001,
+      "keypoints_stable": 5630,
+      "keypoints_total": 5632,
+      "cov_chol_on_stable": {
+        "max": 0.00067138671875,
+        "mean": 1.093663324098518e-06,
+        "p99": 1.239776611328125e-05,
+        "n": 16890
+      },
+      "cov_chol_on_unstable": {
+        "max": 0.002857208251953125,
+        "mean": 0.0009820063908894856,
+        "p99": 0.0028512954711914064,
+        "n": 6
+      }
+    },
+    "ort_fp16": {
+      "threshold_px": 0.001,
+      "keypoints_stable": 112,
+      "keypoints_total": 5632,
+      "cov_chol_on_stable": {
+        "max": 0.020418167114257812,
+        "mean": 0.0009295331287181138,
+        "p99": 0.0061389923095702785,
+        "n": 336
+      },
+      "cov_chol_on_unstable": {
+        "max": 3.5433883666992188,
+        "mean": 0.003332509402055045,
+        "p99": 0.02437480449676508,
+        "n": 16560
+      }
+    }
+  },
+  "set_level": {
+    "ort_fp32": {
+      "score": "C1",
+      "quantile": 3.469137909085226,
+      "units": "crop px (relative difference is unit-free: the crop affine is a similarity)",
+      "radius_relative": {
+        "max": 6.946444803680617e-05,
+        "p99": 4.736186242667352e-06,
+        "n": 512
+      },
+      "radius_abs_px": {
+        "max": 0.010013392445756608,
+        "mean": 4.3068037477696566e-05,
+        "p99": 0.00040379928175809563,
+        "n": 512
+      },
+      "frames_infinite_mismatch": 0
+    },
+    "ort_fp16": {
+      "score": "C1",
+      "quantile": 3.469137909085226,
+      "units": "crop px (relative difference is unit-free: the crop affine is a similarity)",
+      "radius_relative": {
+        "max": 0.08305222068082059,
+        "p99": 0.01690920819492619,
+        "n": 512
+      },
+      "radius_abs_px": {
+        "max": 11.972087919391413,
+        "mean": 0.08786200007655443,
+        "p99": 1.3890564017396614,
+        "n": 512
+      },
+      "frames_infinite_mismatch": 0
+    }
+  },
+  "cpu_reference": {
+    "samples": 256,
+    "what": "torch fp32 on CPU vs the fp32 graph on ORT CPUExecutionProvider, same crops",
+    "tensor_parity": {
+      "coords": {
+        "max": 0.00312042236328125,
+        "mean": 1.3830224898728458e-05,
+        "p99": 6.103515625e-05,
+        "n": 5632
+      },
+      "confidence": {
+        "max": 1.1026859283447266e-06,
+        "mean": 1.9805950366637923e-07,
+        "p99": 6.556510925292969e-07,
+        "n": 2816
+      },
+      "cov_chol": {
+        "max": 0.000701904296875,
+        "mean": 1.3410868175159605e-06,
+        "p99": 1.0743141174316719e-05,
+        "n": 8448
+      },
+      "cov_chol_relative": {
+        "max": 0.001622025025466708,
+        "p99": 9.709752549932889e-06,
+        "n": 8448
+      },
+      "cov": {
+        "max": 0.07644360163249075,
+        "mean": 5.793175850980028e-05,
+        "p99": 0.00014400367516941722,
+        "n": 11264
+      },
+      "sigma_max_relative": {
+        "max": 1.7636142668747593e-05,
+        "p99": 1.8905477090108508e-06,
+        "n": 2816
+      },
+      "keypoint_empty": {
+        "mismatches": 0,
+        "n": 2816,
+        "n_empty_reference": 0
+      }
+    },
+    "decode_stable": {
+      "threshold_px": 0.001,
+      "keypoints_stable": 2814,
+      "keypoints_total": 2816,
+      "cov_chol_on_stable": {
+        "max": 0.000701904296875,
+        "mean": 1.177897731892508e-06,
+        "p99": 9.915828704834019e-06,
+        "n": 8442
+      },
+      "cov_chol_on_unstable": {
+        "max": 0.000537872314453125,
+        "mean": 0.00023094813028971353,
+        "p99": 0.000537872314453125,
+        "n": 6
+      }
+    },
+    "set_level": {
+      "score": "C1",
+      "quantile": 3.469137909085226,
+      "units": "crop px (relative difference is unit-free: the crop affine is a similarity)",
+      "radius_relative": {
+        "max": 1.763614266873459e-05,
+        "p99": 9.87877726391963e-06,
+        "n": 256
+      },
+      "radius_abs_px": {
+        "max": 0.0020140280861085103,
+        "mean": 4.421075394174523e-05,
+        "p99": 0.0014862190634239833,
+        "n": 256
+      },
+      "frames_infinite_mismatch": 0
+    }
+  },
+  "tf32_ablation": {
+    "samples": 192,
+    "cells": {
+      "torch_tf32=True|ort_tf32=True": {
+        "coords": {
+          "max": 0.8419914245605469,
+          "mean": 0.002497095332452745,
+          "p99": 0.01082557678222653
+        },
+        "confidence": {
+          "max": 0.0006903409957885742,
+          "mean": 0.00011801053628777012,
+          "p99": 0.0004983878135681152
+        },
+        "cov_chol": {
+          "max": 0.26761817932128906,
+          "mean": 0.0007642615226747913,
+          "p99": 0.0065224885940550785
+        },
+        "keypoint_empty": {
+          "max": 0.0,
+          "mean": 0.0,
+          "p99": 0.0
+        }
+      },
+      "torch_tf32=True|ort_tf32=False": {
+        "coords": {
+          "max": 1.1728935241699219,
+          "mean": 0.0022296583223523517,
+          "p99": 0.009258575439453118
+        },
+        "confidence": {
+          "max": 0.0007429122924804688,
+          "mean": 0.00010569297680349061,
+          "p99": 0.0003374695777893065
+        },
+        "cov_chol": {
+          "max": 0.36020660400390625,
+          "mean": 0.0007336686537972856,
+          "p99": 0.005966734886169407
+        },
+        "keypoint_empty": {
+          "max": 0.0,
+          "mean": 0.0,
+          "p99": 0.0
+        }
+      },
+      "torch_tf32=False|ort_tf32=True": {
+        "coords": {
+          "max": 0.7898712158203125,
+          "mean": 0.0019175276498902929,
+          "p99": 0.007389984130859353
+        },
+        "confidence": {
+          "max": 0.0007488727569580078,
+          "mean": 0.00010409259773565061,
+          "p99": 0.00037205338478088365
+        },
+        "cov_chol": {
+          "max": 0.12882614135742188,
+          "mean": 0.0005644509687281765,
+          "p99": 0.004931521415710437
+        },
+        "keypoint_empty": {
+          "max": 0.0,
+          "mean": 0.0,
+          "p99": 0.0
+        }
+      },
+      "torch_tf32=False|ort_tf32=False": {
+        "coords": {
+          "max": 0.006378173828125,
+          "mean": 1.189231195233085e-05,
+          "p99": 4.57763671875e-05
+        },
+        "confidence": {
+          "max": 1.3113021850585938e-06,
+          "mean": 1.8451475735866663e-07,
+          "p99": 7.152557373046875e-07
+        },
+        "cov_chol": {
+          "max": 0.0029449462890625,
+          "mean": 2.0660863638664577e-06,
+          "p99": 1.2862682342529037e-05
+        },
+        "keypoint_empty": {
+          "max": 0.0,
+          "mean": 0.0,
+          "p99": 0.0
+        }
+      }
+    },
+    "note": "TF32 must be disabled on BOTH sides for a true fp32 comparison. PyTorch defaults torch.backends.cudnn.allow_tf32 to True on Ampere and ONNX Runtime's CUDA provider defaults use_tf32 on, so the default-vs-default row spans two 10-bit-mantissa implementations. Disabling one side only is not an ablation and does not isolate TF32's contribution."
+  },
+  "p1_inherited": {
+    "record": "external/spacecraft-pose-baseline/results/onnx_parity_keypoint_a2.json",
+    "record_sha256": "889d31b67eb846ccadf9bee1a523409a6d349b7a088c12d653fc528b1b105e32",
+    "samples": 512,
+    "split": "validation",
+    "coords": {
+      "ort_fp32": {
+        "max": 3.2311553955078125,
+        "mean": 0.002655037022619085,
+        "p99": 0.01010269165039071
+      },
+      "ort_fp16": {
+        "max": 13.822479248046875,
+        "mean": 0.010285309071398595,
+        "p99": 0.04672523498535157
+      }
+    },
+    "all_met": false,
+    "failed": [
+      "cpu_reference.pose.rotation_deg",
+      "cpu_reference.tensor.coords",
+      "ort_fp16.pose.rotation_deg",
+      "ort_fp16.pose.translation_normalised",
+      "ort_fp16.tensor.coords",
+      "ort_fp32.pose.rotation_deg",
+      "ort_fp32.pose.translation_normalised",
+      "ort_fp32.tensor.confidence",
+      "ort_fp32.tensor.coords",
+      "ort_fp32.tensor.heatmaps"
+    ]
+  },
+  "gate_status": {
+    "gates": {
+      "ort_fp32.tensor.cov_chol": {
+        "measured": 0.002857208251953125,
+        "threshold": 0.0001,
+        "met": false
+      },
+      "ort_fp32.tensor.cov": {
+        "measured": 0.23283768095416235,
+        "threshold": 0.0001,
+        "met": false
+      },
+      "ort_fp32.keypoint_empty.mismatches": {
+        "measured": 0,
+        "threshold": 0,
+        "met": true
+      },
+      "ort_fp16.tensor.cov_chol": {
+        "measured": 3.5433883666992188,
+        "threshold": 0.05,
+        "met": false
+      },
+      "ort_fp16.tensor.cov": {
+        "measured": 287.69090014428366,
+        "threshold": 0.05,
+        "met": false
+      },
+      "ort_fp16.keypoint_empty.mismatches": {
+        "measured": 0,
+        "threshold": 0,
+        "met": true
+      },
+      "cpu_reference.tensor.cov_chol": {
+        "measured": 0.000701904296875,
+        "threshold": 0.0001,
+        "met": false
+      },
+      "cpu_reference.tensor.cov": {
+        "measured": 0.07644360163249075,
+        "threshold": 0.0001,
+        "met": false
+      },
+      "cpu_reference.keypoint_empty.mismatches": {
+        "measured": 0,
+        "threshold": 0,
+        "met": true
+      }
+    },
+    "failed": [
+      "cpu_reference.tensor.cov",
+      "cpu_reference.tensor.cov_chol",
+      "ort_fp16.tensor.cov",
+      "ort_fp16.tensor.cov_chol",
+      "ort_fp32.tensor.cov",
+      "ort_fp32.tensor.cov_chol"
+    ],
+    "variance_outputs_fp32_met": false,
+    "all_met": false,
+    "inherited": {
+      "p1_keypoint_parity": "unmet",
+      "note": "coords/confidence are P1's outputs; P1's keypoint parity gate is unmet (bistable two-pass soft-argmax). Their deltas here are reported beside P1's committed record, not gated."
+    }
+  },
+  "provenance": {
+    "poseconf_git_sha": "ef7bdb4f5e826bb48895c54c08f049a849f73fbb",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+    "variance_head_checkpoint_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
+    "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
+    "c1_artifact": "results/calibration/keypoint_a2_predicted_crop_C1_abstain_allowed_a0.10.json",
+    "c1_calibration_id": "b0c22c9836c9226633c5258a33fab031f345dde81feeb2b274b46b235255ac74",
+    "onnxruntime": "1.28.0",
+    "torch": "2.11.0+cu128",
+    "created_at": "2026-10-07T20:06:14Z"
+  }
+}

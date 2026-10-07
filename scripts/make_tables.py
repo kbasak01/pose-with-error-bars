@@ -5,7 +5,9 @@
 Layout (shift-study-runner contract): one section per convention; the headline alpha first, then the
 alpha grid; non-oracle rows first and oracle rows (HIL `gt_crop`, `oracle_target_labels_n*`) in their
 own headed sub-tables; a few-label recovery table; weighted-CP rows with classifier AUC and ESS.
-Every `—` carries a footnote, and infinity is printed as ∞.
+Every `—` carries a footnote, and infinity is printed as ∞. When the Phase 7 files exist
+(`results/export/onnx_parity.json`, `results/latency/*.json`) a deployment section follows: ONNX
+parity of the variance outputs and latency, each latency table under the A4000 caveat.
 """
 
 from __future__ import annotations
@@ -463,12 +465,153 @@ def build(shift_dir: Path) -> str:
     return "\n".join(out)
 
 
+def _e(x: float) -> str:
+    return "∞" if math.isinf(x) else f"{x:.3g}"
+
+
+def _parity(path: Path) -> list[str]:
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    gates = rec["gate_status"]["gates"]
+    out = [
+        "### ONNX parity of the variance graph",
+        "",
+        f"From `{path.relative_to(ROOT)}`: {rec['samples']} `{rec['subset']}` crops, "
+        f"{rec['provider']}, reference {rec['reference']}; ORT `use_tf32 = 0`. Gate on the "
+        "variance outputs: max |Δ| < 1e-4 in fp32; fp16 against P1's stated relaxation. "
+        "`coords` are P1's outputs and P1's keypoint parity gate is **inherited unmet**.",
+        "",
+        "| backend | cov_chol max / p99 abs Δ (crop px) | Σ̂ max abs Δ (px²) | σ_max rel. max | "
+        "C1 radius rel. max / p99 | keypoint_empty mismatches | coords max abs Δ (px) | gate |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    blocks = [(b, rec["tensor_parity"][b], rec["set_level"][b]) for b in ("ort_fp32", "ort_fp16")]
+    blocks.append(
+        ("cpu_reference", rec["cpu_reference"]["tensor_parity"], rec["cpu_reference"]["set_level"])
+    )
+    for name, t, st in blocks:
+        met = all(g["met"] for k, g in gates.items() if k.startswith(name))
+        out.append(
+            f"| {name} | {_e(t['cov_chol']['max'])} / {_e(t['cov_chol']['p99'])} | "
+            f"{_e(t['cov']['max'])} | {_e(t['sigma_max_relative']['max'])} | "
+            f"{_e(st['radius_relative']['max'])} / {_e(st['radius_relative']['p99'])} | "
+            f"{t['keypoint_empty']['mismatches']} | {_e(t['coords']['max'])} | "
+            f"{'met' if met else '**unmet**'} |"
+        )
+    p1c = rec["p1_inherited"]["coords"]
+    out += [
+        "",
+        f"P1's committed `keypoint_a2` record (`{rec['p1_inherited']['record']}`, TF32 on): coords "
+        f"max |Δ| {_e(p1c['ort_fp32']['max'])} px (fp32), {_e(p1c['ort_fp16']['max'])} px (fp16). "
+        f"cpu_reference: torch CPU vs ORT CPU on {rec['cpu_reference']['samples']} of the crops.",
+        "",
+    ]
+    return out
+
+
+def _latency(latency_dir: Path) -> list[str]:
+    out: list[str] = []
+    stage = latency_dir / "keypoint_stage.json"
+    if stage.is_file():
+        rec = json.loads(stage.read_text(encoding="utf-8"))
+        out += [
+            "### Keypoint stage: head off vs head on",
+            "",
+            f"From `{stage.relative_to(ROOT)}`. {rec['hardware_caveat']} Compute only (H2D/D2H "
+            "timed apart); provider is the one the session reported.",
+            "",
+            "| provider | precision | batch | head off p50 / p99 (ms) | head on p50 / p99 (ms) | "
+            "Δp50 (ms) | on/off p50 |",
+            "|---|---|---|---|---|---|---|",
+        ]
+        rows = {(r["role"], r["provider"], r["precision"], r["batch_size"]): r for r in rec["rows"]}
+        for d in rec["head_on_vs_off"]:
+            key = (d["provider"], d["precision"], d["batch_size"])
+            off, on = rows[("head_off", *key)], rows[("head_on", *key)]
+            out.append(
+                f"| {d['provider'].replace('ExecutionProvider', '')} | {d['precision']} | "
+                f"{d['batch_size']} | {off['p50_ms']:.3f} / {off['p99_ms']:.3f} | "
+                f"{on['p50_ms']:.3f} / {on['p99_ms']:.3f} | {d['p50_head_on_minus_off_ms']:.3f} | "
+                f"{d['p50_ratio_on_over_off']:.3f} |"
+            )
+        if rec["unavailable"]:
+            out += ["", f"Not run (session did not construct): {sorted(rec['unavailable'])}."]
+        out.append("")
+    post = latency_dir / "postprocess.json"
+    if post.is_file():
+        rec = json.loads(post.read_text(encoding="utf-8"))
+        out += [
+            "### Uncertainty post-process (CPU, one frame per call)",
+            "",
+            f"From `{post.relative_to(ROOT)}`: {rec['frames']} `{rec['subset']}` frames cycled "
+            f"({rec['frames_solved']} solved). {rec['hardware_caveat']}",
+            "",
+            "| step | p50 (ms) | p90 (ms) | p99 (ms) | max (ms) |",
+            "|---|---|---|---|---|",
+        ]
+        for step, t in rec["timings"].items():
+            out.append(
+                f"| `{step}` | {t['p50_ms']:.4f} | {t['p90_ms']:.4f} | {t['p99_ms']:.4f} | "
+                f"{t['max_ms']:.4f} |"
+            )
+        out += [
+            "",
+            "Sampled propagation is an offline inner approximation, not a deployed stage.",
+            "",
+        ]
+    budget = latency_dir / "frame_budget.json"
+    if budget.is_file():
+        rec = json.loads(budget.read_text(encoding="utf-8"))
+        stages = ("preprocess", "detect", "crop", "keypoints", "pnp", "postprocess", "uncertainty")
+        out += [
+            "### Full frame, with and without uncertainty",
+            "",
+            f"From `{budget.relative_to(ROOT)}`: {rec['frames']} `{rec['subset']}` frames, "
+            f"{rec['arm']}, {rec['provider']}; uncertainty = {', '.join(rec['uncertainty_scores'])}. "
+            f"{rec['hardware_caveat']}",
+            "",
+            "| pipeline | " + " | ".join(f"{s} p50 / p99" for s in stages) + " | total p50 / p99 |",
+            "|---|" + "---|" * (len(stages) + 1),
+        ]
+        for name, b in rec["budgets"].items():
+            cells = [
+                f"{b[f'{s}_p50_ms']:.2f} / {b[f'{s}_p99_ms']:.2f}" if f"{s}_p50_ms" in b else DASH
+                for s in stages
+            ]
+            out.append(
+                f"| {name} | " + " | ".join(cells) + f" | {b['total_p50_ms']:.2f} / "
+                f"{b['total_p99_ms']:.2f} |"
+            )
+        out += [
+            "",
+            f"{DASH}: the stage does not run in that pipeline (head off has no uncertainty stage).",
+            "",
+        ]
+    return out
+
+
+def deployment(root: Path) -> str:
+    """The Phase 7 section, or an empty string when its files are absent."""
+    parity = root / "results" / "export" / "onnx_parity.json"
+    latency_dir = root / "results" / "latency"
+    if not parity.is_file() and not latency_dir.is_dir():
+        return ""
+    out = ["## Deployment: ONNX parity and latency (Phase 7)", ""]
+    if parity.is_file():
+        out += _parity(parity)
+    if latency_dir.is_dir():
+        out += _latency(latency_dir)
+    return "\n".join(out)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Write TABLES.md."""
     args = parse_args(argv)
     if not (args.shift_dir / "index.json").is_file():
         raise FileNotFoundError(f"no {args.shift_dir / 'index.json'}; run make shift-matrix first")
     text = build(args.shift_dir)
+    extra = deployment(ROOT)
+    if extra:
+        text = text + "\n" + extra + "\n"
     args.out.write_text(text, encoding="utf-8")
     print(f"wrote {args.out} ({text.count(chr(10))} lines)")
     return 0

@@ -1,0 +1,142 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "latency",
+  "what": "postprocess",
+  "run": "keypoint_a2",
+  "hardware_caveat": "Measured on an RTX A4000 (16 GB, Ampere, 140 W desktop workstation card) and its host CPU. The A4000 is a stand-in for a Jetson-class embedded target, not a proxy for one: it has roughly an order of magnitude more memory bandwidth and power budget. These absolute latencies will NOT transfer to a Jetson. The ratios (head on vs off, post-process vs network) and the shape of the frame budget are the transferable parts.",
+  "methodology": "P1's: >= 50 warmup and >= 500 timed iterations, p50/p90/p99/max; network rows via speedpose.export.bench (provider verified by session construction, IOBinding, compute timed apart from H2D/D2H); CPU rows via time.perf_counter per call",
+  "domain": "synthetic",
+  "subset": "synthetic_val_test",
+  "crop_source": "predicted_crop",
+  "frames": 64,
+  "frames_solved": 60,
+  "convention": "abstain_allowed",
+  "artifacts": {
+    "A1": "0f8ab1efe750618f9ccf6ae228d5826ca3f305513cf0ae8fcccd383f127f72d4",
+    "A2": "6860483c4646a3cd5b43b678b1f65ac81ddbe3a37e0d0ab55fa35b688ced5e0a",
+    "A3": "03bcc99bb248e33f8a550040a0b40549e187a1351a7ee80666e7de6954cd2d7e",
+    "B1": "0b7f4c635c4dff747d11a96aaeae175c6ef08e0efd28ca18f9a1f346a441bb55",
+    "C1": "b0c22c9836c9226633c5258a33fab031f345dde81feeb2b274b46b235255ac74",
+    "C2": "df2c5f5355214f22b98c121e8c5db33611bf4e02379c4a4e8b6a5fd9d1c9d01b"
+  },
+  "definitions": {
+    "predict_<score>": "one frame: graph outputs -> FrameEstimate (+ cov_chol -> full-frame covariance via crop_cov_to_full) -> ConformalPoseHead.predict; C2 includes its linearisation",
+    "linearised_propagation": "ConformalPoseHead.pose_sigma alone on solved frames",
+    "sampled_propagation_M<m>": "propagate.sampled_extent with m keypoint configurations on C1's sets at the C1 quantile, solved frames (offline estimator: an inner approximation)"
+  },
+  "timings": {
+    "predict_A1": {
+      "p50_ms": 0.09945300553226843,
+      "p90_ms": 0.12002780131297187,
+      "p99_ms": 0.15527162016951473,
+      "max_ms": 0.18767599249258637,
+      "mean_ms": 0.10373837783117779,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    },
+    "predict_A2": {
+      "p50_ms": 0.10077250772155821,
+      "p90_ms": 0.1196518074721098,
+      "p99_ms": 0.14511181550915345,
+      "max_ms": 0.20153399964328855,
+      "mean_ms": 0.1047503222944215,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    },
+    "predict_A3": {
+      "p50_ms": 0.11700349568855017,
+      "p90_ms": 0.13962939847260714,
+      "p99_ms": 0.16728558315662667,
+      "max_ms": 0.2073820069199428,
+      "mean_ms": 0.12200936570297927,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    },
+    "predict_B1": {
+      "p50_ms": 0.07997000648174435,
+      "p90_ms": 0.0939787962124683,
+      "p99_ms": 0.12514397094491866,
+      "max_ms": 0.16354300896637142,
+      "mean_ms": 0.08281077235005796,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    },
+    "predict_C1": {
+      "p50_ms": 0.11234050180064514,
+      "p90_ms": 0.13457779568852857,
+      "p99_ms": 0.16989758616546166,
+      "max_ms": 0.18668299890123308,
+      "mean_ms": 0.11676027992507443,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    },
+    "predict_C2": {
+      "p50_ms": 0.6397355027729645,
+      "p90_ms": 0.7138472108636051,
+      "p99_ms": 0.773946640547365,
+      "max_ms": 0.873989993124269,
+      "mean_ms": 0.6184369542170316,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    },
+    "linearised_propagation": {
+      "p50_ms": 0.5730015036533587,
+      "p90_ms": 0.6302668014541268,
+      "p99_ms": 0.6948107952484861,
+      "max_ms": 0.7570000016130507,
+      "mean_ms": 0.577818623976782,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    },
+    "sampled_propagation_M16": {
+      "p50_ms": 2.43669450719608,
+      "p90_ms": 2.609943707648199,
+      "p99_ms": 2.915962966508232,
+      "max_ms": 3.00443300511688,
+      "mean_ms": 2.4539771302079316,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    },
+    "sampled_propagation_M64": {
+      "p50_ms": 7.4787614939850755,
+      "p90_ms": 8.174382003198843,
+      "p99_ms": 9.368132985982811,
+      "max_ms": 9.721934999106452,
+      "mean_ms": 7.591200146212941,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    },
+    "sampled_propagation_M256": {
+      "p50_ms": 26.7262304914766,
+      "p90_ms": 28.87793149420759,
+      "p99_ms": 33.32587873068405,
+      "max_ms": 34.018018006463535,
+      "mean_ms": 27.19089683389757,
+      "warmup_iters": 50,
+      "timed_iters": 500
+    }
+  },
+  "dump_sha256": "07dc09268b4305904aa7ac43f641d001007f958993b262b75c372a39e544368f",
+  "environment": {
+    "python": "3.11.15",
+    "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "cpu": "x86_64",
+    "cpu_count": 36,
+    "torch": "2.11.0+cu128",
+    "onnxruntime": "1.28.0",
+    "opencv": "5.0.0",
+    "opencv_threads": 36,
+    "numpy": "2.4.4",
+    "gpu_name": "NVIDIA RTX A4000"
+  },
+  "provenance": {
+    "poseconf_git_sha": "ef7bdb4f5e826bb48895c54c08f049a849f73fbb",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+    "detector_checkpoint_sha256": "d254f0174de72b999c9da5dbfabc37509de0d42a41c3511518d531c0d1521e31",
+    "variance_head_checkpoint_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
+    "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
+    "export_record_sha256": "a4ee30c0d5dfe3cc6021319a23c18f8cd2efdf453df471da10cf372c2fb052ab",
+    "created_at": "2026-10-07T20:06:25Z"
+  }
+}

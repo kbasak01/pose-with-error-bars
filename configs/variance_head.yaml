@@ -1,0 +1,45 @@
+# Phase 5 variance head (IMPLEMENTATION_PLAN §1.6). Any change gets a docs/DECISIONS.md entry.
+run_name: vhead_a2_s1337
+out_root: runs                     # gitignored
+p1_run: keypoint_a2                # frozen trunk
+seed: 1337
+
+head:
+  in_channels: 256                 # P1 decoder width (input to the final 1x1 conv)
+  hidden_channels: 64
+  num_keypoints: 11
+  sigma_min: 0.05                  # crop px
+  sigma_max: 64.0                  # crop px
+  rho_max: 0.99
+  sigma_init: 2.0                  # crop px; final conv starts at zero weight
+
+loss:
+  beta: 0.5                        # beta-NLL, Seitzer et al. 2022
+
+train:
+  split: train                     # synthetic train only
+  augmentation: a2                 # P1's ladder rung for keypoint_a2
+  epochs: 20
+  batch_size: 48                   # P1 keypoint_a2 train.batch_size
+  workers: 16
+  pin_memory: true
+  lr: 1.0e-3
+  weight_decay: 0.01               # P1's AdamW setting
+  lr_gamma: 0.95                   # P1's ExponentialLR, stepped per epoch
+  grad_clip: 1.0                   # P1's clip_grad_norm_
+  amp_dtype: bfloat16              # must equal P1 runtime.amp_dtype (checked)
+  tf32: false
+
+selection:
+  split: val_tune                  # the only synthetic-validation subset fitting may see
+  metric: val_tune_nll             # plain Gaussian NLL, masked as P1's loss
+  batch_size: 48
+  workers: 8
+
+overfit:                           # make train-var-smoke
+  batch_size: 48
+  lr: 1.0e-3
+
+diagnostics:
+  rho_saturation: 0.98             # |rho| at or above counts as saturated
+  gpu_util_every_steps: 200

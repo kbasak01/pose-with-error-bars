@@ -4,3 +4,4 @@ p1_runs: /home/YOU/code/spacecraft-pose-baseline/runs   # P1 checkpoints: <run>/
 dumps_root: dumps
 p1_release_sums: /home/YOU/code/spacecraft-pose-baseline/release/SHA256SUMS.txt  # P1 phase-9-complete release manifest
 p1_keypoint_labels: /home/YOU/code/spacecraft-pose-baseline/data/labels  # P1 Phase 2d keypoint labels (<domain>_<split>.npz), read-only; needed from Phase 3
+p1_crop_cache: /home/YOU/code/spacecraft-pose-baseline/data/cache/crops_320  # P1 crop cache (<domain>_<split>/), read-only; needed from Phase 5 (variance-head training)

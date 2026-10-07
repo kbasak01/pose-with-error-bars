@@ -162,6 +162,31 @@ def test_config_with_local_paths_points_at_them(tmp_path: Path) -> None:
     assert paths["dataset_root"] == str(dataset)
     assert paths["camera_json"] == str(dataset / "camera.json")
     assert paths["output_root"] == str(runs)
+    assert "crop_cache" not in paths  # only when the optional p1_crop_cache key names it
+
+
+def test_crop_cache_is_set_only_when_named(tmp_path: Path) -> None:
+    dataset = tmp_path / "speedplus"
+    dataset.mkdir()
+    (dataset / "camera.json").write_text("{}", encoding="utf-8")
+    local = p1_adapter.P1Paths(
+        speedplus_root=dataset,
+        p1_runs=tmp_path,
+        dumps_root=tmp_path,
+        release_sums=tmp_path / "s",
+        crop_cache=tmp_path / "crops_320",
+    )
+    assert load_p1_config("keypoint_a2", paths=local)["paths"]["crop_cache"] == str(
+        tmp_path / "crops_320"
+    )
+    with pytest.raises(FileNotFoundError, match="p1_crop_cache"):
+        p1_adapter.keypoint_crop_dataset(
+            "keypoint_a2", "train", paths=local, augmentation="a2", seed=0
+        )
+    with pytest.raises(ValueError, match="split"):
+        p1_adapter.keypoint_crop_dataset(
+            "keypoint_a2", "test", paths=local, augmentation="a0", seed=0
+        )
 
 
 def test_config_returned_is_a_copy() -> None:
@@ -312,3 +337,26 @@ def test_synthetic_validation_labels_match_sidecar(local_paths) -> None:
     assert sorted(labels.filenames.tolist()) == sidecar.fields["filename"].tolist()
     assert labels.q.shape == (11994, 4) and labels.t.shape == (11994, 3)
     assert np.allclose(np.linalg.norm(labels.q, axis=1), 1.0, atol=1e-5)
+
+
+@pytest.mark.dataset
+@pytest.mark.slow
+def test_training_crops_are_p1_samples(local_paths) -> None:
+    if local_paths.crop_cache is None:
+        pytest.skip("p1_crop_cache not set")
+    train = p1_adapter.keypoint_crop_dataset(
+        "keypoint_a2", "train", paths=local_paths, augmentation="a2", seed=1337
+    )
+    assert train.augment and len(train) > 47_000
+    sample = train[0]
+    assert tuple(sample["image"].shape) == (1, 256, 256)
+    assert (
+        tuple(sample["keypoints"].shape) == (11, 2)
+        and sample["mask"].dtype.is_floating_point is False
+    )
+    names = p1_adapter.crop_dataset_filenames(train)
+    assert names[0] == sample["filename"]
+    with pytest.raises(ValueError, match="augmentation"):
+        p1_adapter.keypoint_crop_dataset(
+            "keypoint_a2", "validation", paths=local_paths, augmentation="a2", seed=1337
+        )

@@ -57,14 +57,19 @@ __all__ = [
     "eval_split",
     "hil_label_access_allowed",
     "invert_affine",
+    "crop_dataset_filenames",
+    "keypoint_crop_dataset",
     "keypoint_hooks",
     "keypoint_labels_file",
+    "keypoint_loader",
     "list_image_filenames",
     "load_eval_labels",
+    "load_keypoint_model",
     "load_p1_config",
     "load_pipeline",
     "load_sidecar",
     "load_synthetic_labels",
+    "masked_mean",
     "p1_commit",
     "p1_paths",
     "p1_result_counts",
@@ -73,6 +78,7 @@ __all__ = [
     "p1_project",
     "project_keypoints",
     "projection_geometry",
+    "seed_everything",
     "solve_chunks",
     "solve_frames",
     "solve_many_reference",
@@ -145,6 +151,9 @@ _LOCAL_KEYS = ("speedplus_root", "p1_runs", "dumps_root", "p1_release_sums")
 #: Optional key: P1's Phase 2d keypoint-label products (`<domain>_<split>.npz`), needed from Phase 3.
 _LABELS_KEY = "p1_keypoint_labels"
 
+#: Optional key: P1's crop cache (`<domain>_<split>/`), read-only; needed from Phase 5 (training).
+_CROP_CACHE_KEY = "p1_crop_cache"
+
 #: The placeholder the example file ships with; a copy that still has it was never edited.
 _PLACEHOLDER = "/home/YOU/"
 
@@ -171,6 +180,8 @@ class P1Paths:
         release_sums: P1 `phase-9-complete` release `SHA256SUMS.txt`; checked by the verify script.
         keypoint_labels: P1's keypoint-label directory (`<domain>_<split>.npz`), or None when the
             optional `p1_keypoint_labels` key is absent.
+        crop_cache: P1's crop cache directory (`<domain>_<split>/`), read-only, or None when the
+            optional `p1_crop_cache` key is absent.
     """
 
     speedplus_root: Path
@@ -178,6 +189,7 @@ class P1Paths:
     dumps_root: Path
     release_sums: Path
     keypoint_labels: Path | None = None
+    crop_cache: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -258,6 +270,7 @@ def p1_paths(path: str | Path = DEFAULT_LOCAL_PATHS) -> P1Paths:
         dumps_root=absolute(loaded["dumps_root"]),
         release_sums=absolute(loaded["p1_release_sums"]),
         keypoint_labels=absolute(loaded[_LABELS_KEY]) if _LABELS_KEY in loaded else None,
+        crop_cache=absolute(loaded[_CROP_CACHE_KEY]) if _CROP_CACHE_KEY in loaded else None,
     )
     if not (resolved.speedplus_root / "camera.json").is_file():
         raise FileNotFoundError(
@@ -308,9 +321,13 @@ def load_p1_config(name: str, *, paths: P1Paths | None = None) -> dict[str, Any]
         block["dataset_root"] = str(paths.speedplus_root)
         block["camera_json"] = str(paths.speedplus_root / "camera.json")
         block["output_root"] = str(paths.p1_runs)
-        # The crop cache is never read here (the dump crops through the pipeline). Keypoint labels
-        # are set only when the local paths name them; otherwise P1 code needing them fails loudly.
-        block.pop("crop_cache", None)
+        # The dump crops through the pipeline; only variance-head training reads the crop cache.
+        # Both data products are set only when the local paths name them; otherwise P1 code
+        # needing them fails loudly.
+        if paths.crop_cache is None:
+            block.pop("crop_cache", None)
+        else:
+            block["crop_cache"] = str(paths.crop_cache)
         if paths.keypoint_labels is None:
             block.pop("keypoint_labels", None)
         else:
@@ -1229,3 +1246,142 @@ def p1_result_counts(run: str, domain: str, crop_source: str) -> dict[str, Any]:
         raise FileNotFoundError(f"no P1 results file {path}")
     record = json.loads(path.read_text(encoding="utf-8"))
     return {key: record[key] for key in P1_RESULT_LABEL_FREE_KEYS}
+
+
+# --- Phase 5: P1's keypoint network and training data, for the variance head --------------------
+
+
+def load_keypoint_model(run: str, *, paths: P1Paths, device: Any = None) -> tuple[Any, dict]:
+    """Load a P1 keypoint run's EMA weights as a bare `KeypointNet` in eval mode.
+
+    The same weights `PosePipeline` loads (the EMA shadow), through P1's own `load_ema_model`.
+
+    Args:
+        run: Keypoint run, e.g. `"keypoint_a2"`; its checkpoint is `p1_runs/<run>/best.pt`.
+        paths: Local paths from `p1_paths()`.
+        device: A `torch.device`, or None for the CPU.
+
+    Returns:
+        `(model, stored_config)`.
+
+    Raises:
+        FileNotFoundError: If the checkpoint is missing.
+    """
+    from speedpose.export.to_onnx import load_ema_model
+
+    checkpoint = paths.p1_runs / run / "best.pt"
+    if not checkpoint.is_file():
+        raise FileNotFoundError(f"P1 checkpoint {checkpoint} not found")
+    model, stored = load_ema_model(checkpoint, expected_model="keypoint_net")
+    if device is not None:
+        model = model.to(device)
+    model.eval()
+    return model, stored
+
+
+def keypoint_crop_dataset(
+    run: str, split: str, *, paths: P1Paths, augmentation: str, seed: int
+) -> Any:
+    """P1's `SpeedPlusCrop` for synthetic `split`, built exactly as P1's `_build_dataset` builds it.
+
+    Crops come from P1's crop cache (read-only), labels from P1's keypoint-label products, and the
+    augmentation is P1's ladder (`"a2"` on train only; P1 refuses augmentation elsewhere).
+
+    Args:
+        run: P1 run whose config sets crop, heatmap and augmentation options.
+        split: `"train"` or `"validation"` (synthetic only: HIL domains are never trained on).
+        paths: Local paths; `crop_cache` and `keypoint_labels` must be set.
+        augmentation: `"a0"`, `"a1"` or `"a2"`.
+        seed: P1's per-sample geometry and augmentation seed.
+
+    Returns:
+        A `speedpose.data.datasets.SpeedPlusCrop`.
+
+    Raises:
+        ValueError: On a non-synthetic split.
+        FileNotFoundError: If the crop cache or label file is missing or not configured.
+    """
+    from speedpose.data.datasets import SpeedPlusCrop
+
+    if split not in _SYNTHETIC_SPLITS:
+        raise ValueError(f"split must be one of {_SYNTHETIC_SPLITS}, got {split!r}")
+    if paths.crop_cache is None or paths.keypoint_labels is None:
+        raise FileNotFoundError(
+            f"{_CROP_CACHE_KEY} and {_LABELS_KEY} must both be set in paths.local.yaml to train"
+        )
+    cache_dir = paths.crop_cache / f"synthetic_{split}"
+    labels_path = paths.keypoint_labels / f"synthetic_{split}.npz"
+    for required in (cache_dir, labels_path):
+        if not required.exists():
+            raise FileNotFoundError(f"{required} not found; do not rebuild it, fix the path")
+    raw = load_p1_config(run, paths=paths)
+    return SpeedPlusCrop(
+        cache_dir,
+        paths.speedplus_root,
+        "synthetic",
+        split,
+        heatmap_size=raw["model"]["heatmap_size"],
+        heatmap_sigma=raw["loss"]["heatmap_sigma"],
+        augmentation=augmentation,
+        crop_size=raw["crop"]["size"],
+        margin_eval=raw["crop"]["margin_eval"],
+        margin_train=(raw["crop"]["margin_train_min"], raw["crop"]["margin_train_max"]),
+        translation_jitter=raw["crop"]["translation_jitter"],
+        augmentation_options=raw.get("augmentation"),
+        labels_path=labels_path,
+        seed=seed,
+    )
+
+
+def crop_dataset_filenames(dataset: Any) -> NDArray[np.str_]:
+    """Image filename of every sample of a `SpeedPlusCrop`, in dataset index order."""
+    return np.asarray([dataset.cache.filenames[int(row)] for row in dataset.rows]).astype(np.str_)
+
+
+def keypoint_loader(
+    dataset: Any, *, batch_size: int, shuffle: bool, workers: int, seed: int, pin_memory: bool
+) -> Any:
+    """A `DataLoader` with P1's settings (`_build_loader`): seeded generator, P1's worker init.
+
+    Args:
+        dataset: A dataset (or `Subset`) of `SpeedPlusCrop` samples.
+        batch_size: Samples per batch.
+        shuffle: Shuffle (and drop the last partial batch), as P1 does for training.
+        workers: Worker processes.
+        seed: Seed of the shuffling generator.
+        pin_memory: Pin host memory (ignored without CUDA).
+
+    Returns:
+        A `torch.utils.data.DataLoader`.
+    """
+    import torch
+    from speedpose.data.datasets import worker_init_fn
+
+    generator = torch.Generator()
+    generator.manual_seed(seed)
+    return torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        generator=generator,
+        num_workers=workers,
+        pin_memory=pin_memory and torch.cuda.is_available(),
+        drop_last=shuffle,
+        persistent_workers=workers > 0,
+        prefetch_factor=4 if workers > 0 else None,
+        worker_init_fn=worker_init_fn,
+    )
+
+
+def masked_mean(values: Any, mask: Any) -> Any:
+    """P1's coordinate-loss reduction: mean over the `mask`ed (B, K) entries (`_masked_mean`)."""
+    from speedpose.engine.train import _masked_mean
+
+    return _masked_mean(values, mask)
+
+
+def seed_everything(seed: int) -> None:
+    """P1's `seed_everything`: python, numpy, torch and CUDA."""
+    from speedpose.engine.train import seed_everything as p1_seed_everything
+
+    p1_seed_everything(seed)

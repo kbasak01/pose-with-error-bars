@@ -19,7 +19,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy import stats
 
-from poseconf.conformal.split import as_scores, failure_score, rational_alpha
+from poseconf.conformal.split import as_scores, failure_score, quantile_index, rational_alpha
 
 __all__ = [
     "beta_band",
@@ -29,8 +29,11 @@ __all__ = [
     "coverage_by_slice",
     "coverage_summary",
     "ks_against_beta",
+    "ks_against_pmf",
     "mc_standard_error",
     "outcomes",
+    "pmf_mean",
+    "resplit_coverage_law",
     "set_size_summary",
 ]
 
@@ -243,3 +246,86 @@ def mc_standard_error(values: ArrayLike) -> float:
     if x.size < 2:
         raise ValueError("need at least two values for a standard error")
     return float(np.std(x, ddof=1) / math.sqrt(x.size))
+
+
+def resplit_coverage_law(
+    n: int, m: int, alpha: float, *, n_top_atom: int = 0, n_bottom_atom: int = 0
+) -> NDArray[np.float64]:
+    """Exact law of the covered count when a fixed pool is re-split at random (cal n, test m).
+
+    Conditional on a pool of N = n + m scores whose finite values are distinct, a uniformly random
+    partition makes every rank pattern equally likely. With k = ceil((n+1)(1-alpha)), the number
+    X_tb of test scores ranked below the k-th calibration order statistic (ties inside an atom
+    broken at random) is negative-hypergeometric, i.e. Beta-Binomial(m; k, n + 1 - k). Its mean is
+    m k / (n + 1); its variance exceeds that of m * Beta(k, n + 1 - k) because the test set is
+    finite.
+
+    PnP failures form atoms (`split.CONVENTIONS`), and `s <= q` counts a whole tie:
+    * `n_top_atom` scores at +inf (answer_required): q = +inf iff the k-th calibration order
+      statistic falls in the atom, i.e. iff k + X_tb > N - n_top_atom; then every test frame is
+      covered (X = m). Otherwise q is finite and X = X_tb.
+    * `n_bottom_atom` scores at -inf (abstain_allowed): q = -inf iff k + X_tb <= n_bottom_atom;
+      then every frame abstains and is covered (X = m). Otherwise X = X_tb (failures sit below q
+      and are covered by abstaining).
+    If k > n, q = +inf and X = m surely. Ties among finite scores (not modelled) can only raise X.
+
+    Args:
+        n: Calibration size per re-split.
+        m: Test size per re-split.
+        alpha: Miscoverage level.
+        n_top_atom: Pool frames scoring +inf.
+        n_bottom_atom: Pool frames scoring -inf.
+
+    Returns:
+        (m + 1,) pmf of the covered count X; coverage is X / m.
+
+    Raises:
+        ValueError: On non-positive sizes or atoms that do not fit in the pool.
+    """
+    if n < 1 or m < 1:
+        raise ValueError(f"need n >= 1 and m >= 1, got n={n}, m={m}")
+    total = n + m
+    if n_top_atom < 0 or n_bottom_atom < 0 or n_top_atom + n_bottom_atom > total:
+        raise ValueError(f"atoms ({n_bottom_atom}, {n_top_atom}) do not fit a pool of {total}")
+    pmf = np.zeros(m + 1)
+    k = quantile_index(n, alpha)
+    if k > n:
+        pmf[m] = 1.0
+        return pmf
+    j = np.arange(m + 1)
+    tie_broken = stats.betabinom.pmf(j, m, k, n + 1 - k)
+    to_full = (k + j > total - n_top_atom) | (k + j <= n_bottom_atom)
+    pmf[~to_full] = tie_broken[~to_full]
+    pmf[m] += float(tie_broken[to_full].sum())
+    return pmf / pmf.sum()
+
+
+def pmf_mean(pmf: ArrayLike) -> float:
+    """Mean coverage X / m of a covered-count pmf over 0..m."""
+    p = np.asarray(pmf, dtype=np.float64)
+    m = p.size - 1
+    return float(np.dot(np.arange(m + 1), p) / m)
+
+
+def ks_against_pmf(counts: ArrayLike, pmf: ArrayLike) -> tuple[float, float]:
+    """KS test of integer covered counts (0..m) against a discrete pmf.
+
+    D = max_j |F_emp(j) - F(j)| over the support, which is the exact sup for two step functions on
+    the integers. The p-value uses the continuous Kolmogorov law (`scipy.stats.kstwo`), which is
+    conservative for a discrete null: the true p-value is at least the one returned.
+
+    Args:
+        counts: (R,) covered counts.
+        pmf: (m + 1,) reference pmf.
+
+    Returns:
+        (D, p-value).
+    """
+    x = np.asarray(counts).reshape(-1)
+    p = np.asarray(pmf, dtype=np.float64)
+    m = p.size - 1
+    if x.size < 1 or np.any(x != np.round(x)) or np.any((x < 0) | (x > m)):
+        raise ValueError(f"counts must be integers in [0, {m}]")
+    empirical = np.cumsum(np.bincount(x.astype(np.int64), minlength=m + 1)) / x.size
+    statistic = float(np.max(np.abs(empirical - np.cumsum(p))))
+    return statistic, float(stats.kstwo.sf(statistic, x.size))

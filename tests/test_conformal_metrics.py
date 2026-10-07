@@ -173,3 +173,93 @@ def test_beta_mean_band_contains_beta_mean() -> None:
 def test_mc_standard_error() -> None:
     x = np.array([1.0, 2.0, 3.0, 4.0])
     assert mc_standard_error(x) == pytest.approx(np.std(x, ddof=1) / 2.0)
+
+
+# --- re-split coverage law (Phase 2, carried item S1) --------------------------------------------
+
+
+def _enumerated_law(n: int, m: int, alpha: float, n_atom: int, convention: str) -> np.ndarray:
+    """Covered-count pmf over every calibration subset of a pool with a failure atom."""
+    from itertools import combinations
+
+    from poseconf.conformal.split import failure_score as fail_of
+
+    total = n + m
+    scores = np.concatenate(
+        [np.arange(total - n_atom, dtype=float), np.full(n_atom, fail_of(convention))]
+    )
+    valid = np.isfinite(scores)
+    counts = np.zeros(m + 1)
+    for cal in combinations(range(total), n):
+        mask = np.zeros(total, dtype=bool)
+        mask[list(cal)] = True
+        q = conformal_quantile(scores[mask], alpha)
+        covered, _ = outcomes(scores[~mask], valid[~mask], q, convention)
+        counts[int(covered.sum())] += 1
+    return counts / counts.sum()
+
+
+@pytest.mark.parametrize(
+    ("n", "m", "alpha", "n_atom", "convention"),
+    [
+        (6, 5, 0.2, 0, "abstain_allowed"),
+        (7, 5, 0.3, 0, "answer_required"),
+        (7, 5, 0.1, 2, "answer_required"),
+        (6, 6, 0.3, 3, "answer_required"),
+        (7, 5, 0.3, 4, "abstain_allowed"),
+        (5, 7, 0.5, 6, "abstain_allowed"),
+        (8, 4, 0.05, 1, "answer_required"),  # k > n: degenerate
+    ],
+)
+def test_resplit_law_matches_exhaustive_enumeration(
+    n: int, m: int, alpha: float, n_atom: int, convention: str
+) -> None:
+    from poseconf.conformal.metrics import resplit_coverage_law
+
+    atoms = {"n_top_atom": n_atom} if convention == "answer_required" else {"n_bottom_atom": n_atom}
+    law = resplit_coverage_law(n, m, alpha, **atoms)
+    assert law == pytest.approx(_enumerated_law(n, m, alpha, n_atom, convention), abs=1e-12)
+
+
+def test_resplit_law_without_atoms_is_beta_binomial() -> None:
+    from poseconf.conformal.metrics import pmf_mean, resplit_coverage_law
+    from poseconf.conformal.split import quantile_index
+
+    n, m, alpha = 4798, 4797, 0.1
+    k = quantile_index(n, alpha)
+    law = resplit_coverage_law(n, m, alpha)
+    ref = stats.betabinom.pmf(np.arange(m + 1), m, k, n + 1 - k)
+    assert law == pytest.approx(ref, abs=1e-12)
+    assert pmf_mean(law) == pytest.approx(k / (n + 1), abs=1e-12)
+    # Finite m widens the law relative to Beta(k, n + 1 - k).
+    sd_bb = float(np.sqrt(np.dot((np.arange(m + 1) / m - pmf_mean(law)) ** 2, law)))
+    assert sd_bb > 1.3 * float(stats.beta.std(k, n + 1 - k))
+
+
+def test_resplit_law_monte_carlo_with_atom() -> None:
+    from poseconf.conformal.metrics import ks_against_pmf, resplit_coverage_law
+
+    rng = np.random.default_rng(0)
+    n, m, alpha, n_atom = 60, 40, 0.1, 9  # atom near the quantile index: mixed q = +inf / finite
+    pool = np.concatenate([rng.normal(size=n + m - n_atom), np.full(n_atom, np.inf)])
+    valid = np.isfinite(pool)
+    counts = []
+    for _ in range(4000):
+        perm = rng.permutation(n + m)
+        q = conformal_quantile(pool[perm[:n]], alpha)
+        covered, _ = outcomes(pool[perm[n:]], valid[perm[n:]], q, "answer_required")
+        counts.append(int(covered.sum()))
+    law = resplit_coverage_law(n, m, alpha, n_top_atom=n_atom)
+    assert 0.05 < law[m] < 0.95  # the atom matters in this case
+    assert ks_against_pmf(counts, law)[1] > 0.01
+    assert ks_against_pmf(counts, resplit_coverage_law(n, m, alpha))[1] < 1e-6  # atom ignored
+
+
+def test_ks_against_pmf_validates_counts() -> None:
+    from poseconf.conformal.metrics import ks_against_pmf
+
+    with pytest.raises(ValueError):
+        ks_against_pmf([0.5, 1], [0.5, 0.5])
+    with pytest.raises(ValueError):
+        ks_against_pmf([3], [0.5, 0.5])
+    assert ks_against_pmf([1, 1], [0.0, 1.0]) == (0.0, 1.0)

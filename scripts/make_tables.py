@@ -244,9 +244,7 @@ def _grid(
     return lines
 
 
-def _recovery(
-    rows: list[dict[str, Any]], split_rows: list[dict[str, Any]], alpha: float, notes: Notes
-) -> list[str]:
+def _recovery(rows: list[dict[str, Any]], alpha: float, notes: Notes) -> list[str]:
     sel = [r for r in rows if r["arm"].startswith("oracle_target_labels") and r["alpha"] == alpha]
     out = []
     for convention in ("abstain_allowed", "answer_required"):
@@ -272,24 +270,6 @@ def _recovery(
                     "|---|---|---|---|---|---|---|---|",
                 ]
                 for score in sorted({r["score"] for r in block}):
-                    base = [
-                        r
-                        for r in split_rows
-                        if r["score"] == score
-                        and r["domain"] == domain
-                        and r["crop_source"] == crop
-                        and r["convention"] == convention
-                        and r["alpha"] == alpha
-                    ]
-                    for b in base:
-                        lo, hi = b["coverage_ci95"]
-                        out.append(
-                            f"| {score} | `split` (synthetic val_cal, n = {b['n_cal']}) | "
-                            f"{_num(b['coverage'], 4)} | [{_num(lo, 4)}, {_num(hi, 4)}] | "
-                            f"{_num(b['answer_rate'], 3)} | {_num(b['silent_failure_rate'], 3)} | "
-                            f"{_size(b, 'rot_deg', 'median', notes)} | "
-                            f"{_size(b, 'kp_px', 'median', notes)} |"
-                        )
                     for r in sorted(
                         (r for r in block if r["score"] == score), key=lambda r: r["n_cal"]
                     ):
@@ -322,13 +302,19 @@ def _classifiers(index: dict[str, Any]) -> list[str]:
     return out
 
 
-def _slices(rows: list[dict[str, Any]], alpha: float, notes: Notes) -> list[str]:
-    sel = sorted([r for r in rows if "slices" in r and r["alpha"] == alpha], key=_key)
+def _slices(rows: list[dict[str, Any]], alpha: float, notes: Notes, *, oracle: bool) -> list[str]:
+    sel = sorted(
+        [r for r in rows if "slices" in r and r["alpha"] == alpha and _is_oracle(r) == oracle],
+        key=_key,
+    )
     out = []
+    which = "oracle rows — HIL `gt_crop`" if oracle else "non-oracle rows"
     for slicing in ("gt_range_tertile", "confidence_quintile", "gt_bbox_iou_bin"):
         bins = sorted({b for r in sel for b in r["slices"].get(slicing, {})}, key=int)
+        if not bins:
+            continue
         out += [
-            f"#### `{slicing}` — `split`, α = {alpha} (cell: coverage [95 % CI], n)",
+            f"#### `{slicing}` — {which}, `split`, α = {alpha} (cell: coverage [95 % CI], n)",
             "",
             "| score | domain | crop | convention | " + " | ".join(f"bin {b}" for b in bins) + " |",
             "|" + "---|" * (4 + len(bins)),
@@ -401,14 +387,19 @@ def build(shift_dir: Path) -> str:
         f"## Few-label recovery (`oracle_target_labels_n*`, oracle) — α = {headline}",
         "",
         "Split CP calibrated on n labeled poolA frames (5 seeded draws per n, failures kept), "
-        "evaluated on poolB. Normalisers and σ̂ are the synthetic `val_tune` fits. The `split` row "
-        "is the synthetic-calibrated baseline on the same poolB frames.",
+        "evaluated on poolB. Normalisers and σ̂ are the synthetic `val_tune` fits. Every row here is "
+        "oracle; the synthetic-calibrated `split` baseline on the same poolB frames is in the "
+        "headline non-oracle table (`predicted_crop`) and oracle `gt_crop` table above. A draw "
+        "whose quantile is −∞ abstains on every frame (answer rate 0) and counts as covered under "
+        "`abstain_allowed`; read the mean answer rate beside the mean coverage.",
         "",
     ]
-    split_rows = [r for r in rows if r["arm"] == "split"]
-    out += _recovery(rows, split_rows, headline, notes)
+    out += _recovery(rows, headline, notes)
     out += [f"## Conditional coverage slices (`split` arm, α = {headline})", ""]
-    out += _slices(rows, headline, notes)
+    out += ["### Non-oracle rows", ""]
+    out += _slices(rows, headline, notes, oracle=False)
+    out += ["### Oracle rows — HIL `gt_crop` (crop box = GT box)", ""]
+    out += _slices(rows, headline, notes, oracle=True)
     for convention in index["expected"]["conventions"]:
         out += [f"## α grid — `{convention}`", "", "### Non-oracle rows", ""]
         out += _grid(rows, convention, alphas, oracle=False)

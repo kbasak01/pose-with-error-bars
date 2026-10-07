@@ -449,3 +449,35 @@ def test_shift_figures_skip_without_results(tmp_path, capsys) -> None:
     for name in names:
         with pytest.raises(figures.MissingInputs):
             figures.main(["--figure", name, *argv])
+
+
+def _row_status(line: str) -> str | None:
+    """'oracle' / 'non' for a TABLES.md data row naming a domain; None otherwise."""
+    cells = [c.strip().strip("`") for c in line.strip().strip("|").split("|")]
+    domains = {"synthetic", "lightbox", "sunlamp"}
+    if not line.startswith("|") or not domains & set(cells):
+        return None
+    hil = bool({"lightbox", "sunlamp"} & set(cells))
+    if any(c.startswith("oracle_target_labels") for c in cells) or (hil and "gt_crop" in cells):
+        return "oracle"
+    return "non"
+
+
+def test_committed_tables_never_mix_oracle_and_non_oracle_rows() -> None:
+    """Phase 6 exit gate: no oracle row in the same table section as a non-oracle row."""
+    path = REPO_ROOT / "results" / "TABLES.md"
+    if not path.is_file():
+        pytest.skip("results/TABLES.md not generated yet")
+    section, seen = "", {}
+    for line in path.read_text("utf-8").splitlines():
+        if line.startswith("#"):
+            section = line
+            continue
+        if section.startswith("## Cells"):
+            continue  # the cell inventory lists files, not results
+        status = _row_status(line)
+        if status:
+            seen.setdefault(section, set()).add(status)
+    mixed = [s for s, statuses in seen.items() if len(statuses) > 1]
+    assert not mixed, mixed
+    assert any(statuses == {"oracle"} for statuses in seen.values())

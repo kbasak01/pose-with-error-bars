@@ -70,6 +70,20 @@ __all__ = [
     "load_sidecar",
     "load_synthetic_labels",
     "masked_mean",
+    "onnx_benchmark",
+    "onnx_engine_build_seconds",
+    "onnx_export",
+    "onnx_export_p1",
+    "onnx_forbidden_ops",
+    "onnx_frame_budget",
+    "onnx_graph_summary",
+    "onnx_methodology_minimums",
+    "onnx_provider_node_counts",
+    "onnx_resolve_providers",
+    "onnx_tf32_ablation",
+    "ort_pose_pipeline",
+    "p1_onnx_parity_record",
+    "p1_parity_tolerances",
     "p1_commit",
     "p1_paths",
     "p1_result_counts",
@@ -1396,3 +1410,234 @@ def seed_everything(seed: int) -> None:
     from speedpose.engine.train import seed_everything as p1_seed_everything
 
     p1_seed_everything(seed)
+
+
+# --------------------------------------------------------------------------------------------------
+# Phase 7: P1's ONNX export, parity and benchmark conventions (`speedpose.export`)
+# --------------------------------------------------------------------------------------------------
+
+#: Graph input name. P1's TensorRT profile options hard-code it (`bench._provider_options`).
+ONNX_INPUT_NAME = "images"
+
+
+def onnx_forbidden_ops() -> frozenset[str]:
+    """P1's `FORBIDDEN_OPS`: ops that must not survive into an exported graph."""
+    from speedpose.export.to_onnx import FORBIDDEN_OPS
+
+    return FORBIDDEN_OPS
+
+
+def onnx_export(
+    model: Any,
+    *,
+    output_path: str | Path,
+    input_shape: tuple[int, int, int, int],
+    output_names: Sequence[str],
+    half_precision: bool,
+    opset: int = 17,
+) -> Path:
+    """Export a module through P1's `export_model` and its checks.
+
+    `export_model` puts the model in eval mode, exports with constant folding, a dynamic batch axis
+    and static other axes, runs `onnx.checker` and shape inference, and refuses forbidden ops or
+    I/O names that differ from the spec. fp16 halves the module (in place) on CUDA.
+
+    Args:
+        model: The `torch.nn.Module`.
+        output_path: Destination `.onnx`.
+        input_shape: Example `(B, C, H, W)`.
+        output_names: Named graph outputs, in forward order.
+        half_precision: Emit the fp16 variant.
+        opset: ONNX opset (17 or higher).
+
+    Returns:
+        The written path.
+    """
+    from speedpose.export.to_onnx import ExportSpec, export_model
+
+    spec = ExportSpec(
+        output_path=output_path,
+        input_shape=input_shape,
+        opset=opset,
+        dynamic_batch=True,
+        half_precision=half_precision,
+        input_names=(ONNX_INPUT_NAME,),
+        output_names=tuple(output_names),
+    )
+    return export_model(model, spec)
+
+
+def onnx_export_p1(
+    run: str, *, paths: P1Paths, output_path: str | Path, half_precision: bool
+) -> tuple[Path, Path]:
+    """Re-export a P1 checkpoint exactly as P1 exports it (`spec_for_config`, EMA weights).
+
+    Written under this repo's gitignored `exports/`; nothing is written into P1.
+
+    Returns:
+        `(onnx path, checkpoint path)`.
+    """
+    from speedpose.export.to_onnx import export_model, load_ema_model, spec_for_config
+
+    checkpoint = paths.p1_runs / run / "best.pt"
+    if not checkpoint.is_file():
+        raise FileNotFoundError(f"P1 checkpoint {checkpoint} not found")
+    model, stored = load_ema_model(checkpoint)
+    spec = spec_for_config(stored, output_path=output_path, half_precision=half_precision)
+    return export_model(model, spec), checkpoint
+
+
+def onnx_graph_summary(onnx_path: str | Path) -> dict[str, Any]:
+    """P1's `graph_summary`: op histogram, forbidden ops present, I/O signature, opset."""
+    from speedpose.export.to_onnx import graph_summary
+
+    return graph_summary(onnx_path)
+
+
+def onnx_methodology_minimums() -> tuple[int, int]:
+    """P1's latency methodology minimums `(warmup, timed)` iterations."""
+    from speedpose.export.bench import MIN_TIMED_ITERS, MIN_WARMUP_ITERS
+
+    return MIN_WARMUP_ITERS, MIN_TIMED_ITERS
+
+
+def onnx_resolve_providers(
+    requested: Sequence[str], *, onnx_path: str | Path | None = None
+) -> tuple[str, ...]:
+    """P1's `resolve_providers`: the providers that really construct a session (not just built)."""
+    from speedpose.export.bench import resolve_providers
+
+    return resolve_providers(tuple(requested), onnx_path=onnx_path)
+
+
+def onnx_benchmark(
+    onnx_path: str | Path,
+    *,
+    providers: Sequence[str],
+    batch_sizes: Sequence[int],
+    warmup_iters: int,
+    timed_iters: int,
+) -> list[dict[str, Any]]:
+    """P1's `benchmark_onnx` rows as dicts (IOBinding; compute, H2D and D2H timed apart)."""
+    from speedpose.export.bench import benchmark_onnx, stats_to_dict
+
+    rows = benchmark_onnx(
+        onnx_path,
+        providers=tuple(providers),
+        batch_sizes=tuple(batch_sizes),
+        warmup_iters=warmup_iters,
+        timed_iters=timed_iters,
+    )
+    return stats_to_dict(rows)
+
+
+def onnx_provider_node_counts(onnx_path: str | Path, *, provider: str, batch: int) -> dict:
+    """P1's `provider_node_counts`: nodes per execution provider, from an ORT profile."""
+    from speedpose.export.bench import provider_node_counts
+
+    return provider_node_counts(onnx_path, provider=provider, batch=batch)
+
+
+def onnx_engine_build_seconds(onnx_path: str | Path, *, batch: int, cache: Path) -> float:
+    """P1's `engine_build_seconds`: a cold TensorRT engine build (the cache is emptied first)."""
+    from speedpose.export.bench import engine_build_seconds
+
+    return engine_build_seconds(onnx_path, batch=batch, cache=cache)
+
+
+def onnx_frame_budget(
+    pipeline: Any, frames: Sequence[Any], *, warmup: int, iters: int
+) -> dict[str, float]:
+    """P1's `end_to_end_frame_budget`: per-stage p50/p99 over `iters` frames after `warmup`."""
+    from speedpose.export.bench import end_to_end_frame_budget
+
+    return end_to_end_frame_budget(
+        config={"pipeline": pipeline, "frames": frames, "warmup": warmup, "iters": iters}
+    )
+
+
+def onnx_tf32_ablation(
+    *, model: Any, dataset: Any, onnx_fp32: str | Path, samples: int, output_names: Sequence[str]
+) -> dict[str, Any]:
+    """P1's four-cell TF32 ablation (torch TF32 x ORT `use_tf32`), for any graph."""
+    from speedpose.export.parity import tf32_ablation
+
+    return tf32_ablation(
+        model=model,
+        dataset=dataset,
+        onnx_fp32=onnx_fp32,
+        samples=samples,
+        output_names=tuple(output_names),
+    )
+
+
+def p1_parity_tolerances() -> dict[str, dict[str, Any]]:
+    """P1's `PARITY_TOLERANCES`: the fp32 gate and the stated fp16 relaxation."""
+    from speedpose.export.parity import PARITY_TOLERANCES
+
+    return copy.deepcopy(PARITY_TOLERANCES)
+
+
+def p1_onnx_parity_record(run: str) -> tuple[dict[str, Any], Path]:
+    """P1's committed ONNX parity result for a run (`results/onnx_parity_<run>.json`), read-only."""
+    path = P1_ROOT / "results" / f"onnx_parity_{run}.json"
+    return json.loads(path.read_text(encoding="utf-8")), path
+
+
+def ort_pose_pipeline(
+    run: str,
+    *,
+    paths: P1Paths,
+    keypoint_onnx: str | Path,
+    detector_onnx: str | Path,
+    provider: str,
+    with_uncertainty: bool,
+) -> Any:
+    """P1's `OrtPosePipeline` (predicted crop, end to end), optionally fetching the covariances.
+
+    With `with_uncertainty`, the keypoint graph must be the variance graph: `keypoints` also reads
+    `cov_chol` and `keypoint_empty` (kept on `last_cov_chol` / `last_keypoint_empty`) and `crop_one`
+    keeps the full-frame -> crop affine on `last_affine`. Every other stage is P1's, inherited, so
+    the frame budget is comparable to P1's stage by stage.
+
+    Returns:
+        The pipeline; its `pose_quaternion(rotation)` gives a solved rotation in P1's label order.
+    """
+    from speedpose.export.ort_pipeline import OrtPosePipeline
+    from speedpose.geometry.conventions import rotation_matrix_to_quat
+
+    class _Pipeline(OrtPosePipeline):
+        def crop_one(self, image: Any, bbox: Any) -> Any:
+            crop, affine = super().crop_one(image, bbox)
+            self.last_affine = affine
+            return crop, affine
+
+        def keypoints(self, crops: Any) -> Any:
+            if not with_uncertainty:
+                return super().keypoints(crops)
+            array = crops.detach().cpu().numpy().astype(self._keypoint_dtype, copy=False)
+            coords, confidence, cov_chol, empty = self.keypoint_session.run(
+                ["coords", "confidence", "cov_chol", "keypoint_empty"],
+                {ONNX_INPUT_NAME: array},
+            )
+            self.last_cov_chol = cov_chol.astype(np.float64)
+            self.last_keypoint_empty = empty.astype(bool)
+            return coords.astype(np.float64), confidence.astype(np.float64)
+
+        def pose_quaternion(self, rotation: Any) -> NDArray[np.float64]:
+            return np.asarray(rotation_matrix_to_quat(rotation, self.convention), np.float64)
+
+    checkpoint = paths.p1_runs / run / "best.pt"
+    detector = paths.p1_runs / "detector" / "best.pt"
+    for required in (checkpoint, detector):
+        if not required.is_file():
+            raise FileNotFoundError(f"P1 checkpoint {required} not found")
+    return _Pipeline(
+        config=load_p1_config(run, paths=paths),
+        keypoint_onnx=keypoint_onnx,
+        detector_onnx=detector_onnx,
+        provider=provider,
+        detector_checkpoint=detector,
+        keypoint_checkpoint=checkpoint,
+        dataset_root=paths.speedplus_root,
+    )

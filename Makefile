@@ -34,5 +34,13 @@ shift-matrix: ; $(PY) scripts/run_shift_matrix.py --config configs/conformal.yam
 calibration: ; $(PY) scripts/build_calibration.py --verify
 tables:  ; $(PY) scripts/make_tables.py
 figures: ; $(PY) scripts/make_figures.py --figure all
-export:  ; $(PY) scripts/export_onnx.py --config configs/variance_head.yaml --fp16
-bench:   ; $(PY) scripts/bench.py --all
+# Phase 7, GPU. Graphs go to gitignored exports/; parity and latency JSON to results/.
+export:
+	@echo "GPU (fp16 export needs CUDA); writes exports/*.onnx and results/export/onnx_export.json:"
+	@echo "  $(PY) scripts/export_onnx.py --config configs/variance_head.yaml --fp16"
+parity-onnx:
+	@echo "GPU; TF32 off on both sides; writes results/export/onnx_parity.json (exit 1 = fp32 gate missed):"
+	@echo "  $(PY) scripts/check_onnx_parity.py"
+bench:
+	@echo "GPU, TensorRT engine builds take minutes; writes results/latency/*.json:"
+	@echo "  $(PY) scripts/bench.py --all"

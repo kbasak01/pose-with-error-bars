@@ -467,13 +467,22 @@ def median_normaliser(errors: ArrayLike, valid: ArrayLike) -> float:
 # --------------------------------------------------------------------------------------------------
 
 
-def _check_cov(cov: ArrayLike, n: int, k: int, ok: NDArray[np.bool_]) -> NDArray[np.float64]:
-    c = _array(cov, "cov", (n, k, 2, 2), ok)
+def _check_cov(
+    cov: ArrayLike, n: int, k: int, ok: NDArray[np.bool_], unc: NDArray[np.bool_]
+) -> NDArray[np.float64]:
+    """Validated covariances; unconstrained entries are replaced by I (a placeholder never read)."""
+    c = np.array(cov, dtype=np.float64)
+    if c.shape != (n, k, 2, 2):
+        raise ValueError(f"cov must have shape {(n, k, 2, 2)}, got {c.shape}")
+    c[unc] = np.eye(2)
+    c = _array(c, "cov", (n, k, 2, 2), ok)
     a, b, b2, d = c[ok, :, 0, 0], c[ok, :, 0, 1], c[ok, :, 1, 0], c[ok, :, 1, 1]
     if np.any(np.abs(b - b2) > _SYMMETRY_RTOL * (np.abs(a) + np.abs(d))):
         raise ValueError("cov must be symmetric")
     if np.any(a <= 0) or np.any(a * d - b * b <= 0):
-        raise ValueError("cov must be positive-definite on every keypoint of every valid frame")
+        raise ValueError(
+            "cov must be positive-definite on every constrained keypoint of every valid frame"
+        )
     return c
 
 
@@ -500,12 +509,17 @@ def _joint(errors: NDArray, include: NDArray[np.bool_]) -> NDArray[np.float64]:
 class KeypointSet:
     """K discs (B1) or K Mahalanobis ellipses (B2, C1) per frame, full-frame pixels.
 
+    An *unconstrained* keypoint (e.g. an empty heatmap channel: the network found nothing) has the
+    whole image as its set. It never enters the joint max, so it cannot make a frame uncovered.
+
     Attributes:
         q: The conformal quantile.
         centers: (n, K, 2) predicted keypoints.
         d_hat: (n,) predicted box diagonal, px (discs), or None.
-        cov: (n, K, 2, 2) predicted covariances, px^2 (ellipses), or None.
+        cov: (n, K, 2, 2) predicted covariances, px^2 (ellipses), or None. Unconstrained entries
+            hold an identity placeholder that is never read.
         valid: (n,) frames with a point estimate.
+        unconstrained: (n, K) bool, keypoints whose set is the whole image. Prediction-side.
     """
 
     q: float
@@ -513,6 +527,7 @@ class KeypointSet:
     d_hat: NDArray[np.float64] | None
     cov: NDArray[np.float64] | None
     valid: NDArray[np.bool_]
+    unconstrained: NDArray[np.bool_]
 
     @property
     def abstain(self) -> NDArray[np.bool_]:
@@ -521,14 +536,36 @@ class KeypointSet:
 
     @property
     def radius_px(self) -> NDArray[np.float64]:
-        """(n,) largest keypoint radius in the frame: q d_hat (disc) or q sqrt(lambda_max) (ellipse)."""
+        """(n,) largest keypoint radius in the frame: q d_hat (disc) or q sqrt(lambda_max) (ellipse).
+
+        +inf on a valid frame with an unconstrained keypoint (its set is the whole image), for
+        any q > -inf.
+        """
         if self.cov is None:
-            scale = self.d_hat
+            scale = np.asarray(self.d_hat, dtype=np.float64).copy()
         else:
             scale = np.ones(self.valid.shape[0])
             eig = np.linalg.eigvalsh(self.cov[self.valid])
             scale[self.valid] = np.sqrt(eig[..., -1].max(axis=-1))
-        return _frame_radius(scale, self.q, self.valid)
+        out = _frame_radius(scale, self.q, self.valid)
+        if self.q > -math.inf:
+            out[self.valid & self.unconstrained.any(axis=-1)] = math.inf
+        return out
+
+    @property
+    def constrained(self) -> NDArray[np.bool_]:
+        """(n, K) keypoints with a bounded set."""
+        return ~self.unconstrained
+
+    def keypoint_errors(self, y: ArrayLike, rows: NDArray[np.bool_]) -> NDArray[np.float64]:
+        """(m, K) normalised errors of points `y` (m, K, 2) against the sets of frames `rows`.
+
+        The same helper the score uses, so `joint <= q` is bit-for-bit the score's comparison.
+        Entries of unconstrained keypoints are meaningless; mask them with `constrained`.
+        """
+        d = None if self.d_hat is None else self.d_hat[rows]
+        c = None if self.cov is None else self.cov[rows]
+        return _keypoint_errors(self.centers[rows], np.asarray(y, dtype=np.float64), d, c)
 
     def contains(self, y_gt: ArrayLike, include: ArrayLike) -> NDArray[np.bool_]:
         """Evaluation only: every included true keypoint inside its set.
@@ -544,12 +581,10 @@ class KeypointSet:
         n, k = self.centers.shape[:2]
         inc = _include(include, n, k)
         yg = _array(y_gt, "y_gt", (n, k, 2), np.zeros(n, bool))
-        _check_finite_included(yg, inc, ok)
+        _check_finite_included(yg, inc & self.constrained, ok)
         inside = np.full(n, self.q == math.inf)
         if ok.any():
-            d = None if self.d_hat is None else self.d_hat[ok]
-            c = None if self.cov is None else self.cov[ok]
-            s = _joint(_keypoint_errors(self.centers[ok], yg[ok], d, c), inc[ok])
+            s = _joint(self.keypoint_errors(yg[ok], ok), inc[ok] & self.constrained[ok])
             inside[ok] = s <= self.q
         return inside
 
@@ -573,27 +608,31 @@ def _keypoint_score(
     valid: ArrayLike,
     d_hat: ArrayLike | None,
     cov: ArrayLike | None,
+    unconstrained: ArrayLike | None,
     convention: str,
 ) -> NDArray[np.float64]:
     fail = failure_score(convention)
-    st = _keypoint_set(y_hat, valid, 0.0, d_hat, cov)
+    st = _keypoint_set(y_hat, valid, 0.0, d_hat, cov, unconstrained)
     ok = st.valid
     n, k = st.centers.shape[:2]
     inc = _include(include, n, k)
     yg = np.asarray(y_gt, dtype=np.float64)
     if yg.shape != (n, k, 2):
         raise ValueError(f"y_gt must have shape {(n, k, 2)}, got {yg.shape}")
-    _check_finite_included(yg, inc, ok)
+    _check_finite_included(yg, inc & st.constrained, ok)
     out = np.full(n, fail)
     if ok.any():
-        d = None if st.d_hat is None else st.d_hat[ok]
-        c = None if st.cov is None else st.cov[ok]
-        out[ok] = _joint(_keypoint_errors(st.centers[ok], yg[ok], d, c), inc[ok])
+        out[ok] = _joint(st.keypoint_errors(yg[ok], ok), inc[ok] & st.constrained[ok])
     return out
 
 
 def _keypoint_set(
-    y_hat: ArrayLike, valid: ArrayLike, q: float, d_hat: ArrayLike | None, cov: ArrayLike | None
+    y_hat: ArrayLike,
+    valid: ArrayLike,
+    q: float,
+    d_hat: ArrayLike | None,
+    cov: ArrayLike | None,
+    unconstrained: ArrayLike | None = None,
 ) -> KeypointSet:
     q = _check_q(q)
     ok = _as_valid(valid)
@@ -601,10 +640,18 @@ def _keypoint_set(
     if yh.ndim != 3 or yh.shape[0] != ok.shape[0] or yh.shape[2] != 2:
         raise ValueError(f"y_hat must have shape (n, K, 2) with n = {ok.shape[0]}, got {yh.shape}")
     n, k = yh.shape[:2]
+    if unconstrained is None:
+        unc = np.zeros((n, k), dtype=bool)
+    else:
+        unc = np.asarray(unconstrained)
+        if unc.dtype != np.bool_ or unc.shape != (n, k):
+            raise ValueError(
+                f"unconstrained must be bool of shape {(n, k)}, got {unc.dtype} {unc.shape}"
+            )
     yh = _array(yh, "y_hat", (n, k, 2), ok)
     d = None if d_hat is None else _positive_per_frame(d_hat, "d_hat", ok)
-    c = None if cov is None else _check_cov(cov, n, k, ok)
-    return KeypointSet(q, yh, d, c, ok)
+    c = None if cov is None else _check_cov(cov, n, k, ok, unc)
+    return KeypointSet(q, yh, d, c, ok, unc)
 
 
 def score_b1(
@@ -627,7 +674,7 @@ def score_b1(
         d_hat: (n,) predicted (detector) box diagonal, px.
         convention: PnP-failure convention.
     """
-    return _keypoint_score(y_hat, y_gt, include, valid, d_hat, None, convention)
+    return _keypoint_score(y_hat, y_gt, include, valid, d_hat, None, None, convention)
 
 
 def set_b1(y_hat: ArrayLike, valid: ArrayLike, q: float, *, d_hat: ArrayLike) -> KeypointSet:
@@ -642,21 +689,35 @@ def score_mahalanobis(
     valid: ArrayLike,
     *,
     cov: ArrayLike,
+    unconstrained: ArrayLike | None = None,
     convention: str,
 ) -> NDArray[np.float64]:
-    """B2 / C1 = max_k sqrt(r_k^T cov_k^-1 r_k) over included keypoints.
+    """B2 / C1 = max_k sqrt(r_k^T cov_k^-1 r_k) over included, constrained keypoints.
 
     Args:
         cov: (n, K, 2, 2) predicted covariances in full-frame px^2 (B2: heatmap second moment;
-            C1: variance head), positive-definite on every valid frame.
+            C1: variance head), positive-definite on every constrained keypoint of a valid frame.
+        unconstrained: Optional (n, K) bool, prediction-side: keypoints whose set is the whole
+            image (B2: `heatmap_empty`, zero covariance). They are left out of the max, so a frame
+            whose only included keypoints are unconstrained scores 0 (vacuously covered).
         (others as `score_b1`)
     """
-    return _keypoint_score(y_hat, y_gt, include, valid, None, cov, convention)
+    return _keypoint_score(y_hat, y_gt, include, valid, None, cov, unconstrained, convention)
 
 
-def set_mahalanobis(y_hat: ArrayLike, valid: ArrayLike, q: float, *, cov: ArrayLike) -> KeypointSet:
-    """B2 / C1 set: K ellipses {y : (y - y_hat_k)^T cov_k^-1 (y - y_hat_k) <= q^2}."""
-    return _keypoint_set(y_hat, valid, q, None, cov)
+def set_mahalanobis(
+    y_hat: ArrayLike,
+    valid: ArrayLike,
+    q: float,
+    *,
+    cov: ArrayLike,
+    unconstrained: ArrayLike | None = None,
+) -> KeypointSet:
+    """B2 / C1 set: K ellipses {y : (y - y_hat_k)^T cov_k^-1 (y - y_hat_k) <= q^2}.
+
+    An unconstrained keypoint's set is the whole image.
+    """
+    return _keypoint_set(y_hat, valid, q, None, cov, unconstrained)
 
 
 score_b2 = score_mahalanobis

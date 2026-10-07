@@ -41,6 +41,7 @@ PREDICTION_SIDE = {
     "cov",
     "sigma_R",
     "sigma_t",
+    "unconstrained",
 }
 LABEL_MARKERS = ("gt", "label", "true", "incl", "range", "iou", "pixel_error")
 
@@ -317,3 +318,33 @@ def test_contains_alone_is_not_abstain_allowed_coverage() -> None:
     assert st.contains(q_id, t_gt).tolist() == [True, False]
     covered, _ = outcomes(s, valid, 1.0, "abstain_allowed")
     assert covered.tolist() == [True, True] == (st.abstain | st.contains(q_id, t_gt)).tolist()
+
+
+def test_unconstrained_keypoints_leave_the_joint_max() -> None:
+    """B2's empty-heatmap rule: an unconstrained keypoint's set is the whole image."""
+    f = _keypoint_frame(49)
+    v, inc = f["valid"], f["include"]
+    rng = np.random.default_rng(50)
+    unc = rng.uniform(size=inc.shape) < 0.2
+    cov = f["cov"].copy()
+    cov[unc] = 0.0  # zero covariance (empty channel) is accepted where unconstrained
+    y_gt = f["y_gt"].copy()
+    y_gt[unc] = np.nan  # never read for an unconstrained keypoint
+    for convention in CONVENTIONS:
+        s = score_b2(f["y_hat"], y_gt, inc, v, cov=cov, unconstrained=unc, convention=convention)
+        ref = score_b2(f["y_hat"], f["y_gt"], inc & ~unc, v, cov=f["cov"], convention=convention)
+        np.testing.assert_array_equal(s, ref)
+    q = conformal_quantile(s[v], 0.2)
+    st = SCORES["B2"].set_fn(f["y_hat"], v, q, cov=cov, unconstrained=unc)
+    np.testing.assert_array_equal(st.contains(y_gt, inc)[v], s[v] <= q)
+    radius = st.radius_px
+    assert np.all(np.isinf(radius[v & unc.any(axis=1)]))
+    assert np.all(np.isfinite(radius[v & ~unc.any(axis=1)]))
+    # A constrained keypoint still needs a positive-definite covariance.
+    bad = cov.copy()
+    i = int(np.flatnonzero(v & ~unc[:, 2])[0])
+    bad[i, 2] = 0.0
+    with pytest.raises(ValueError, match="positive-definite"):
+        SCORES["B2"].set_fn(f["y_hat"], v, q, cov=bad, unconstrained=unc)
+    with pytest.raises(ValueError, match="unconstrained"):
+        SCORES["B2"].set_fn(f["y_hat"], v, q, cov=cov, unconstrained=unc[:, :3])

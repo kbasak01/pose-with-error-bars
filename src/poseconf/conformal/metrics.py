@@ -42,14 +42,15 @@ CI_LEVEL = 0.95
 
 
 def outcomes(
-    scores: ArrayLike, valid: ArrayLike, q: float, convention: str
+    scores: ArrayLike, valid: ArrayLike, q: float | ArrayLike, convention: str
 ) -> tuple[NDArray[np.bool_], NDArray[np.bool_]]:
     """Per-frame (covered, answered) for test scores against a quantile.
 
     Args:
         scores: (m,) test scores computed under `convention`.
         valid: (m,) True where the frame has a point estimate.
-        q: Conformal quantile (may be +/-inf, not NaN).
+        q: Conformal quantile (may be +/-inf, not NaN): a scalar (split CP) or one per test frame
+            (m,) (Mondrian, weighted CP, where each frame gets its own quantile).
         convention: `"answer_required"` or `"abstain_allowed"`.
 
     Returns:
@@ -64,7 +65,10 @@ def outcomes(
     ok = np.asarray(valid, dtype=bool)
     if ok.shape != s.shape:
         raise ValueError(f"valid has shape {ok.shape}, scores {s.shape}")
-    if math.isnan(q):
+    qs = np.asarray(q, dtype=np.float64)
+    if qs.ndim not in (0, 1) or (qs.ndim == 1 and qs.shape != s.shape):
+        raise ValueError(f"q must be a scalar or have shape {s.shape}, got {qs.shape}")
+    if np.isnan(qs).any():
         raise ValueError("q is NaN")
     fail = failure_score(convention)
     if np.any(s[~ok] != fail):
@@ -76,8 +80,8 @@ def outcomes(
             f"scores inconsistent with convention {convention!r}: a valid frame has an infinite "
             "score"
         )
-    answered = ok & (q > -math.inf)
-    inside = s <= q
+    answered = ok & (qs > -math.inf)
+    inside = s <= qs
     covered = (~answered | inside) if convention == "abstain_allowed" else inside
     return covered, answered
 

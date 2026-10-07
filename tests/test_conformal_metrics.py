@@ -109,6 +109,40 @@ def test_outcomes_refuse_nan() -> None:
         outcomes(np.array([1.0]), np.array([True]), np.nan, "answer_required")
 
 
+@pytest.mark.parametrize("convention", ["answer_required", "abstain_allowed"])
+def test_outcomes_per_frame_constant_q_equals_scalar(convention: str) -> None:
+    rng = np.random.default_rng(5)
+    valid = rng.uniform(size=200) > 0.2
+    s = np.where(valid, rng.exponential(size=200), failure_score(convention))
+    for q in (0.0, 0.7, np.inf, -np.inf):
+        expected = outcomes(s, valid, q, convention)
+        got = outcomes(s, valid, np.full(200, q), convention)
+        assert np.array_equal(got[0], expected[0]) and np.array_equal(got[1], expected[1])
+
+
+def test_outcomes_per_frame_mixed_infinite_q() -> None:
+    # Frame-wise: finite q, whole space (+inf), empty set (-inf), and a failure under each.
+    valid = np.array([True, True, True, False, False])
+    q = np.array([1.0, np.inf, -np.inf, np.inf, -np.inf])
+    covered, answered = outcomes(
+        np.array([2.0, 9.0, 0.1, np.inf, np.inf]), valid, q, "answer_required"
+    )
+    assert covered.tolist() == [False, True, False, True, False]
+    assert answered.tolist() == [True, True, False, False, False]
+    covered, answered = outcomes(
+        np.array([2.0, 9.0, 0.1, -np.inf, -np.inf]), valid, q, "abstain_allowed"
+    )
+    assert covered.tolist() == [False, True, True, True, True]  # -inf: abstains, so covered
+    assert answered.tolist() == [True, True, False, False, False]
+
+
+def test_outcomes_refuse_bad_per_frame_q() -> None:
+    with pytest.raises(ValueError, match="shape"):
+        outcomes(np.array([1.0, 2.0]), np.array([True, True]), np.array([1.0]), "answer_required")
+    with pytest.raises(ValueError, match="NaN"):
+        outcomes(np.array([1.0]), np.array([True]), np.array([np.nan]), "answer_required")
+
+
 def test_coverage_summary_fields() -> None:
     covered = np.array([True, True, False, True, False])
     answered = np.array([True, True, True, False, False])

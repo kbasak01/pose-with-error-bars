@@ -174,6 +174,9 @@ def level_b_overlay(args: argparse.Namespace) -> Path:
         for k in np.flatnonzero(kset.constrained[row]):
             violated = bool(ev[k] and errors[k] > q)
             _ellipse(ax, test.y_hat[row, k], shapes[row, k], q, 2.6 if violated else 1.2)
+        free = kset.unconstrained[row]  # whole-image sets: marked, never silently dropped
+        if free.any():
+            ax.scatter(*test.y_hat[row, free].T, marker="+", s=60, c=TEXT_SECONDARY, linewidths=1.4)
         vis = test.include[row]
         ax.scatter(*test.y_gt[row, vis].T, marker="x", s=34, c=TRUTH_COLOUR, linewidths=1.6)
         ax.scatter(
@@ -213,10 +216,21 @@ def level_b_overlay(args: argparse.Namespace) -> Path:
             label="PnP estimate, projected",
         ),
     ]
+    if kset.unconstrained[rows].any():
+        handles.append(
+            Line2D(
+                [],
+                [],
+                color=TEXT_SECONDARY,
+                marker="+",
+                linestyle="",
+                label="unconstrained keypoint (empty heatmap: set = whole image)",
+            )
+        )
     legend = fig.legend(
         handles=handles,
         loc="lower center",
-        ncol=4,
+        ncol=len(handles),
         frameon=False,
         fontsize=9,
         bbox_to_anchor=(0.5, 0),
@@ -226,7 +240,8 @@ def level_b_overlay(args: argparse.Namespace) -> Path:
     fig.suptitle(
         f"{args.score} keypoint sets, alpha = {args.alpha:g}, {args.convention}, arm split, "
         f"{level['test_split']} ({run}, {crop}). First {args.n_inside}: estimate inside "
-        f"its PURSE; last {args.n_outside} (dashed frame): outside.\n{LICENCE}",
+        f"its PURSE; last {args.n_outside} (dashed frame): outside.\nPURSE = poses whose in-frame "
+        f"keypoints all fall in their sets. Seeded selection, not a coverage sample. {LICENCE}",
         color=TEXT_PRIMARY,
         fontsize=10,
     )

@@ -575,8 +575,9 @@ findings; its three must-fix items are closed.
 `unconstrained` mask as B2, and Level B passes `heatmap_empty` to both scores. On HIL, B1 and B2
 therefore no longer differ merely because a channel is empty.
 **Effect on committed numbers.** None: the synthetic `predicted_crop` dump has 0 empty channels.
-`results/level_b/` was regenerated from the commit that made the change, and every coverage,
-quantile and verdict is unchanged.
+`results/level_b/` was regenerated at `55ad03b`, which contains the change. Every coverage, quantile,
+verdict and re-split summary is unchanged; the scoped `conformal-validity-auditor` (SOUND) compared
+the files with provenance removed and found them equal.
 **Still required in Phase 6.** Read `n_vacuous` and `n_frames_with_unconstrained_keypoint` beside
 any HIL B1/B2 coverage.
 
@@ -594,6 +595,7 @@ is `level_b_overlay`, which writes `assets/level_b_overlay_<score>.png`.
   marker shape. The palette validator could not be run (no `node` on the workstation); the slots
   are the reference palette's pre-validated ones.
 - The caption carries the SPEED+ CC BY-NC-SA 4.0 notice.
+- Unconstrained keypoints get their own marker, so on HIL they do not silently disappear.
 **Reason.** This is the visual check both geometry reviews asked for. Sets offset from the
 wireframe, or far too large, would show here first.
 

@@ -238,3 +238,66 @@ def test_head_quality_report_fits_scale_on_tune_only():
     assert tune["learned"]["nll_mean"] < tune["heatmap_moment"]["nll_mean"]  # σ² = 4 is right
     assert "spearman_neg_confidence_vs_error" in test["learned"]
     assert json.dumps(report)  # JSON-ready
+
+
+# --- invariant 5: the C1/C2 set paths never read a label (audit must-fix, Phase 5) -------------
+
+
+def _scrambled(frames, seed: int = 0):
+    """A copy whose label fields (q_gt, t_gt, y_gt, include) are permuted and perturbed."""
+    rng = np.random.default_rng(seed)
+    order = rng.permutation(len(frames))
+    blind = frames.subset(np.arange(len(frames)))
+    object.__setattr__(blind, "q_gt", frames.q_gt[order] + 0.3)
+    object.__setattr__(blind, "t_gt", frames.t_gt[order] * 2.0 + 1.0)
+    object.__setattr__(blind, "y_gt", frames.y_gt[order] + 50.0)
+    object.__setattr__(blind, "include", ~frames.include[order])
+    return blind
+
+
+def _lb_fixture():
+    from test_level_b import GEOM, ORDER, _fixture
+
+    dump, labels, names = _fixture()
+    frames, _ = level_b.join_dump(dump, labels, names, GEOM, ORDER, cov_key="heatmap_cov_full")
+    return frames, GEOM, ORDER
+
+
+def test_c1_c2_sets_and_sigma_ignore_labels():
+    frames, geometry, order = _lb_fixture()
+    blind = _scrambled(frames)
+    sigma = level_c.pose_sigma(level_b.linearised_frames("C1", frames, geometry, order)[0])
+    sigma_b = level_c.pose_sigma(level_b.linearised_frames("C1", blind, geometry, order)[0])
+    for name in ("sigma_R", "sigma_t", "ok", "n_used"):
+        np.testing.assert_array_equal(getattr(sigma, name), getattr(sigma_b, name))
+    for q in (0.5, 3.0):
+        a, b = level_c.c2_set(frames, sigma, q), level_c.c2_set(blind, sigma_b, q)
+        np.testing.assert_array_equal(a.rot_radius, b.rot_radius)
+        np.testing.assert_array_equal(a.trans_radius, b.trans_radius)
+        np.testing.assert_array_equal(a.valid, b.valid)
+        ka, kb = level_b.keypoint_set("C1", frames, q), level_b.keypoint_set("C1", blind, q)
+        np.testing.assert_array_equal(ka.radius_px, kb.radius_px)
+        np.testing.assert_array_equal(ka.unconstrained, kb.unconstrained)
+
+
+def test_c2_sigma_undefined_frames_are_failure_atoms_in_resplits():
+    from poseconf.engine import level_a
+
+    frames, geometry, order = _lb_fixture()
+    sigma = level_c.pose_sigma(level_b.linearised_frames("C1", frames, geometry, order)[0])
+    # Knock out σ̂ on three solved frames, as |U| < 3 would.
+    knocked = np.flatnonzero(frames.valid)[:3]
+    for name in ("sigma_R", "sigma_t"):
+        getattr(sigma, name)[knocked] = np.nan
+    sigma.ok[knocked] = False
+    valid = frames.valid & sigma.ok
+    perms = np.stack([np.random.default_rng(i).permutation(len(frames)) for i in range(20)])
+    for convention in ("abstain_allowed", "answer_required"):
+        scores = level_c.c2_scores(frames, sigma, convention)
+        assert np.all(np.isinf(scores[knocked]))
+        draws = level_a.resplit_draws(
+            scores, valid, np.where(valid, sigma.sigma_R, np.nan), perms, 30, [0.2], convention
+        )
+        assert draws.n_covered.shape == (1, 20)
+        with pytest.raises(ValueError, match="inconsistent"):  # the PnP-only mask would miscount
+            level_a.resplit_draws(scores, frames.valid, sigma.sigma_R, perms, 30, [0.2], convention)

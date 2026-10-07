@@ -694,3 +694,30 @@ not a calibrated Gaussian.**
     the plausible cause, but this was not verified.
 - **Values.** The values are in [`results/level_c/variance_head_training.json`](../results/level_c/variance_head_training.json)
   (`diagnostics_val_tune`).
+
+## 2026-10-07 — Phase 5 audits: carried items
+
+`conformal-validity-auditor` on the Level C work (HEAD `9dee943`): **SOUND**, no critical findings.
+- **Closed (must-fix).**
+  - *Set paths never take labels; nothing enforced it.* The set and σ̂ paths receive a
+    `KeypointFrames` that also carries labels. `test_c1_c2_sets_and_sigma_ignore_labels` now
+    permutes and perturbs `q_gt`, `t_gt`, `y_gt` and `include`. It checks that σ̂, the C2 radii and
+    the C1 radii stay bit-identical. The auditor ran the same check on the real dumps.
+  - *Unlabelled reliability numbers in `variance_head_training.json`.* The file gains `definitions`
+    ("uncalibrated Gaussian reliability, not conformal coverage"), `crop_source:
+    gt_box_crop_cache_a0` and `oracle: false`. It also gets an `annotation` saying these are
+    labelling-only additions; no value changed. The training script now emits them itself.
+- **Closed (should-consider).**
+  - `test_c2_sigma_undefined_frames_are_failure_atoms_in_resplits` checks that σ̂-undefined frames
+    are failure atoms in the re-splits. A PnP-only mask raises. On synthetic, 0 solved frames have
+    an undefined σ̂, so C2's atom count equals Level A's.
+- **Carried.**
+  - *Beta KS.* It rejects in every cell (the sd is about 1.41× too narrow at n ≈ m), as documented
+    since Phase 2. Write-ups cite the law KS only.
+  - *answer_required, α ≤ 0.05.* These cells are reported as "set = whole space", not as coverage 1.
+  - *Validity JSON provenance.* `results/validity/*.json` overwrite `poseconf_git_sha` with the
+    coverage-check run's sha. The source result's sha is recoverable through
+    `source_result_sha256`. A separate field is a cleanup for Phase 8.
+  - *Disjointness of training and calibration frames.* `train` is disjoint from
+    `val_cal`/`val_test` because SPEED+ ships separate official splits. No runtime check enforces
+    it. Phase 8 can add a manifest-level assertion.

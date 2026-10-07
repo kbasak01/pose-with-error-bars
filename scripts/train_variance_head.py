@@ -55,6 +55,27 @@ from poseconf.provenance import (
 #: Committed summaries.
 RESULTS_DIR = Path("results") / "level_c"
 
+#: Labels for the metrics in the committed training summary (audit, Phase 5).
+DEFINITIONS = {
+    "nll": "2-D Gaussian NLL of the residual under the predicted covariance, nats per keypoint",
+    "coverage_1sigma": (
+        "fraction of residuals inside the predicted 1-sigma Mahalanobis ellipse: uncalibrated "
+        "Gaussian reliability (reference 0.393), not conformal coverage and not a guarantee"
+    ),
+    "coverage_2sigma": "as coverage_1sigma at 2 sigma (reference 0.865)",
+    "rescaled": (
+        "after one global covariance factor fitted on this same val_tune split (NLL-optimal); a "
+        "single factor does not calibrate the ellipses"
+    ),
+    "crops": (
+        "selection and diagnostics use P1's a0 eval crops around the GT box (crop cache, "
+        "margin_eval); deployment and Level C use predicted-box crops"
+    ),
+}
+
+#: Crop source of the selection / diagnostics crops (synthetic only; never a HIL label).
+SELECTION_CROP_SOURCE = "gt_box_crop_cache_a0"
+
 #: Synthetic-validation subsets selection must never see (CLAUDE.md invariant 3).
 _FORBIDDEN_SPLITS = ("synthetic_val_cal", "synthetic_val_test")
 
@@ -312,6 +333,9 @@ def main(argv: list[str] | None = None) -> int:
                     "selection": {"split": "val_tune", **val_counts},
                 },
                 "units": {"sigma": "crop px", "nll": "nats per keypoint (2-D)"},
+                "definitions": DEFINITIONS,
+                "crop_source": SELECTION_CROP_SOURCE,
+                "oracle": False,
                 **{key: value for key, value in summary.items() if key != "history"},
                 "history": summary["history"],
                 "diagnostics_val_tune": diagnostics,

@@ -181,7 +181,13 @@ camera frame, with z along the optical axis. Keypoints are in full-frame pixels.
 * **Valid when** the head is trained on `train` and selected on `val_tune` only; its P1
   coordinates must be bit-identical (invariant 10).
 * **Breaks when** head selection or early stopping looks at `val_cal`, `val_test` or HIL.
-* **Tests:** `test_registry_is_exactly_the_seven_scores`, `test_set_inverts_score_exactly[C1-*]`.
+* **Source (Phase 5).** Σ̂_k is `vhead_cov_full` from `dumps/<run>/<domain>_<arm>_vhead.npz`
+  (`scripts/dump_variance.py`). It is the head's crop-px covariance, mapped to the full frame like
+  B2's. Level C joins it with `level_b.join_dump(..., cov_key="vhead_cov_full")`. B2's
+  empty-channel rule applies.
+* **Tests:** `test_registry_is_exactly_the_seven_scores`, `test_set_inverts_score_exactly[C1-*]`,
+  `tests/test_variance_head.py` (bit-identity, frozen hash, PD), and
+  `test_c1_c2_sets_and_sigma_ignore_labels`.
 
 ## C2: pose, normalised by the linearised pose std
 
@@ -196,4 +202,13 @@ camera frame, with z along the optical axis. Keypoints are in full-frame pixels.
   (otherwise the function raises).
 * **Breaks when** σ̂ is rescaled using calibration residuals, or failed frames get a finite σ̂
   instead of being marked invalid.
-* **Tests:** `test_set_inverts_score_exactly[C2-*]`, `test_failures_follow_convention[C2]`.
+* **Source (Phase 5).** `engine/level_c.pose_sigma` computes
+  σ̂_R = √λ_max((H⁻¹)_ωω) and σ̂_t = √λ_max((H⁻¹)_tt), with H = Σ_k J_kᵀ Σ̂_k⁻¹ J_k. This is
+  Phase 4's q-free linearisation at the PnP estimate. It runs over keypoints visible under the
+  estimate and constrained, with C1's Σ̂_k. A solved frame with |U| < 3 or a singular H is invalid
+  for C2: it is a failure atom under either convention. Its count is reported per row
+  (`n_solved_sigma_undefined`).
+* **Tests:** `test_set_inverts_score_exactly[C2-*]`, `test_failures_follow_convention[C2]`,
+  `test_c2_undefined_sigma_follows_the_failure_convention`,
+  `test_c2_sigma_undefined_frames_are_failure_atoms_in_resplits`, and
+  `test_c1_c2_sets_and_sigma_ignore_labels`.

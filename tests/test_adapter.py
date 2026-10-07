@@ -360,3 +360,11 @@ def test_training_crops_are_p1_samples(local_paths) -> None:
         p1_adapter.keypoint_crop_dataset(
             "keypoint_a2", "validation", paths=local_paths, augmentation="a2", seed=1337
         )
+
+
+def test_wireframe_edges_index_the_11_keypoints() -> None:
+    from poseconf.p1_adapter import wireframe_edges
+
+    edges = wireframe_edges()
+    assert len(edges) == len(set(edges)) == 15
+    assert all(0 <= a < 11 and 0 <= b < 11 and a != b for a, b in edges)

@@ -265,6 +265,8 @@ def main(argv: list[str] | None = None) -> int:  # noqa: C901, PLR0912, PLR0915
     target_pools = set().union(*(_tagged(d, pool) for d, pool in pools.items()))
     if (fitting | target_pools) & evaluated:
         raise RuntimeError("a fitting, calibration or poolA frame is also an evaluation frame")
+    if set(names["fit_split"]) & set(names["calibration_split"]):
+        raise RuntimeError("val_tune and val_cal overlap")
 
     common_prov = {
         "poseconf_git_sha": poseconf_git_sha(),

@@ -82,6 +82,7 @@ __all__ = [
     "solve_chunks",
     "solve_frames",
     "solve_many_reference",
+    "wireframe_edges",
     "write_random_init_checkpoints",
 ]
 
@@ -1115,6 +1116,16 @@ def projection_geometry(run: str = "keypoint_a2", *, paths: P1Paths) -> Any:
         min_depth=float(p1_projection._MIN_DEPTH_M),
         max_normalised_radius=float(p1_projection._MAX_MONOTONIC_NORMALISED_RADIUS),
     )
+
+
+def wireframe_edges() -> tuple[tuple[int, int], ...]:
+    """P1's wireframe index pairs for drawing overlays (`speedpose.geometry.projection`).
+
+    Figures only: P1 states that nothing numeric depends on this constant.
+    """
+    from speedpose.geometry import projection as p1_projection
+
+    return tuple((int(a), int(b)) for a, b in p1_projection.WIREFRAME_EDGES)
 
 
 def p1_project(

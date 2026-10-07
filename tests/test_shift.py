@@ -439,3 +439,13 @@ def test_shift_matrix_end_to_end(local_paths, tmp_path) -> None:
         (out / "keypoint_a2_sunlamp_predicted_crop_oracle_target_labels_n25.json").read_text()
     )
     assert all(r["oracle"] and r["n_cal"] == 25 and len(r["draws"]) == 5 for r in oracle["rows"])
+
+
+def test_shift_figures_skip_without_results(tmp_path, capsys) -> None:
+    figures = _script("make_figures")
+    names = [name for name in figures.FIGURES if name.startswith("shift_")]
+    assert len(names) == 5
+    argv = ["--shift-dir", str(tmp_path / "none"), "--out-dir", str(tmp_path / "assets")]
+    for name in names:
+        with pytest.raises(figures.MissingInputs):
+            figures.main(["--figure", name, *argv])

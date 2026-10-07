@@ -427,3 +427,136 @@ precise `^\s*(from|import) speedpose` grep confirms `p1_adapter.py` is the only 
   `weighted_unlabeled_target` arms.
 - **L3 (note).** `load_eval_labels` parses the full HIL label JSON and arrays before slicing to the
   permitted rows. Only the slice is returned, so nothing leaks, but the guarantee is in the slicing.
+
+## 2026-10-07 — OpenCV in `conformal/propagate.py` only
+
+**Decision (user choice, Phase 4 planning).** `poseconf.conformal.propagate` imports `cv2`
+(`projectPoints` for the Jacobian, `solvePnP` for sampled propagation, `Rodrigues`). No other
+`conformal/` module may: `test_cv2_only_in_propagate` enforces this, and the torch-family ban is
+unchanged. The projection and its visibility rule stay numpy, as a port of P1's hand-rolled
+`project_points`, which P1 wrote because `cv2.projectPoints` mirrors points behind the camera.
+**Alternatives.** Keep `conformal/` numpy/scipy and put the cv2 calls in `engine/level_b.py`;
+use an analytic numpy Jacobian and a numpy Gauss–Newton PnP.
+**Reason.** The ship-deck port needs OpenCV for PnP anyway. Keeping the propagation in one module
+keeps it auditable. CLAUDE.md's "pure numpy/scipy" line still holds for every other conformal
+module.
+
+## 2026-10-07 — B2: an empty heatmap channel is an unconstrained keypoint
+
+**Decision (user choice).** `score_mahalanobis` / `set_mahalanobis` take an optional `unconstrained`
+(n, K) mask, which for B2 is `heatmap_empty`. Such a keypoint's set is the whole image. It is left out
+of the joint max, it needs no positive-definite covariance, and it drops out of the PURSE and the
+propagation. `radius_px` is `∞` on its frame.
+**Alternatives.** Treat the frame as a failure (±∞), which would break the shared answer rate with
+Level A. Floor the covariance, which leaves the keypoint at P1's decoded origin and makes the frame
+effectively uncovered.
+**Reason.** The network said "not found", so the set says "anywhere". The mask is a prediction, so
+the score stays label-free. The synthetic `predicted_crop` dump has 0 empty channels, so no Phase 4
+number depends on this rule. It is fixed now, before Phase 6 looks at any HIL frame.
+
+## 2026-10-07 — Level B label keypoints: P1's projection of the label pose
+
+**Observation.** P1's stored keypoint label product (`kp_gt_full`) differs from P1's own
+`project_points` of the label pose by up to 0.003 px on synthetic `val_cal ∪ val_test` (exact values
+per split in `checks.label_projection` of `results/level_b/*_synthetic.json`). The
+`pose-geometry-verifier` traced the gap to P1's label product being built from un-normalised
+quaternions. The visibility masks are identical.
+**Decision.** B1/B2 score against `propagate.project(quat_to_matrix(q_gt), t_gt)`, which is
+bit-identical to P1's `project_points`. `include` is P1's stored `in_frame`, and the join raises if
+it differs from the projection's visibility. The run fails if the gap to the stored product exceeds
+`level_b.label_projection_max_px` (0.01).
+**Reason.** PURSE membership projects candidate poses. Scoring against the same projection makes
+"label pose ∈ PURSE ⇔ joint score ≤ q" exact rather than true up to a 0.003 px boundary band.
+
+## 2026-10-07 — Pose-space extent: residual-aware linearised inner/outer and sampled inner
+
+**The PURSE is unbounded.** A pose that projects no constrained keypoint into the frame (behind the
+camera, far off-axis) meets no constraint, so it is a member at every q ≥ 0. Both auditors
+demonstrated this. Its global extent is therefore π in rotation and ∞ in translation. Every radius
+we report describes the PURSE *near the PnP estimate*, and the result definitions say so. This
+leaves "label pose ∈ PURSE ⇔ joint score ≤ q" and the PURSE's coverage untouched.
+**Alternative (not taken; a score-definition change).** Take the inclusion set from the estimate's
+visibility rather than the label's. That bounds the PURSE and stays label-free, but it changes
+B1/B2 away from the §1.3 inclusion rule.
+
+**Linearisation.** The tangent perturbation is the left one, `R = Exp(ω) R̂`, so ‖ω‖ is the
+geodesic angle. OpenCV's d/d(rvec) is mapped by `J_l(r̂)⁻¹`; translation is unchanged. U is the set
+of keypoints visible under the PnP estimate and not unconstrained, which is label-free. Unit shapes
+are S_k = Σ̂_k (B2) or d̂² I (B1).
+- Linearise around the PnP residual r_k = π_k(θ̂) − ŷ_k, which is predictions only. Then
+  Σ_k‖S_k^-½(r_k + J_k δ)‖² = (δ−δ*)ᵀH(δ−δ*) + c, with δ* = −H⁻¹g and c ≥ 0.
+- *Inner* radius √(‖o‖² + (q² − c)λ). It is attained in E_in = {sum ≤ q²}, which lies inside the
+  linearised PURSE. It is NaN when c > q².
+- *Outer* radius ‖o‖ + √((|U|q² − c)λ). It bounds E_out = {sum ≤ |U|q²}, which contains the
+  linearised PURSE. It is NaN when c > |U|q², i.e. the linearised PURSE is empty.
+- Both are labelled "approximation, not a bound". |U| < 3 or a numerically singular H gives ∞.
+- The first version assumed zero residual (inner q√λ, outer √|U|·q√λ). The `pose-geometry-verifier`
+  measured that the estimate lies outside its own PURSE on about 10 % of headline frames, where
+  that "inner" radius is not inner. The residual-aware form above reduces to the zero-residual
+  version when r = 0, and it replaced it before any number was committed. The fraction of
+  estimates inside their own PURSE, and residual/q, are reported for every row.
+
+**Sampled.** Draw M = 256 configurations uniform in each set (y = ŷ + q L u). Solve each with
+`cv2.solvePnP(SOLVEPNP_ITERATIVE, useExtrinsicGuess=True)` from the estimate, and keep only PURSE
+members.
+- It is an inner approximation of the PURSE's extent near the estimate. A frame where no sample is
+  accepted (mostly frames whose estimate is outside its PURSE) gets NaN and is counted in `n_nan`.
+- It runs at α = 0.10, both conventions, on all answered `val_test` frames, seeded per frame with
+  `SeedSequence([1337, score, convention, row])`.
+- The 50-frame pilot measured about 35 ms per frame, so the full run takes about 1.5 min on 16
+  workers. That is below the 20-minute threshold, so no subset is used.
+
+**Measured ball coverage.** We report E_R ≤ r_R ∧ ‖Δt‖ ≤ r_t on answered `val_test` frames, with a
+Clopper–Pearson interval, the answer rate, `n_nan`, `n_inf` and a NaN-as-uncovered variant. It is a
+measurement and carries no guarantee.
+
+**Alternatives.** A convex-program maximum over the intersection of cylinders (exact for the
+linearised set, but needs an SOCP solver); χ²-scaled radii, which presume a Gaussian that conformal
+sets do not have.
+
+## 2026-10-07 — Level B data roles, re-split reuse and result layout
+
+**Decision.** Level B's valid mask is PnP success, so it shares Level A's answer rate. B1/B2 fit
+nothing, so `val_tune` is not read. The re-split protocol is Phase 2's (R = 1,000, seed 1337,
+`resplit_coverage_law`, VALID/DEGENERATE/DEVIATES). `level_a.resplit_draws` gained `size_factor`
+and `summarise_draws` gained `size_name`; their defaults leave Level A's output unchanged.
+Outputs:
+- `results/level_b/<run>_<crop>_synthetic.json` (`kind: level_b`, rows score × convention × α with
+  `purse_agreement`) and `_resplits.npz`;
+- `_propagation.json` (`kind: level_b_propagation`, new kind), with definitions, linearised and
+  sampled radii, runtimes, and a Level A comparison. The comparison reads
+  `results/level_a/keypoint_a2_predicted_crop_synthetic.json` and records its SHA-256.
+
+The gate fails (exit 1) on any DEVIATES or on PURSE agreement below 1.0.
+
+## 2026-10-07 — Phase 4 audits: carried items
+
+`pose-geometry-verifier`: VERIFIED, no must-fix. `conformal-validity-auditor`: SOUND, no critical
+findings; its three must-fix items are closed.
+- **Closed (must-fix).**
+  - PURSE unboundedness is now stated in `propagate.py`, the result `definitions` and `docs/SCORES.md`.
+  - `measured_ball_coverage` now carries a CI, the answer rate, `n_total`, `n_nan` and `n_inf`.
+  - The label-projection number above is corrected to 0.003 px.
+- **Closed (should-consider).**
+  - The linearisation is residual-aware (entry above).
+  - `estimate_in_purse` and `residual_over_q` are reported per row.
+  - `n_vacuous` is reported per row: valid frames whose included keypoints are all unconstrained,
+    scored 0.
+  - `n_inf` is counted.
+  - The comparison note says the sampled medians exclude `n_nan`.
+  - `projection_geometry` refuses a P1 convention with `transpose_rotation: true`.
+  - The projection-parity test is bit-exact.
+- **Carried to Phase 6: B1 vs B2 on empty heatmap channels.** B2 treats an empty channel as
+  unconstrained. B1 does not: P1 decodes the channel to the crop origin, so a B1 frame with an
+  included empty keypoint is almost surely uncovered. Both are valid split CP. Synthetic has 0 empty
+  channels, so no Phase 4 number depends on it. On HIL the two scores will diverge for this reason
+  alone. Whether B1 should share the rule is a user decision before Phase 6; `n_vacuous` must be
+  read beside B2's HIL coverage.
+- **Notes.**
+  - The 100 % PURSE agreement holds by construction: same projection path, same error helper. It
+    confirms frame order, quaternion order and mask plumbing. The independent evidence is the exact
+    `in_frame` match and the ≤ 0.003 px gap to P1's stored label product.
+  - The npz column `*_median_kp_px` is filled from `ResplitDraws.median_rot_deg`. The value is
+    right (`size_factor = 1`); only the field name is generic.
+  - `so3.UNIT_NORM_TOL` (1e-3) is looser than P1's 1e-5. That is harmless for P1 outputs, which
+    are unit to 1e-15.

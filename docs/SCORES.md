@@ -135,13 +135,39 @@ camera frame, with z along the optical axis. Keypoints are in full-frame pixels.
 * **Set** (`set_mahalanobis`). Eleven ellipses `{y : (y − ŷ_k)ᵀ Σ̂_k⁻¹ (y − ŷ_k) ≤ q²}`. The
   reported size is the largest semi-axis `q·√λ_max` (`KeypointSet.radius_px`).
 * **Failures.** As B1.
+* **Unconstrained keypoints** (Phase 4, `unconstrained=`). A `heatmap_empty` channel has no
+  positive activation, so its moment covariance is zero. P1 decodes that channel to the crop
+  origin. The keypoint is *unconstrained*: its set is the whole image, it is left out of the max,
+  and it drops out of the PURSE and the propagation. The mask is a prediction, so the score stays
+  label-free and split CP stays valid. `radius_px` is `∞` on a frame with such a keypoint. The
+  synthetic `predicted_crop` dump has none.
 * **Valid when** Σ̂ is a function of the prediction alone; it needs no calibration of its own,
   because the conformal q absorbs any scale error. Σ̂ must be symmetric positive-definite on every
-  valid frame, otherwise the function raises.
+  constrained keypoint of a valid frame, otherwise the function raises.
 * **Breaks when** the crop-to-full-frame mapping uses the GT box, or Σ̂ is regularised using
   residuals from `val_cal`.
 * **Tests:** `test_keypoint_scores`, `test_non_pd_covariance_raises`,
-  `test_set_inverts_score_exactly[B2-*]`.
+  `test_set_inverts_score_exactly[B2-*]`, `test_unconstrained_keypoints_leave_the_joint_max`.
+
+## PURSE and pose-space extent (Phase 4, `conformal/propagate.py`)
+
+* **PURSE.** For B1 or B2 at quantile q, the PURSE is the set of poses θ such that every keypoint
+  θ projects into the full frame (P1's `visible` rule), other than unconstrained ones, lies in its
+  set. For the label pose, "visible under θ" is exactly the inclusion mask. So the label pose is in
+  the PURSE iff the joint score is ≤ q, and the PURSE inherits B1/B2's coverage.
+  `PurseSet.contains` uses the score's own error helper. The label keypoints are P1's
+  `project_points` applied to the label pose, through the same `quat_to_matrix` path. The
+  equivalence therefore holds bit-for-bit, and it is checked on every `val_test` row.
+* **The PURSE is unbounded.** A pose that projects no constrained keypoint into the frame meets
+  no constraint, so it is a member at every q ≥ 0. Its global extent is therefore π / ∞. Every
+  radius describes the PURSE *near the PnP estimate*.
+* **Linearised extent** (inner and outer), residual-aware about the estimate. This is an
+  approximation, not a bound.
+* **Sampled extent.** This is an inner approximation, a lower bound on the PURSE's extent near the
+  estimate.
+* Neither extent is a coverage guarantee for a pose ball. `measured_ball_coverage` in the results
+  is measured, nothing more. Definitions: `results/level_b/*_propagation.json`, field
+  `definitions`.
 
 ## C1: keypoints, B2 with the learned variance head
 

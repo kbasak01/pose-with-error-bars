@@ -167,3 +167,20 @@ reporting:
     gt_range_tertiles: true
     gt_bbox_iou_bins: [0.0, 0.5, 0.8, 1.0]
     confidence_quintiles: true
+
+calibration:               # Phase 7: deployable ConformalPoseHead artifacts (conformal/head.py)
+  run: keypoint_a2
+  crop_source: predicted_crop
+  arm: split
+  calibration_split: synthetic_val_cal
+  test_split: synthetic_val_test         # --verify replays it through the head
+  alpha: 0.10                            # headline alpha; quantiles copied from committed rows
+  scores: [A1, A2, A3, B1, C1, C2]       # B2 needs heatmap moments the ONNX graph does not emit
+  sources:                               # the committed result each score's row is read from
+    A1: results/level_a/keypoint_a2_predicted_crop_synthetic.json
+    A2: results/level_a/keypoint_a2_predicted_crop_synthetic.json
+    A3: results/level_a/keypoint_a2_predicted_crop_synthetic.json
+    B1: results/level_b/keypoint_a2_predicted_crop_synthetic.json
+    C1: results/level_c/keypoint_a2_predicted_crop_synthetic.json
+    C2: results/level_c/keypoint_a2_predicted_crop_synthetic.json
+  out_dir: results/calibration

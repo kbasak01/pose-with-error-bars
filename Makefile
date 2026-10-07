@@ -1,4 +1,4 @@
-.PHONY: lint test smoke splits level-a dump parity-p1 level-b train-var-smoke train-var dump-var level-c shift-matrix tables figures export bench verify-p1
+.PHONY: lint test smoke splits level-a dump parity-p1 level-b train-var-smoke train-var dump-var level-c shift-matrix tables figures calibration export parity-onnx bench verify-p1
 
 # Use the project venv when it exists, otherwise whatever is on PATH (CI has no .venv).
 VENV   := $(wildcard .venv/bin)
@@ -30,6 +30,8 @@ dump-var:
 	@echo "  $(PY) scripts/dump_variance.py --variance-head runs/vhead_a2_s1337/best.pt --all-domains --all-arms --device cuda --tf32 off"
 level-c: ; $(PY) scripts/run_level_c.py --config configs/conformal.yaml
 shift-matrix: ; $(PY) scripts/run_shift_matrix.py --config configs/conformal.yaml
+# Phase 7. Artifacts from committed rows; --verify replays val_test through the head (needs dumps).
+calibration: ; $(PY) scripts/build_calibration.py --verify
 tables:  ; $(PY) scripts/make_tables.py
 figures: ; $(PY) scripts/make_figures.py --figure all
 export:  ; $(PY) scripts/export_onnx.py --config configs/variance_head.yaml --fp16

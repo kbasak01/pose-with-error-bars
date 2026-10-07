@@ -1,0 +1,34 @@
+{
+  "schema": "poseconf.calibration.v1",
+  "calibration_id": "f6af38a2af244f108076378254e75e98dec67c14e21c01f104815cb8225e4298",
+  "payload": {
+    "score_id": "C1",
+    "score_version": 1,
+    "alpha": 0.1,
+    "convention": "answer_required",
+    "quantile": 4.439387761635582,
+    "n_cal": 4798,
+    "normalisers": {},
+    "quaternion_order": "scalar_first",
+    "geometry": null,
+    "locks": {
+      "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+      "variance_head_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c"
+    },
+    "context": {
+      "run": "keypoint_a2",
+      "crop_source": "predicted_crop",
+      "arm": "split",
+      "calibration_subset": "synthetic_val_cal",
+      "domain": "synthetic"
+    }
+  },
+  "provenance": {
+    "source_result": "results/level_c/keypoint_a2_predicted_crop_synthetic.json",
+    "source_result_sha256": "8a797295980e300c6226be75a41b7636989872b44d9cc9b78b1698dd47ab15e0",
+    "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "poseconf_git_sha": "1f86c797a3a6adc64486b899e5547302856f0a4e-dirty",
+    "created_at": "2026-10-07T19:48:33Z"
+  }
+}

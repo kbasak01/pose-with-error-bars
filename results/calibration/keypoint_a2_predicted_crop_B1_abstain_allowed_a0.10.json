@@ -1,0 +1,34 @@
+{
+  "schema": "poseconf.calibration.v1",
+  "calibration_id": "d31ba4a1f44d879f2d64152d8fa790e71889cbc58cdbeafcd56e3fc8b1ffc919",
+  "payload": {
+    "score_id": "B1",
+    "score_version": 1,
+    "alpha": 0.1,
+    "convention": "abstain_allowed",
+    "quantile": 0.023804958963357166,
+    "n_cal": 4798,
+    "normalisers": {},
+    "quaternion_order": "scalar_first",
+    "geometry": null,
+    "locks": {
+      "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+      "variance_head_sha256": null
+    },
+    "context": {
+      "run": "keypoint_a2",
+      "crop_source": "predicted_crop",
+      "arm": "split",
+      "calibration_subset": "synthetic_val_cal",
+      "domain": "synthetic"
+    }
+  },
+  "provenance": {
+    "source_result": "results/level_b/keypoint_a2_predicted_crop_synthetic.json",
+    "source_result_sha256": "985401064ead13d0ba55b674059b68820e232225bc59b04e16d5b7e2ffc13d12",
+    "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "poseconf_git_sha": "1f86c797a3a6adc64486b899e5547302856f0a4e-dirty",
+    "created_at": "2026-10-07T19:48:33Z"
+  }
+}

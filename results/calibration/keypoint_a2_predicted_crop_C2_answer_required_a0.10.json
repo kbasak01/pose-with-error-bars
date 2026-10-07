@@ -1,0 +1,120 @@
+{
+  "schema": "poseconf.calibration.v1",
+  "calibration_id": "f57a088c14cbcd8919cf0c91842be4523e639dc7b925ac93a162a444521724aa",
+  "payload": {
+    "score_id": "C2",
+    "score_version": 1,
+    "alpha": 0.1,
+    "convention": "answer_required",
+    "quantile": 5.397340787141771,
+    "n_cal": 4798,
+    "normalisers": {},
+    "quaternion_order": "scalar_first",
+    "geometry": {
+      "wireframe": [
+        [
+          -0.37,
+          -0.385,
+          0.3215
+        ],
+        [
+          -0.37,
+          0.385,
+          0.3215
+        ],
+        [
+          0.37,
+          0.385,
+          0.3215
+        ],
+        [
+          0.37,
+          -0.385,
+          0.3215
+        ],
+        [
+          -0.37,
+          -0.264,
+          0.0
+        ],
+        [
+          -0.37,
+          0.304,
+          0.0
+        ],
+        [
+          0.37,
+          0.304,
+          0.0
+        ],
+        [
+          0.37,
+          -0.264,
+          0.0
+        ],
+        [
+          -0.5427,
+          0.4877,
+          0.2535
+        ],
+        [
+          0.5427,
+          0.4877,
+          0.2591
+        ],
+        [
+          0.305,
+          -0.579,
+          0.2515
+        ]
+      ],
+      "camera_matrix": [
+        [
+          2988.5795163815555,
+          0.0,
+          960.0
+        ],
+        [
+          0.0,
+          2988.3401159176124,
+          600.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "distortion": [
+        -0.22383016606510672,
+        0.5140979708910638,
+        -0.0006649961199834066,
+        -0.00021404771667484594,
+        -0.13124227429077406
+      ],
+      "width": 1920,
+      "height": 1200,
+      "min_depth": 1e-09,
+      "max_normalised_radius": 1.6
+    },
+    "locks": {
+      "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+      "variance_head_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c"
+    },
+    "context": {
+      "run": "keypoint_a2",
+      "crop_source": "predicted_crop",
+      "arm": "split",
+      "calibration_subset": "synthetic_val_cal",
+      "domain": "synthetic"
+    }
+  },
+  "provenance": {
+    "source_result": "results/level_c/keypoint_a2_predicted_crop_synthetic.json",
+    "source_result_sha256": "8a797295980e300c6226be75a41b7636989872b44d9cc9b78b1698dd47ab15e0",
+    "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "poseconf_git_sha": "1f86c797a3a6adc64486b899e5547302856f0a4e-dirty",
+    "created_at": "2026-10-07T19:48:33Z"
+  }
+}

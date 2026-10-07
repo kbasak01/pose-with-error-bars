@@ -68,6 +68,20 @@ def test_no_forbidden_imports_in_conformal() -> None:
     assert not offenders, f"framework imports in poseconf.conformal: {offenders}"
 
 
+#: OpenCV is allowed in exactly one conformal module: PnP and the projection Jacobian live there
+#: (docs/DECISIONS.md, 2026-10-07). Every other module stays numpy/scipy.
+CV2_ALLOWED = {"propagate.py"}
+
+
+def test_cv2_only_in_propagate() -> None:
+    users = sorted(
+        path.name
+        for path in CONFORMAL_DIR.rglob("*.py")
+        if any(name.split(".")[0] == "cv2" for name in _imports(path))
+    )
+    assert set(users) <= CV2_ALLOWED, f"cv2 imported outside propagate.py: {users}"
+
+
 def test_importing_conformal_does_not_load_torch() -> None:
     modules = sorted(f"poseconf.conformal.{p.stem}" for p in CONFORMAL_DIR.glob("*.py"))
     code = (

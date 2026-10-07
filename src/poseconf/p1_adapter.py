@@ -70,7 +70,9 @@ __all__ = [
     "p1_result_counts",
     "pose_errors",
     "pose_quaternion_order",
+    "p1_project",
     "project_keypoints",
+    "projection_geometry",
     "solve_chunks",
     "solve_frames",
     "solve_many_reference",
@@ -1050,6 +1052,82 @@ def project_keypoints(
         np.asarray(t, dtype=np.float64),
         load_camera(camera_json),
         apply_distortion=convention.apply_distortion,
+    )
+
+
+def projection_geometry(run: str = "keypoint_a2", *, paths: P1Paths) -> Any:
+    """P1's wireframe, camera and projection constants as a `conformal.propagate.CameraGeometry`.
+
+    Reads P1's wireframe, `camera.json` (via the local paths) and pose convention with P1's own
+    loaders, plus P1's `_MIN_DEPTH_M` and `_MAX_MONOTONIC_NORMALISED_RADIUS`, so the numpy
+    projection in `propagate` applies exactly P1's visibility rule. Distortion is None when P1's
+    convention does not apply it.
+
+    Args:
+        run: P1 config naming the wireframe and convention.
+        paths: Local paths from `p1_paths()`.
+
+    Returns:
+        A `poseconf.conformal.propagate.CameraGeometry`.
+    """
+    from speedpose.geometry import projection as p1_projection
+    from speedpose.geometry.camera import load_camera
+    from speedpose.geometry.conventions import load_convention
+
+    from poseconf.conformal.propagate import CameraGeometry
+
+    block = load_p1_config(run, paths=paths)["paths"]
+    convention = load_convention(block["pose_convention"])
+    camera = load_camera(block["camera_json"])
+    if convention.apply_distortion and camera.distortion is None:
+        raise ValueError("P1's convention applies distortion but camera.json declares none")
+    return CameraGeometry(
+        wireframe=np.asarray(p1_projection.load_wireframe(block["wireframe"]), dtype=np.float64),
+        camera_matrix=np.asarray(camera.matrix, dtype=np.float64),
+        distortion=(
+            np.asarray(camera.distortion, dtype=np.float64).reshape(-1)[:5]
+            if convention.apply_distortion
+            else None
+        ),
+        width=int(camera.width),
+        height=int(camera.height),
+        min_depth=float(p1_projection._MIN_DEPTH_M),
+        max_normalised_radius=float(p1_projection._MAX_MONOTONIC_NORMALISED_RADIUS),
+    )
+
+
+def p1_project(
+    geometry: Any, rotation: NDArray[np.float64], translation: NDArray[np.float64]
+) -> tuple[NDArray[np.float64], NDArray[np.bool_]]:
+    """P1's `project_points` for one pose with a `CameraGeometry`'s camera (a parity reference).
+
+    Args:
+        geometry: A `poseconf.conformal.propagate.CameraGeometry` (no skew).
+        rotation: (3, 3) body -> camera rotation.
+        translation: (3,) translation, metres.
+
+    Returns:
+        `(points, visible)` exactly as P1 computes them.
+    """
+    from speedpose.geometry.camera import CameraIntrinsics
+    from speedpose.geometry.projection import project_points
+
+    k = geometry.camera_matrix
+    intrinsics = CameraIntrinsics(
+        fx=float(k[0, 0]),
+        fy=float(k[1, 1]),
+        cx=float(k[0, 2]),
+        cy=float(k[1, 2]),
+        width=int(geometry.width),
+        height=int(geometry.height),
+        distortion=None if geometry.distortion is None else np.asarray(geometry.distortion),
+    )
+    return project_points(
+        geometry.wireframe,
+        np.asarray(rotation, dtype=np.float64),
+        np.asarray(translation, dtype=np.float64),
+        intrinsics,
+        apply_distortion=geometry.distortion is not None,
     )
 
 

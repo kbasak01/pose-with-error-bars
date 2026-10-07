@@ -9,7 +9,7 @@
 | 4 Level B | **complete** 2026-10-07 | B1/B2 × 2 conventions × 8 α: 26 VALID, 6 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES against the exact re-split law, R = 1,000. PURSE(label pose) ≡ joint coverage on 142,528/142,528 checks. α = 0.10 abstain_allowed, B2: coverage 0.8985 [0.8896, 0.9069]; sampled rotation radius (median) 2.93° vs A1 2.33° ([`results/level_b/`](../results/level_b/)). `pose-geometry-verifier` VERIFIED, `conformal-validity-auditor` SOUND | `phase-4-complete` |
 | 5 Variance head | **complete** 2026-10-07 | P1 coordinates bit-identical with the head (tests + sidecar dumps, 6/6 cells); `uncertainty-head-diagnostician` TRUSTWORTHY. C1/C2 × 2 conventions × 8 α: 26 VALID, 6 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES, R = 1,000. `val_test` NLL learned Σ̂ 3.054 vs heatmap moment 5.432 nats/keypoint; set size mixed (C1 vs B2 at α = 0.10: 20.0 vs 16.4 px abstain_allowed, 25.6 vs 30.8 px answer_required) ([`results/level_c/`](../results/level_c/)). `conformal-validity-auditor` SOUND | `phase-5-complete` |
 | 6 Coverage under shift ⭐ | **complete** 2026-10-07 | 54 domain × crop × arm cells: 38 written (4,256 rows), 16 explained, 0 unexplained ([`results/shift/index.json`](../results/shift/index.json)). A1, `split`, α = 0.10, `abstain_allowed`, predicted_crop: synthetic 0.8941 [0.8850, 0.9027] (n = 4,797), lightbox 0.6596 [0.6434, 0.6756] (n = 3,370), sunlamp 0.8918 [0.8744, 0.9076] (n = 1,396; answer rate 0.125, coverage given answered 0.137) ([`results/shift/`](../results/shift/)). Weighted CP: AUC 0.983 / 0.998, ESS 1.04 / 1.60 of 4,798, sets ∞. `split-leakage-auditor` clean, `conformal-validity-auditor` SOUND | `phase-6-complete` |
-| 7 Head, ONNX, latency | not started | | |
+| 7 Head, ONNX, latency | **complete** 2026-10-07 | `ConformalPoseHead`: 12 hash-locked artifacts (A1–A3, B1, C1, C2 × 2 conventions, α = 0.10); a `val_test` replay reproduces every committed row's n_covered and n_answered ([`results/calibration/index.json`](../results/calibration/index.json)). ONNX opset 17, no forbidden ops ([`results/export/onnx_export.json`](../results/export/onnx_export.json)). Parity, fp32 with TF32 off: `cov_chol` max abs Δ 2.86e-3, so the 1e-4 gate is **unmet** and reported; C1 set radius relative max 6.95e-5; fp16 not faithful ([`results/export/onnx_parity.json`](../results/export/onnx_parity.json)). Frame budget, ORT CUDA fp32: total p50 14.64 → 16.28 ms with uncertainty ([`results/latency/frame_budget.json`](../results/latency/frame_budget.json)). `conformal-validity-auditor` SOUND, `onnx-parity-auditor` EXPORT VALID | `phase-7-complete` |
 | 8 Validation sweep | not started | | |
 | 9 Publication | not started | | |
 
@@ -363,4 +363,73 @@ Update at the end of each phase via `/phase-gate N`.
     a new design choice, and must not be tuned on HIL.
   - The `keypoint_a1` robustness run is not dumped.
   - Sunlamp answered n is small (175 on poolB).
+
+## Phase 7 — Head, ONNX, latency (complete, 2026-10-07)
+
+- **`ConformalPoseHead`** (`conformal/head.py`, numpy only).
+  - One JSON artifact per score × convention at α = 0.10, built by `scripts/build_calibration.py`
+    from the committed Level A/B/C rows. Quantile, n_cal and normalisers are copied, not
+    recomputed.
+  - Each artifact is locked to the SHA-256 of the P1 keypoint, detector and (C1/C2) variance-head
+    checkpoints, and carries the P1 commit and PnP config.
+  - The loader refuses:
+    - a mismatched checkpoint;
+    - an edited payload (`calibration_id`);
+    - an unknown schema or score version;
+    - an invalid payload.
+  - B2 is not deployable: the graph does not output heatmap moments.
+  - **Replay.** Each artifact was replayed frame by frame through `predict` on `val_test` (n = 4,797).
+    All 12 reproduce their committed row exactly; for example, C2 `answer_required` covers 4,320,
+    with 4,454 answered ([`results/calibration/index.json`](../results/calibration/index.json)).
+  - **Tests.** Round trip, hash and payload refusals, and frame-by-frame equivalence with the batch
+    evaluation (`metrics.outcomes`, bit-identical radii) for all 6 scores × 2 conventions, in
+    `tests/test_conformal_head.py`.
+- **Export** ([`results/export/onnx_export.json`](../results/export/onnx_export.json)).
+  - The variance graph maps `images` to `coords, confidence, cov_chol, keypoint_empty`. It goes
+    through P1's `export_model`: opset 17, fp32 and fp16, no ArgMax/TopK/NonZero, dynamic batch
+    only.
+  - P1's `keypoint_a2` graph (the head-off baseline) and the detector were re-exported from the
+    pinned checkpoints into gitignored `exports/`.
+  - `keypoint_empty` replaces `heatmaps` so that C1/C2's empty-channel rule survives deployment
+    (`docs/DECISIONS.md`).
+- **Parity** ([`results/export/onnx_parity.json`](../results/export/onnx_parity.json)): 512
+  `val_test` crops; torch fp32 vs ORT CUDA, TF32 off on both sides.
+
+  | backend | `cov_chol` max abs Δ (p99) | C1 radius rel. Δ max (p99) | fp32 gate 1e-4 |
+  |---|---|---|---|
+  | ORT CUDA fp32 | 2.86e-3 (1.29e-5) | 6.95e-5 (4.74e-6) | **unmet** |
+  | CPU control (256 crops) | 7.02e-4 (1.07e-5) | 1.76e-5 (9.88e-6) | **unmet** |
+  | ORT CUDA fp16 | 3.54 (0.0234) | 0.0831 (0.0169) | unmet (P1's fp16 relaxation 5e-2) |
+
+  - The gate is not moved (invariant 11).
+  - TF32 and cuDNN are ruled out as causes by the CPU control and P1's four-cell ablation; the
+    mechanism is a hypothesis (`docs/DECISIONS.md`).
+  - `keypoint_empty` has 0 mismatches, but no parity crop has an empty channel.
+  - `coords` (P1's outputs, inherited unmet gate): max 6.1e-3 px with TF32 off. P1's committed
+    record gives 3.23 px with TF32 on.
+  - fp16 is not a deployment option for the variance outputs.
+- **Latency** ([`results/latency/`](../results/latency/)). Every table carries the A4000 caveat:
+  these absolute numbers do not transfer to a Jetson.
+  - **Keypoint stage, batch 1, p50 head off → on:**
+    - TensorRT fp32: 1.128 → 1.289 ms;
+    - CUDA fp32: 1.891 → 2.102 ms.
+    - TensorRT runs each graph as 1 TRT node; engine builds take 12–14.5 s.
+  - **Post-process on CPU, p50:**
+    - `predict`: C1 0.112 ms, C2 0.640 ms (C2 includes the linearisation);
+    - linearised propagation alone: 0.573 ms;
+    - sampled propagation, which is offline only: 2.44 / 7.48 / 26.7 ms at M = 16 / 64 / 256.
+  - **Full frame** (P1's frame budget, predicted crop, ORT CUDA fp32), head off → head on with C1 + C2:
+    - total p50: 14.64 → 16.28 ms;
+    - total p99: 65.26 → 66.05 ms;
+    - uncertainty stage: 0.97 / 1.17 ms (p50 / p99);
+    - PnP still dominates the p99 (49.45 ms head off).
+- **Audits.**
+  - `conformal-validity-auditor`: SOUND. Both must-fix items are closed: C2 covariance validation,
+    and the detector lock.
+  - `onnx-parity-auditor`: EXPORT VALID, with no blocking issues. Its notes are closed in
+    `docs/DECISIONS.md`.
+- **Carried into Phase 8.**
+  - VALIDATION_CHECKLIST G2 is **unmet** (fp32 variance tensor parity) and must be recorded as such.
+  - The empty-channel export path has not been exercised on a real empty channel.
+  - The fp16 frame-budget keypoint stage is slower than fp32, and the cause is not established.
 

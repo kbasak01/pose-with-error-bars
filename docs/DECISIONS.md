@@ -330,3 +330,82 @@ numbers), so cells are correlated with each other; each cell's test is valid on 
   one split, so they are correlated, and are consistent with the re-split law. Any README sentence
   quoting a fixed-split coverage cites `fixed_split_law_cdf` beside it. The split is not changed
   (invariant 3).
+
+## 2026-10-07 — Phase 3 dump calls P1's stages in P1's batch and chunk order
+
+**Decision.** `poseconf.data.dump.run_dump` calls `PosePipeline.prepare_frame`, `detect_boxes`,
+`crop_one`, `normalise_crop` and `keypoints`, then `engine.pose.solve_single` (through
+`p1_adapter.solve_frames`), in the order and batch size P1's `_evaluate_through_pipeline` uses:
+detect and keypoint batches of `train.batch_size` = 48, one PnP pass over the whole domain.
+`solve_frames` reproduces `solve_many`'s chunking exactly: `min(num_workers, cpu_count)` chunks
+from `np.linspace`, chunk i seeded `cv2.setRNGSeed(1337 + i)`, sequential below 256 frames.
+**Alternatives.** Call `solve_many` itself (needs GT poses, so it is not label-free on HIL, and it
+drops the rotation matrix); solve sequentially with one seed.
+**Reason.** RANSAC draws from OpenCV's process-global RNG, so a frame's solve depends on its chunk.
+`tests/test_dump.py::test_solve_frames_equals_p1_solve_many` pins bit-equality with `solve_many`
+on 320 frames in 4 chunks. An uncroppable box is carried through exactly as P1 does (blank crop,
+identity affine, solved, then charged as "detector box was degenerate").
+
+## 2026-10-07 — Dump `gt_crop` is P1's `pipeline_gt_crop`; tagged `oracle_gt_box` on HIL
+
+**Decision.** The dump's `gt_crop` arm feeds the tight GT box through the pipeline, which is P1's
+`pipeline_gt_crop` code path; its parity reference is `*_pipeline_gt_crop_samples.npz`, not P1's
+crop-cache `gt_crop`. On lightbox/sunlamp its input box is a test label, so the arm's tag is
+`oracle_gt_box` and it reads GT boxes under that tag. The box column is named `bbox_used`
+(P1's name) rather than the plan's `bbox_pred`, because on this arm it is not a prediction.
+
+## 2026-10-07 — HIL labels in Phase 3: strict split, label-free parity on poolA
+
+**Decision (user choice, Phase 3 planning).** Prediction files are label-free. Ground truth goes
+to separate label files: `synthetic_labels.npz`, and per HIL domain `<d>_labels_poolA.npz` and
+`<d>_labels_poolB.npz`, split by the committed manifests. `load_dump_labels` refuses poolA unless
+the tag starts with `oracle_`; poolA labels are written under the tag `oracle_target_labels`, the
+only arms that will read them. Parity recomputes `e_r`/`e_t` on synthetic and HIL **poolB** only.
+On HIL poolA the gate uses the label-free bound angle(q̂_dump, q̂_P1) ≥ |e_r(q̂_dump) − e_r(q̂_P1)|
+(triangle inequality on SO(3)), which is the stronger check. `p1_adapter.load_sidecar` now returns
+label-derived HIL columns only for poolB frames or an `oracle_*` tag, and `p1_result_counts` reads
+only solve counts from P1's results JSON. This is the code-level guard leakage item W1 asked for,
+on the sidecar and label paths; Phase 6 still re-audits the weighted/oracle paths (W2).
+**Alternatives.** Read HIL labels for every frame under a documented exemption; defer HIL dumps.
+**Reason.** Invariant 4, without weakening the gate.
+
+## 2026-10-07 — Heatmap moments: the soft-argmax refine distribution
+
+**Decision.** `heatmap_cov_*` is the second central moment of `relu(h)^2 · window / sum`, the exact
+distribution P1's two-pass `SoftArgmax2d` takes its coordinate from (locate with `relu^8`, Gaussian
+window σ = 4 hm px). Both centroids go through the head's own `_centroid`, and the dump raises if
+the mean departs from P1's coordinate by more than `dump.moment_mean_tol_crop_px` on any non-empty
+channel. Covariance maps hm px → crop px (× stride²) → full frame (`L Σ Lᵀ`, L = linear part of
+P1's inverse affine). `heatmap_entropy` is the Shannon entropy (nats) of the whole normalised
+`relu(h)`. `heatmap_peak` is the raw max and equals P1's confidence by P1's definition (tested).
+A channel with no positive activation decodes to the origin in P1. It gets `heatmap_empty = True`
+and a zero covariance, and B2 must treat it explicitly.
+**Alternatives.** The moment of the unwindowed map; a fitted Gaussian.
+**Reason.** B2's ellipse should describe the spread of the distribution that produced the point,
+centred on that point. The window shrinks the variance (precisions add: σ² = 1/(1/σ_h² + 1/σ_w²)),
+which `test_moment_covariance_of_a_known_gaussian` pins.
+
+## 2026-10-07 — Decoder features for a 256-frame subset only
+
+**Decision (user choice).** Full decoder maps (input to the final 1×1 conv, 256×64×64, fp16) and raw
+heatmaps are stored for a fixed 256-frame subset per domain (`default_rng(1337)`, sorted, the same
+frames in both arms) in `<domain>_<arm>_subset.npz`. The pooled 512-d encoder feature is stored
+for every frame. Hooks are forward hooks returning None. `test_hooks_leave_p1_outputs_bit_identical`
+checks that coordinates and confidence are unchanged.
+**Reason.** 2 MB per frame for all frames is ~90 GB with no Phase 4–6 consumer. Phase 5 runs the
+frozen trunk live.
+
+## 2026-10-07 — `p1_keypoint_labels` local path; result kind `dump_summary`
+
+**Decision.** `configs/paths.local.yaml` gains the optional `p1_keypoint_labels`, P1's Phase 2d
+label products. It closes the "crop_cache/keypoint_labels stay removed until Phase 3" note above:
+labels are needed (frame order, GT boxes, keypoint inclusion), and the crop cache is still not.
+`results/dump_summary.json` uses `kind: dump_summary`, one cell per domain × arm, with the gate
+criteria per cell and the dumps' SHA-256 and runtime in provenance. Dumps never enter git.
+
+## 2026-10-07 — I run the Phase 3 GPU dump myself, on the user's instruction
+
+**Decision.** CLAUDE.md says long GPU jobs are run by the user. For Phase 3 the user explicitly asked
+me to generate the commands and run them. The dump ran as a background job with TF32 disabled
+(`cuda.matmul.allow_tf32 = cudnn.allow_tf32 = False`) and `cudnn.benchmark = False`. The flags are
+recorded in every dump's meta and in `dump_summary.json`.

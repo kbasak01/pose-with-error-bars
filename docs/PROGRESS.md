@@ -155,7 +155,7 @@ Update at the end of each phase via `/phase-gate N`.
   - The valid mask is PnP success, so the answer rate is 0.9285, the same as Level A.
   - `val_tune` is not read, because B1/B2 fit nothing. No HIL file is opened.
 - **Checks** ([`results/level_b/keypoint_a2_predicted_crop_synthetic.json`](../results/level_b/keypoint_a2_predicted_crop_synthetic.json),
-  `checks`, generated at `16d1241`):
+  `checks`, generated at `c4e3b47`):
   - The stored full-frame covariances equal `crop_cov_to_full`, with max relative difference 0.0.
   - The projected label pose has the same visibility as P1's `in_frame`. It sits within 0.0030 px
     (`val_test`) and 0.0025 px (`val_cal`) of P1's stored label keypoints.
@@ -196,8 +196,8 @@ Update at the end of each phase via `/phase-gate N`.
   - The PnP estimate lies inside its own PURSE on 0.906 (B1) and 0.900 (B2) of answered frames
     under `abstain_allowed`. That residual is why the linearisation is residual-aware.
 - **Runtime per frame** (CPU, p50):
-  - Linearised: 0.33 ms.
-  - Sampled, M = 256: 34.7–42.2 ms, with p99 ≤ 83.5 ms. A full pass takes 14–17 s on 16 workers.
+  - Linearised: 0.33–0.34 ms.
+  - Sampled, M = 256: 34.5–40.6 ms, with p99 ≤ 80.8 ms. A full pass takes 14–17 s on 16 workers.
   - Sampled is offline only.
 - **Measured pose-ball coverage** (no guarantee; answered frames, with CI, in the propagation JSON):
   - B2 `abstain_allowed`: linearised inner 0.877, sampled 0.990 on frames with an accepted sample.

@@ -1,0 +1,3802 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "level_b_propagation",
+  "run": "keypoint_a2",
+  "domain": "synthetic",
+  "subset": "synthetic_val_test",
+  "crop_source": "predicted_crop",
+  "arm": "split",
+  "oracle": false,
+  "definitions": {
+    "purse": "poses whose keypoints visible under the pose (P1's rule) and constrained lie in their sets; the label pose is a member iff the joint keypoint score <= q. The PURSE is unbounded: a pose projecting no constrained keypoint into the frame is a member at any q >= 0, so its global extent is pi / infinite. Every radius below describes the PURSE near the PnP estimate",
+    "linearised_inner": "first order about the PnP estimate over keypoints U visible under it, residual-aware: sqrt(||o||^2 + (q^2 - c) lambda), o = block of delta* = -H^-1 g, c = residual floor, lambda = lambda_max of the (H^-1) block; reached or exceeded by a point of the inner ellipsoid (sum_k Mahalanobis^2 <= q^2) inside the linearised PURSE, so a loose lower estimate of the linearised extent. NaN when c > q^2; those frames (n_nan, the high-residual ones) are excluded from the radius summaries, which therefore describe a selected subset. Approximation (linearisation, fixed U), not a bound",
+    "linearised_outer": "||o|| + sqrt((|U| q^2 - c) lambda): bounds the extent of the ellipsoid sum_k Mahalanobis^2 <= |U| q^2, which contains the linearised PURSE. NaN when c > |U| q^2 (then the linearised PURSE is empty; it can also be empty with a finite outer). Approximation, not a bound",
+    "sampled": "M keypoint configurations uniform in the sets, cv2.solvePnP ITERATIVE warm-started at the estimate, PURSE members kept; max deviation from the estimate. Inner approximation of the PURSE's extent near the estimate: a lower bound on how far the members local PnP reaches lie from it. NaN when no sample is accepted (n_nan)",
+    "measured_ball_coverage": "fraction of answered val_test frames with E_R <= rotation radius and ||t - t_hat|| <= translation radius, Clopper-Pearson 95 %; measured, no guarantee",
+    "estimate_in_purse": "fraction of answered frames whose PnP estimate lies in its own PURSE; where it does not, the PnP residual exceeds the set on some keypoint"
+  },
+  "units": {
+    "rot_deg": "degrees",
+    "trans_m": "metres",
+    "trans_frac": "fraction of ||t_hat||"
+  },
+  "linearised": {
+    "B1": {
+      "runtime_per_frame": {
+        "n_frames": 4454,
+        "p50_ms": 0.3369155056134332,
+        "p90_ms": 0.3881851000187453,
+        "p99_ms": 0.44186455976159794,
+        "max_ms": 0.8499660034431145,
+        "total_s": 1.5396471482308698
+      },
+      "rows": [
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.01,
+          "quantile": 0.06396732268476592,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9919173776380781,
+          "residual_over_q": {
+            "p50": 0.1351166341099363,
+            "p90": 0.36083358945317906,
+            "p99": 0.9364412113425262
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 30,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 5.028439523209635,
+              "p90": 9.364037613790204
+            },
+            "trans_m": {
+              "median": 0.3851290996744246,
+              "p90": 0.5736111000745525
+            },
+            "trans_frac": {
+              "median": 0.06085981320924849,
+              "p90": 0.06925356121536547
+            },
+            "measured_ball_coverage": {
+              "value": 0.9943490054249547,
+              "n": 4424,
+              "coverage_ci95": [
+                0.9916692462598514,
+                0.9963397349021446
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.987651549169286,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9839567801788137,
+                  0.9906842792722856
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 2,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 17.094712238961378,
+              "p90": 31.589239983508623
+            },
+            "trans_m": {
+              "median": 1.3261893135961418,
+              "p90": 1.9695038086374652
+            },
+            "trans_frac": {
+              "median": 0.20788821588117004,
+              "p90": 0.23246574291247815
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4452,
+              "coverage_ci95": [
+                0.9991717539098931,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9995509654243376,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9983788838096389,
+                  0.9999456152029005
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.02,
+          "quantile": 0.04728868803116604,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9827121688370004,
+          "residual_over_q": {
+            "p50": 0.18277202633520864,
+            "p90": 0.48809894317308494,
+            "p99": 1.2667223311795357
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 68,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 3.655793138161983,
+              "p90": 6.805416260303615
+            },
+            "trans_m": {
+              "median": 0.27779592150559046,
+              "p90": 0.41619253610316015
+            },
+            "trans_frac": {
+              "median": 0.044154057501174376,
+              "p90": 0.05063532825622212
+            },
+            "measured_ball_coverage": {
+              "value": 0.9842681258549931,
+              "n": 4386,
+              "coverage_ci95": [
+                0.980131996540196,
+                0.987739585899663
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9692411315671307,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9637404396055091,
+                  0.9741144989090135
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 2,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 12.681230654901153,
+              "p90": 23.383395532509912
+            },
+            "trans_m": {
+              "median": 0.9809866131102437,
+              "p90": 1.4550267019411491
+            },
+            "trans_frac": {
+              "median": 0.1538984688970974,
+              "p90": 0.17234693906061557
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4452,
+              "coverage_ci95": [
+                0.9991717539098931,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9995509654243376,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9983788838096389,
+                  0.9999456152029005
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.05,
+          "quantile": 0.03303012831355453,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9562191288729233,
+          "residual_over_q": {
+            "p50": 0.26167168507919203,
+            "p90": 0.69880317850845,
+            "p99": 1.8135453962701895
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 203,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 2.481344161242584,
+              "p90": 4.618042022684039
+            },
+            "trans_m": {
+              "median": 0.18280931460441158,
+              "p90": 0.2803359490103372
+            },
+            "trans_frac": {
+              "median": 0.029591066926780662,
+              "p90": 0.034500781907241616
+            },
+            "measured_ball_coverage": {
+              "value": 0.9560103505057633,
+              "n": 4251,
+              "coverage_ci95": [
+                0.9494071163860355,
+                0.9619773010050603
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9124382577458464,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9037520287990843,
+                  0.920579094015212
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 4,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 8.898282613059084,
+              "p90": 16.370751782098168
+            },
+            "trans_m": {
+              "median": 0.6845196337957855,
+              "p90": 1.0134792763957392
+            },
+            "trans_frac": {
+              "median": 0.10759850482552566,
+              "p90": 0.1205436255341756
+            },
+            "measured_ball_coverage": {
+              "value": 0.9997752808988764,
+              "n": 4450,
+              "coverage_ci95": [
+                0.9987485882562464,
+                0.999994310621132
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9988774135608441,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9973822183260921,
+                  0.9996354019505391
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.1,
+          "quantile": 0.023804958963357166,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9061517736865738,
+          "residual_over_q": {
+            "p50": 0.363077682574204,
+            "p90": 0.9696113607077904,
+            "p99": 2.5163512036910753
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 528,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.7124347200304741,
+              "p90": 3.1959491081763836
+            },
+            "trans_m": {
+              "median": 0.12047505250704017,
+              "p90": 0.19121494933784564
+            },
+            "trans_frac": {
+              "median": 0.019944831921282272,
+              "p90": 0.023994802142898824
+            },
+            "measured_ball_coverage": {
+              "value": 0.8942944472745797,
+              "n": 3926,
+              "coverage_ci95": [
+                0.8842543972405374,
+                0.9037432144232577
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.7882801975752133,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.7759832273338501,
+                  0.8001980002808124
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 14,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 6.461919212775419,
+              "p90": 11.824357789532058
+            },
+            "trans_m": {
+              "median": 0.49109763299738696,
+              "p90": 0.7245362446085882
+            },
+            "trans_frac": {
+              "median": 0.07725107675050957,
+              "p90": 0.087058146465808
+            },
+            "measured_ball_coverage": {
+              "value": 0.9988738738738738,
+              "n": 4440,
+              "coverage_ci95": [
+                0.9973739702595791,
+                0.9996342520091738
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9957341715312079,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9933463619672812,
+                  0.9974297979948444
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.15,
+          "quantile": 0.019398831458561562,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.8558599012123933,
+          "residual_over_q": {
+            "p50": 0.44554484390734705,
+            "p90": 1.1898427336388318,
+            "p99": 3.0878992515202874
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 950,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.3467527446454668,
+              "p90": 2.5141850213611967
+            },
+            "trans_m": {
+              "median": 0.0919275608089249,
+              "p90": 0.14950287879487392
+            },
+            "trans_frac": {
+              "median": 0.015235368243325682,
+              "p90": 0.018920762176568517
+            },
+            "measured_ball_coverage": {
+              "value": 0.8307648401826484,
+              "n": 3504,
+              "coverage_ci95": [
+                0.8179324197317442,
+                0.8430427830961603
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.6535698248765155,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.6393862079636957,
+                  0.6675518022711167
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 31,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 5.293083133936451,
+              "p90": 9.655787100422936
+            },
+            "trans_m": {
+              "median": 0.39804332021243555,
+              "p90": 0.5863265872432163
+            },
+            "trans_frac": {
+              "median": 0.06262522207136646,
+              "p90": 0.07097138036059064
+            },
+            "measured_ball_coverage": {
+              "value": 0.9984173637802397,
+              "n": 4423,
+              "coverage_ci95": [
+                0.9967419001333729,
+                0.999363468861775
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9914683430624158,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9883082644077776,
+                  0.9939556198724351
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.2,
+          "quantile": 0.017196119540358955,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.8206106870229007,
+          "residual_over_q": {
+            "p50": 0.5026162625762561,
+            "p90": 1.342253907800646,
+            "p99": 3.4834392143339366
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 1311,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.1674444636420696,
+              "p90": 2.1774648139148782
+            },
+            "trans_m": {
+              "median": 0.07788288259647819,
+              "p90": 0.12919071768871268
+            },
+            "trans_frac": {
+              "median": 0.0129252575296845,
+              "p90": 0.016427048844759977
+            },
+            "measured_ball_coverage": {
+              "value": 0.7928730512249443,
+              "n": 3143,
+              "coverage_ci95": [
+                0.7782768823066177,
+                0.8069220845993108
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.5594970812752582,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.5447701600689627,
+                  0.5741459158202571
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 41,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 4.6899686963278135,
+              "p90": 8.548335580030836
+            },
+            "trans_m": {
+              "median": 0.35112562666345004,
+              "p90": 0.516271255900754
+            },
+            "trans_frac": {
+              "median": 0.05524031378313403,
+              "p90": 0.06282022018900292
+            },
+            "measured_ball_coverage": {
+              "value": 0.9968275549512803,
+              "n": 4413,
+              "coverage_ci95": [
+                0.9946828994340144,
+                0.9982645429132838
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.987651549169286,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9839567801788137,
+                  0.9906842792722856
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.3,
+          "quantile": 0.014110711033802565,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.7431522227211496,
+          "residual_over_q": {
+            "p50": 0.6125169251560111,
+            "p90": 1.635747383442365,
+            "p99": 4.245118264966561
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 2010,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 0.9088830449519024,
+              "p90": 1.7026472396073118
+            },
+            "trans_m": {
+              "median": 0.05850504567404879,
+              "p90": 0.10050799105171439
+            },
+            "trans_frac": {
+              "median": 0.009803976962196145,
+              "p90": 0.012869979592061837
+            },
+            "measured_ball_coverage": {
+              "value": 0.7135842880523732,
+              "n": 2444,
+              "coverage_ci95": [
+                0.695207842710895,
+                0.7314475467661933
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.3915581499775483,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.37718649250093617,
+                  0.4060721558500466
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 73,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 3.8492664161618215,
+              "p90": 7.001244528610437
+            },
+            "trans_m": {
+              "median": 0.2839403871901353,
+              "p90": 0.41791414718517794
+            },
+            "trans_frac": {
+              "median": 0.04485196303292843,
+              "p90": 0.05127913141971749
+            },
+            "measured_ball_coverage": {
+              "value": 0.9924674731796393,
+              "n": 4381,
+              "coverage_ci95": [
+                0.9894376550075419,
+                0.994809446304538
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9762011674898967,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9712880428157458,
+                  0.9804753207974789
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.5,
+          "quantile": 0.010329646341109862,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.5916030534351145,
+          "residual_over_q": {
+            "p50": 0.8367226765346448,
+            "p90": 2.234496505479961,
+            "p99": 5.799001743444429
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 3184,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 0.6197931586821696,
+              "p90": 1.1489671457070092
+            },
+            "trans_m": {
+              "median": 0.03768164094087236,
+              "p90": 0.06646577632725463
+            },
+            "trans_frac": {
+              "median": 0.006094093985795956,
+              "p90": 0.008601611188361278
+            },
+            "measured_ball_coverage": {
+              "value": 0.6023622047244095,
+              "n": 1270,
+              "coverage_ci95": [
+                0.5748404128460898,
+                0.6294089903563675
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.1717557251908397,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.16078477625181808,
+                  0.1831588407014239
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 183,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 2.7831883506302124,
+              "p90": 5.085150456434764
+            },
+            "trans_m": {
+              "median": 0.20048171090523542,
+              "p90": 0.2944673499359903
+            },
+            "trans_frac": {
+              "median": 0.03189687691514683,
+              "p90": 0.03689496934909068
+            },
+            "measured_ball_coverage": {
+              "value": 0.979864200421447,
+              "n": 4271,
+              "coverage_ci95": [
+                0.9751914805596535,
+                0.983863194164711
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9396048495734172,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9322035495718892,
+                  0.9464229545387313
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.01,
+          "quantile": "inf",
+          "n_answered": 4454,
+          "estimate_in_purse": 1.0,
+          "residual_over_q": null,
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.02,
+          "quantile": "inf",
+          "n_answered": 4454,
+          "estimate_in_purse": 1.0,
+          "residual_over_q": null,
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.05,
+          "quantile": "inf",
+          "n_answered": 4454,
+          "estimate_in_purse": 1.0,
+          "residual_over_q": null,
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.1,
+          "quantile": 0.04121431101925867,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9750785810507409,
+          "residual_over_q": {
+            "p50": 0.20970990707938833,
+            "p90": 0.5600374743925303,
+            "p99": 1.4534183796805327
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 110,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 3.1590346534165388,
+              "p90": 5.876606049765484
+            },
+            "trans_m": {
+              "median": 0.23754126804245845,
+              "p90": 0.358678360709955
+            },
+            "trans_frac": {
+              "median": 0.038005194398439815,
+              "p90": 0.04376115523246879
+            },
+            "measured_ball_coverage": {
+              "value": 0.9767495395948435,
+              "n": 4344,
+              "coverage_ci95": [
+                0.9718195087715257,
+                0.9810231755329463
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9526268522676246,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9459724674200135,
+                  0.9586792782684571
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 3,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 11.070181048187415,
+              "p90": 20.395209366170196
+            },
+            "trans_m": {
+              "median": 0.8542360989598949,
+              "p90": 1.2676698470595302
+            },
+            "trans_frac": {
+              "median": 0.13419452202471,
+              "p90": 0.1503082054706672
+            },
+            "measured_ball_coverage": {
+              "value": 0.9997753313862053,
+              "n": 4451,
+              "coverage_ci95": [
+                0.9987488692648122,
+                0.9999943118993532
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9991019308486754,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9977021969935971,
+                  0.9997552538933463
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.15,
+          "quantile": 0.026977802424221306,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9268073641670409,
+          "residual_over_q": {
+            "p50": 0.3203763300760855,
+            "p90": 0.8555759394001153,
+            "p99": 2.2204046200397465
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 369,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.9658883394107183,
+              "p90": 3.6847970429449286
+            },
+            "trans_m": {
+              "median": 0.14203668770128935,
+              "p90": 0.2213171035394359
+            },
+            "trans_frac": {
+              "median": 0.023284879228299762,
+              "p90": 0.027666275471573024
+            },
+            "measured_ball_coverage": {
+              "value": 0.9265605875152999,
+              "n": 4085,
+              "coverage_ci95": [
+                0.9181297188619317,
+                0.934375053138794
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.849797934440952,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.8389644411069946,
+                  0.8601705473363753
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 11,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 7.2939299584636625,
+              "p90": 13.392735540449763
+            },
+            "trans_m": {
+              "median": 0.5582168374076618,
+              "p90": 0.8235543281425322
+            },
+            "trans_frac": {
+              "median": 0.08774063642246359,
+              "p90": 0.09850353426393077
+            },
+            "measured_ball_coverage": {
+              "value": 0.9993247805536799,
+              "n": 4443,
+              "coverage_ci95": [
+                0.998028002595974,
+                0.999860731865532
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9968567579703638,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9947317922558545,
+                  0.9982805277633064
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.2,
+          "quantile": 0.021004012567602627,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.8803322855859901,
+          "residual_over_q": {
+            "p50": 0.41149515152743277,
+            "p90": 1.0989118663762234,
+            "p99": 2.851913983028889
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 772,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.4792680275036387,
+              "p90": 2.7654406096135995
+            },
+            "trans_m": {
+              "median": 0.10235405522011058,
+              "p90": 0.16423110434895472
+            },
+            "trans_frac": {
+              "median": 0.01695607136881395,
+              "p90": 0.020793980429658174
+            },
+            "measured_ball_coverage": {
+              "value": 0.8631178707224335,
+              "n": 3682,
+              "coverage_ci95": [
+                0.8515913816038192,
+                0.8740645121702384
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.713515940727436,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.6999889122639875,
+                  0.7267624658614911
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 21,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 5.72389470293863,
+              "p90": 10.445455080954293
+            },
+            "trans_m": {
+              "median": 0.43244436410632,
+              "p90": 0.6366468925767361
+            },
+            "trans_frac": {
+              "median": 0.06798571393077055,
+              "p90": 0.07688798212007034
+            },
+            "measured_ball_coverage": {
+              "value": 0.9977441912925784,
+              "n": 4433,
+              "coverage_ci95": [
+                0.9958554129857947,
+                0.9989177385698856
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9930399640772339,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9901352139973553,
+                  0.9952662370642541
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.3,
+          "quantile": 0.01611764692649714,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.7986079928154468,
+          "residual_over_q": {
+            "p50": 0.5362475908304405,
+            "p90": 1.4320675193665002,
+            "p99": 3.7165249626347863
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 1510,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.072730815204412,
+              "p90": 2.004964155807817
+            },
+            "trans_m": {
+              "median": 0.07076456220175403,
+              "p90": 0.1189405866584158
+            },
+            "trans_frac": {
+              "median": 0.011809094739928031,
+              "p90": 0.015171621002318782
+            },
+            "measured_ball_coverage": {
+              "value": 0.7666440217391305,
+              "n": 2944,
+              "coverage_ci95": [
+                0.750934768224458,
+                0.7818215621651996
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.5067355186349349,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.49194028140038476,
+                  0.5215219164918551
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 49,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 4.396302499604177,
+              "p90": 8.005046672370387
+            },
+            "trans_m": {
+              "median": 0.327789892307527,
+              "p90": 0.48133788186341725
+            },
+            "trans_frac": {
+              "median": 0.05162113639362197,
+              "p90": 0.05879424740322598
+            },
+            "measured_ball_coverage": {
+              "value": 0.9954597048808173,
+              "n": 4405,
+              "coverage_ci95": [
+                0.9929965508880598,
+                0.9972245307588251
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9845083071396498,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9804346965621649,
+                  0.9879270711794073
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.5,
+          "quantile": 0.011445942573367571,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.6416704086214639,
+          "residual_over_q": {
+            "p50": 0.7551190545285803,
+            "p90": 2.0165712438362258,
+            "p99": 5.23343855320746
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 2823,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 0.705409494898314,
+              "p90": 1.3272623470895126
+            },
+            "trans_m": {
+              "median": 0.043816160207910605,
+              "p90": 0.07654707960917018
+            },
+            "trans_frac": {
+              "median": 0.007133141251165048,
+              "p90": 0.009856309689835032
+            },
+            "measured_ball_coverage": {
+              "value": 0.6437768240343348,
+              "n": 1631,
+              "coverage_ci95": [
+                0.6199871331610718,
+                0.6670478249957839
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.23574315222272116,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.2233417841154413,
+                  0.24849193222046134
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 137,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 3.1018144228109623,
+              "p90": 5.665362398121275
+            },
+            "trans_m": {
+              "median": 0.2258487049656941,
+              "p90": 0.33078156928622493
+            },
+            "trans_frac": {
+              "median": 0.03572271204314883,
+              "p90": 0.04115872474459016
+            },
+            "measured_ball_coverage": {
+              "value": 0.984479962937225,
+              "n": 4317,
+              "coverage_ci95": [
+                0.9803314898965344,
+                0.9879524750203482
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9541984732824428,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9476421110047112,
+                  0.9601505637180926
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        }
+      ]
+    },
+    "B2": {
+      "runtime_per_frame": {
+        "n_frames": 4454,
+        "p50_ms": 0.33392849945812486,
+        "p90_ms": 0.3826369982562028,
+        "p99_ms": 0.44436460055294474,
+        "max_ms": 107.61682599695632,
+        "total_s": 1.6370382080349373
+      },
+      "rows": [
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.01,
+          "quantile": 3.056719254895349,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9905702739110912,
+          "residual_over_q": {
+            "p50": 0.12639611938298134,
+            "p90": 0.3212342081911744,
+            "p99": 0.9438294231323301
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 24,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 5.396758662156544,
+              "p90": 9.13700793140485
+            },
+            "trans_m": {
+              "median": 0.40194839727249376,
+              "p90": 0.6023193110656496
+            },
+            "trans_frac": {
+              "median": 0.06349360083541612,
+              "p90": 0.07300404626597819
+            },
+            "measured_ball_coverage": {
+              "value": 0.9977426636568849,
+              "n": 4430,
+              "coverage_ci95": [
+                0.9958526089275928,
+                0.9989170053131932
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9923664122137404,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9893490191569093,
+                  0.9947078928803129
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 1,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 18.382434512024275,
+              "p90": 30.854340006687874
+            },
+            "trans_m": {
+              "median": 1.3797445776976867,
+              "p90": 2.0552952732707586
+            },
+            "trans_frac": {
+              "median": 0.21644706652184478,
+              "p90": 0.24586406976190148
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4453,
+              "coverage_ci95": [
+                0.9991719398301888,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9997754827121689,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.998749711533803,
+                  0.9999943157305731
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.02,
+          "quantile": 2.1739752020060332,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9842837898518186,
+          "residual_over_q": {
+            "p50": 0.17771934634097913,
+            "p90": 0.4516715685638713,
+            "p99": 1.3270719778050883
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 60,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 3.7701238266403165,
+              "p90": 6.404434307487218
+            },
+            "trans_m": {
+              "median": 0.27603676591596715,
+              "p90": 0.42061841564907226
+            },
+            "trans_frac": {
+              "median": 0.04408469188506153,
+              "p90": 0.05103951940001578
+            },
+            "measured_ball_coverage": {
+              "value": 0.9908966772872099,
+              "n": 4394,
+              "coverage_ci95": [
+                0.9876242893822178,
+                0.9934887145314579
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9775482712168837,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9727592351051672,
+                  0.981695951953002
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 2,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 13.134307471156017,
+              "p90": 22.01505667284932
+            },
+            "trans_m": {
+              "median": 0.9817063433441446,
+              "p90": 1.4602301458755547
+            },
+            "trans_frac": {
+              "median": 0.1542671166827428,
+              "p90": 0.1754346906778442
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4452,
+              "coverage_ci95": [
+                0.9991717539098931,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9995509654243376,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9983788838096389,
+                  0.9999456152029005
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.05,
+          "quantile": 1.3478775271673415,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9544229905702739,
+          "residual_over_q": {
+            "p50": 0.28664136323569944,
+            "p90": 0.7284955566939402,
+            "p99": 2.14041818553681
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 220,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 2.2097765447873736,
+              "p90": 3.7692334219542025
+            },
+            "trans_m": {
+              "median": 0.15741392475492522,
+              "p90": 0.24459792533722596
+            },
+            "trans_frac": {
+              "median": 0.0255537601730393,
+              "p90": 0.030182178409273223
+            },
+            "measured_ball_coverage": {
+              "value": 0.9478034955125177,
+              "n": 4234,
+              "coverage_ci95": [
+                0.9406704914340773,
+                0.9543103129807919
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9009878760664571,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.8918393366573846,
+                  0.9096066580674312
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 8,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 8.209605326186342,
+              "p90": 13.705171847096953
+            },
+            "trans_m": {
+              "median": 0.6080739426896897,
+              "p90": 0.9034145167077676
+            },
+            "trans_frac": {
+              "median": 0.09560762891083985,
+              "p90": 0.10922911835920694
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4446,
+              "coverage_ci95": [
+                0.9991706366325157,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9982038616973506,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9964639752636056,
+                  0.9992242460454699
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.1,
+          "quantile": 0.9816397972074468,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.8996407723394702,
+          "residual_over_q": {
+            "p50": 0.3935837289412204,
+            "p90": 1.0002882852777386,
+            "p99": 2.9389818742400484
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 617,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.508417438462484,
+              "p90": 2.5981650167715893
+            },
+            "trans_m": {
+              "median": 0.1045159375964805,
+              "p90": 0.16678802076603252
+            },
+            "trans_frac": {
+              "median": 0.017036518950092713,
+              "p90": 0.020928117319576424
+            },
+            "measured_ball_coverage": {
+              "value": 0.8769872296064634,
+              "n": 3837,
+              "coverage_ci95": [
+                0.8661764309938006,
+                0.8872201137450936
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.7555006735518635,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.7426013106531917,
+                  0.7680641847526185
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 22,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 6.003836770980093,
+              "p90": 9.991730786465281
+            },
+            "trans_m": {
+              "median": 0.43972007701227434,
+              "p90": 0.6548065861618606
+            },
+            "trans_frac": {
+              "median": 0.06926212162989298,
+              "p90": 0.07959780018968635
+            },
+            "measured_ball_coverage": {
+              "value": 0.9990974729241877,
+              "n": 4432,
+              "coverage_ci95": [
+                0.9976907989646606,
+                0.9997540387364724
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9941625505163898,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9914584037917537,
+                  0.9961833455409241
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.15,
+          "quantile": 0.8144224750102228,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.8549618320610687,
+          "residual_over_q": {
+            "p50": 0.47439438831444414,
+            "p90": 1.2056675983760132,
+            "p99": 3.5424139921840316
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 1083,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.1917785466086894,
+              "p90": 2.0513420400798843
+            },
+            "trans_m": {
+              "median": 0.079479021493571,
+              "p90": 0.13116908749969214
+            },
+            "trans_frac": {
+              "median": 0.013213857011287652,
+              "p90": 0.016668151831377164
+            },
+            "measured_ball_coverage": {
+              "value": 0.7982794423019876,
+              "n": 3371,
+              "coverage_ci95": [
+                0.7843286628221333,
+                0.8117108465036778
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.6041760215536597,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.5896375723608387,
+                  0.6185777246230106
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 35,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 4.9874604027163345,
+              "p90": 8.307422792157848
+            },
+            "trans_m": {
+              "median": 0.36263459636331985,
+              "p90": 0.5391783707437261
+            },
+            "trans_frac": {
+              "median": 0.05712555060704445,
+              "p90": 0.0658293756499122
+            },
+            "measured_ball_coverage": {
+              "value": 0.9986422267481331,
+              "n": 4419,
+              "coverage_ci95": [
+                0.9970470593040832,
+                0.9995015633031135
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9907947911989223,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9875326145649219,
+                  0.9933863141923978
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.2,
+          "quantile": 0.7270057390554416,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.8129770992366412,
+          "residual_over_q": {
+            "p50": 0.5314365913589392,
+            "p90": 1.3506396672807315,
+            "p99": 3.9683614805760845
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 1485,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.0221465857485048,
+              "p90": 1.7793217067394447
+            },
+            "trans_m": {
+              "median": 0.06827797613442334,
+              "p90": 0.11329560249411254
+            },
+            "trans_frac": {
+              "median": 0.011218063726603963,
+              "p90": 0.014471211674577664
+            },
+            "measured_ball_coverage": {
+              "value": 0.7457056247894914,
+              "n": 2969,
+              "coverage_ci95": [
+                0.7296361468715522,
+                0.7612894950577435
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.4970812752581949,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.4822912913043476,
+                  0.5118750896062043
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 45,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 4.445004038545218,
+              "p90": 7.420190801918449
+            },
+            "trans_m": {
+              "median": 0.321623383989753,
+              "p90": 0.4783283958747179
+            },
+            "trans_frac": {
+              "median": 0.050715490414787553,
+              "p90": 0.05856763174300143
+            },
+            "measured_ball_coverage": {
+              "value": 0.9968246767974598,
+              "n": 4409,
+              "coverage_ci95": [
+                0.9946780807702946,
+                0.9982629674891971
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9867534800179614,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9829458288548449,
+                  0.9899012557120686
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.3,
+          "quantile": 0.6116472156617477,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.7384373596766951,
+          "residual_over_q": {
+            "p50": 0.6316671472852304,
+            "p90": 1.6053744125143627,
+            "p99": 4.716806513872587
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 2189,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 0.810493259110711,
+              "p90": 1.4226841230555018
+            },
+            "trans_m": {
+              "median": 0.05283538511970004,
+              "p90": 0.08973262452826364
+            },
+            "trans_frac": {
+              "median": 0.008655081320452913,
+              "p90": 0.011552716196184875
+            },
+            "measured_ball_coverage": {
+              "value": 0.6869757174392936,
+              "n": 2265,
+              "coverage_ci95": [
+                0.6674247733234626,
+                0.7060418362982267
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.3493488998652896,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.3353376456028621,
+                  0.3635579572738424
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 71,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 3.719517611439284,
+              "p90": 6.222931390062056
+            },
+            "trans_m": {
+              "median": 0.26688667064662763,
+              "p90": 0.39783624689219604
+            },
+            "trans_frac": {
+              "median": 0.04222375937496551,
+              "p90": 0.0489475836253093
+            },
+            "measured_ball_coverage": {
+              "value": 0.9954369153547798,
+              "n": 4383,
+              "coverage_ci95": [
+                0.9929614415633707,
+                0.9972105887786553
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9795689268073642,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9749737390891183,
+                  0.9835190724407941
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "abstain_allowed",
+          "alpha": 0.5,
+          "quantile": 0.46400639883895667,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.6001347103726987,
+          "residual_over_q": {
+            "p50": 0.8326554392973015,
+            "p90": 2.116183724978804,
+            "p99": 6.217633158172613
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 3298,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 0.5547329481946717,
+              "p90": 0.9910857798190065
+            },
+            "trans_m": {
+              "median": 0.0344270989659659,
+              "p90": 0.06106106526913021
+            },
+            "trans_frac": {
+              "median": 0.005484594565530382,
+              "p90": 0.007973756729636426
+            },
+            "measured_ball_coverage": {
+              "value": 0.5553633217993079,
+              "n": 1156,
+              "coverage_ci95": [
+                0.5261746941118751,
+                0.5842695645581923
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.14414009878760664,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.1339487225192356,
+                  0.15480045393528913
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 151,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 2.781940047313854,
+              "p90": 4.657999845651388
+            },
+            "trans_m": {
+              "median": 0.19530608656388038,
+              "p90": 0.29155880719213895
+            },
+            "trans_frac": {
+              "median": 0.03113359998346561,
+              "p90": 0.03641227162374593
+            },
+            "measured_ball_coverage": {
+              "value": 0.9841970718103649,
+              "n": 4303,
+              "coverage_ci95": [
+                0.9800085077751441,
+                0.9877080606820664
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9508307139649753,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9440666017627274,
+                  0.9569954955966444
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.01,
+          "quantile": "inf",
+          "n_answered": 4454,
+          "estimate_in_purse": 1.0,
+          "residual_over_q": null,
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.02,
+          "quantile": "inf",
+          "n_answered": 4454,
+          "estimate_in_purse": 1.0,
+          "residual_over_q": null,
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.05,
+          "quantile": "inf",
+          "n_answered": 4454,
+          "estimate_in_purse": 1.0,
+          "residual_over_q": null,
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 0,
+            "n_inf": 4454,
+            "rot_deg": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_m": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "trans_frac": {
+              "median": "inf",
+              "p90": "inf"
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4454,
+              "coverage_ci95": [
+                0.9991721256670344,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 1.0,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9991721256670344,
+                  1.0
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.1,
+          "quantile": 1.850545811150031,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9773237539290526,
+          "residual_over_q": {
+            "p50": 0.2087802687910258,
+            "p90": 0.5306125271758623,
+            "p99": 1.5590111596494074
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 85,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 3.1632457676647174,
+              "p90": 5.375662715629362
+            },
+            "trans_m": {
+              "median": 0.23041025565202758,
+              "p90": 0.35181163482019284
+            },
+            "trans_frac": {
+              "median": 0.03683045306367855,
+              "p90": 0.042884088298795725
+            },
+            "measured_ball_coverage": {
+              "value": 0.9814602883955138,
+              "n": 4369,
+              "coverage_ci95": [
+                0.9770088742595788,
+                0.9852502230968528
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.962730130220027,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9567431373958486,
+                  0.9681000244232439
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 3,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 11.219533645200398,
+              "p90": 18.79986325877619
+            },
+            "trans_m": {
+              "median": 0.8357483292218039,
+              "p90": 1.2426657725735046
+            },
+            "trans_frac": {
+              "median": 0.13137806538512825,
+              "p90": 0.14966886586430328
+            },
+            "measured_ball_coverage": {
+              "value": 1.0,
+              "n": 4451,
+              "coverage_ci95": [
+                0.9991715679060912,
+                1.0
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9993264481365065,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9980328696651987,
+                  0.9998610758680295
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.15,
+          "quantile": 1.1104071094780812,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.9259092950157162,
+          "residual_over_q": {
+            "p50": 0.34794216334188266,
+            "p90": 0.8842907985077221,
+            "p99": 2.598165615475386
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 393,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.7559782814864524,
+              "p90": 3.001732834316177
+            },
+            "trans_m": {
+              "median": 0.1223156504267347,
+              "p90": 0.19422459734677155
+            },
+            "trans_frac": {
+              "median": 0.020013945555950194,
+              "p90": 0.024205125828313433
+            },
+            "measured_ball_coverage": {
+              "value": 0.9091356808667815,
+              "n": 4061,
+              "coverage_ci95": [
+                0.8998757798731729,
+                0.9178019095854818
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.8289178266726538,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.8175314977787197,
+                  0.839871093339263
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 14,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 6.781239974208583,
+              "p90": 11.291858715680593
+            },
+            "trans_m": {
+              "median": 0.49943097833345773,
+              "p90": 0.7422654389678294
+            },
+            "trans_frac": {
+              "median": 0.07856529151903295,
+              "p90": 0.08998596812652042
+            },
+            "measured_ball_coverage": {
+              "value": 0.9997747747747747,
+              "n": 4440,
+              "coverage_ci95": [
+                0.9987457712122486,
+                0.9999942978072521
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9966322406825325,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9944514670377501,
+                  0.9981139032107376
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.2,
+          "quantile": 0.8741385094136224,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.8729232150875618,
+          "residual_over_q": {
+            "p50": 0.4419865361167778,
+            "p90": 1.1233034341064598,
+            "p99": 3.300416970487496
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 866,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 1.3017066043941519,
+              "p90": 2.2442326433316606
+            },
+            "trans_m": {
+              "median": 0.087610822324281,
+              "p90": 0.1434935301431617
+            },
+            "trans_frac": {
+              "median": 0.01453515721079699,
+              "p90": 0.018171017007494596
+            },
+            "measured_ball_coverage": {
+              "value": 0.8241360089186176,
+              "n": 3588,
+              "coverage_ci95": [
+                0.8112772228566578,
+                0.8364643554755624
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.663897620116749,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.649808705138332,
+                  0.6777713185606671
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 29,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 5.350974688904798,
+              "p90": 8.915419194813682
+            },
+            "trans_m": {
+              "median": 0.3903697111947846,
+              "p90": 0.5805618885474997
+            },
+            "trans_frac": {
+              "median": 0.0615021736712221,
+              "p90": 0.07076103904039265
+            },
+            "measured_ball_coverage": {
+              "value": 0.9986440677966102,
+              "n": 4425,
+              "coverage_ci95": [
+                0.9970510600964486,
+                0.9995022393633368
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9921418949259093,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9890880713089891,
+                  0.9945206138178444
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.3,
+          "quantile": 0.6845652750657034,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.7846879209699147,
+          "residual_over_q": {
+            "p50": 0.5643836547580191,
+            "p90": 1.4343742302949571,
+            "p99": 4.214384918587148
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 1715,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 0.9429133757658821,
+              "p90": 1.6449705677865039
+            },
+            "trans_m": {
+              "median": 0.06235360039565904,
+              "p90": 0.10450314091943086
+            },
+            "trans_frac": {
+              "median": 0.01030583187665539,
+              "p90": 0.013389690694009658
+            },
+            "measured_ball_coverage": {
+              "value": 0.7261774370208105,
+              "n": 2739,
+              "coverage_ci95": [
+                0.7090594439722739,
+                0.7428107879516288
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.44656488549618323,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.43189184905613137,
+                  0.4613080516235483
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 52,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 4.177534768373833,
+              "p90": 6.991837246774549
+            },
+            "trans_m": {
+              "median": 0.30134487745544164,
+              "p90": 0.4487554983906707
+            },
+            "trans_frac": {
+              "median": 0.047599883277350326,
+              "p90": 0.05500053368122863
+            },
+            "measured_ball_coverage": {
+              "value": 0.9968196274420718,
+              "n": 4402,
+              "coverage_ci95": [
+                0.994669627059473,
+                0.9982602036035024
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9851818590031433,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9811858033146001,
+                  0.9885216085628578
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        },
+        {
+          "convention": "answer_required",
+          "alpha": 0.5,
+          "quantile": 0.510420057389616,
+          "n_answered": 4454,
+          "estimate_in_purse": 0.6477323753929053,
+          "residual_over_q": {
+            "p50": 0.7569401834205239,
+            "p90": 1.9237543182193142,
+            "p99": 5.65224961138852
+          },
+          "inner": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 2913,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 0.634865091913468,
+              "p90": 1.1166355380729385
+            },
+            "trans_m": {
+              "median": 0.03959093414991618,
+              "p90": 0.06952693747575679
+            },
+            "trans_frac": {
+              "median": 0.006453630345418114,
+              "p90": 0.00906357906092546
+            },
+            "measured_ball_coverage": {
+              "value": 0.5866320571057755,
+              "n": 1541,
+              "coverage_ci95": [
+                0.5615752196484729,
+                0.6113581216093709
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.20296362819937136,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.1912371548388226,
+                  0.2150808603624716
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          },
+          "outer": {
+            "n_total": 4797,
+            "n_answered": 4454,
+            "answer_rate": 0.928496977277465,
+            "n_nan": 114,
+            "n_inf": 0,
+            "rot_deg": {
+              "median": 3.079465127129909,
+              "p90": 5.165443009245843
+            },
+            "trans_m": {
+              "median": 0.21883418266260818,
+              "p90": 0.32535280880698403
+            },
+            "trans_frac": {
+              "median": 0.03466594718413514,
+              "p90": 0.04033821451935624
+            },
+            "measured_ball_coverage": {
+              "value": 0.9898617511520738,
+              "n": 4340,
+              "coverage_ci95": [
+                0.9864135305466558,
+                0.9926241397316009
+              ],
+              "value_nan_as_uncovered": {
+                "value": 0.9645262685226762,
+                "n": 4454,
+                "coverage_ci95": [
+                  0.9586683401092406,
+                  0.9697643241242022
+                ]
+              },
+              "convention_note": "answered frames only; see answer_rate",
+              "note": "measured on val_test; not a guarantee"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "sampled": {
+    "B1_abstain_allowed": {
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "quantile": 0.023804958963357166,
+      "samples": 256,
+      "frames": "all answered val_test frames",
+      "radius": {
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "n_nan": 60,
+        "n_inf": 0,
+        "rot_deg": {
+          "median": 3.188493384389507,
+          "p90": 5.778209790528186
+        },
+        "trans_m": {
+          "median": 0.21660226434466537,
+          "p90": 0.3255082353358821
+        },
+        "trans_frac": {
+          "median": 0.03410952014955603,
+          "p90": 0.04148372560077786
+        },
+        "measured_ball_coverage": {
+          "value": 0.9886208466090123,
+          "n": 4394,
+          "coverage_ci95": [
+            0.9850252213135322,
+            0.9915427026977259
+          ],
+          "value_nan_as_uncovered": {
+            "value": 0.9753030983385721,
+            "n": 4454,
+            "coverage_ci95": [
+              0.9703093348253714,
+              0.9796594517410632
+            ]
+          },
+          "convention_note": "answered frames only; see answer_rate",
+          "note": "measured on val_test; not a guarantee"
+        }
+      },
+      "acceptance": {
+        "median_accepted_fraction": 0.98046875,
+        "min_accepted": 0,
+        "n_frames_none_accepted": 60,
+        "median_solved_fraction": 1.0
+      },
+      "runtime_per_frame": {
+        "n_frames": 4454,
+        "p50_ms": 36.90038299828302,
+        "p90_ms": 62.87050229802844,
+        "p99_ms": 71.53457757631259,
+        "max_ms": 79.15654600219568,
+        "total_s": 197.05104129775282
+      },
+      "wall_s": 13.869602814003883,
+      "workers": 16
+    },
+    "B1_answer_required": {
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "quantile": 0.04121431101925867,
+      "samples": 256,
+      "frames": "all answered val_test frames",
+      "radius": {
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "n_nan": 14,
+        "n_inf": 0,
+        "rot_deg": {
+          "median": 5.461335089766594,
+          "p90": 9.996687252708242
+        },
+        "trans_m": {
+          "median": 0.37801052398791807,
+          "p90": 0.567771606498426
+        },
+        "trans_frac": {
+          "median": 0.05913567424475171,
+          "p90": 0.07185494019989327
+        },
+        "measured_ball_coverage": {
+          "value": 0.9988738738738738,
+          "n": 4440,
+          "coverage_ci95": [
+            0.9973739702595791,
+            0.9996342520091738
+          ],
+          "value_nan_as_uncovered": {
+            "value": 0.9957341715312079,
+            "n": 4454,
+            "coverage_ci95": [
+              0.9933463619672812,
+              0.9974297979948444
+            ]
+          },
+          "convention_note": "answered frames only; see answer_rate",
+          "note": "measured on val_test; not a guarantee"
+        }
+      },
+      "acceptance": {
+        "median_accepted_fraction": 0.9921875,
+        "min_accepted": 0,
+        "n_frames_none_accepted": 14,
+        "median_solved_fraction": 1.0
+      },
+      "runtime_per_frame": {
+        "n_frames": 4454,
+        "p50_ms": 40.627845002745744,
+        "p90_ms": 68.36285030076397,
+        "p99_ms": 80.77098818183003,
+        "max_ms": 107.11638099746779,
+        "total_s": 221.16782704985235
+      },
+      "wall_s": 17.228385145004722,
+      "workers": 16
+    },
+    "B2_abstain_allowed": {
+      "convention": "abstain_allowed",
+      "alpha": 0.1,
+      "quantile": 0.9816397972074468,
+      "samples": 256,
+      "frames": "all answered val_test frames",
+      "radius": {
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "n_nan": 67,
+        "n_inf": 0,
+        "rot_deg": {
+          "median": 2.93094540811855,
+          "p90": 4.908118446326601
+        },
+        "trans_m": {
+          "median": 0.19321952017849073,
+          "p90": 0.2948303226182397
+        },
+        "trans_frac": {
+          "median": 0.030569677434022526,
+          "p90": 0.03783822698477861
+        },
+        "measured_ball_coverage": {
+          "value": 0.9901983131980853,
+          "n": 4387,
+          "coverage_ci95": [
+            0.9868196716440358,
+            0.9928976441675446
+          ],
+          "value_nan_as_uncovered": {
+            "value": 0.9753030983385721,
+            "n": 4454,
+            "coverage_ci95": [
+              0.9703093348253714,
+              0.9796594517410632
+            ]
+          },
+          "convention_note": "answered frames only; see answer_rate",
+          "note": "measured on val_test; not a guarantee"
+        }
+      },
+      "acceptance": {
+        "median_accepted_fraction": 0.97265625,
+        "min_accepted": 0,
+        "n_frames_none_accepted": 67,
+        "median_solved_fraction": 1.0
+      },
+      "runtime_per_frame": {
+        "n_frames": 4454,
+        "p50_ms": 34.52961450238945,
+        "p90_ms": 59.453034098260105,
+        "p99_ms": 68.14605440202286,
+        "max_ms": 86.47993600607151,
+        "total_s": 184.9917360497857
+      },
+      "wall_s": 15.486629752995213,
+      "workers": 16
+    },
+    "B2_answer_required": {
+      "convention": "answer_required",
+      "alpha": 0.1,
+      "quantile": 1.850545811150031,
+      "samples": 256,
+      "frames": "all answered val_test frames",
+      "radius": {
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "n_nan": 15,
+        "n_inf": 0,
+        "rot_deg": {
+          "median": 5.48854229501526,
+          "p90": 9.235351693915275
+        },
+        "trans_m": {
+          "median": 0.36868357805695123,
+          "p90": 0.5608572973324634
+        },
+        "trans_frac": {
+          "median": 0.057880609069374894,
+          "p90": 0.07150487558558873
+        },
+        "measured_ball_coverage": {
+          "value": 0.999098896147781,
+          "n": 4439,
+          "coverage_ci95": [
+            0.9976944378565515,
+            0.9997544266840904
+          ],
+          "value_nan_as_uncovered": {
+            "value": 0.9957341715312079,
+            "n": 4454,
+            "coverage_ci95": [
+              0.9933463619672812,
+              0.9974297979948444
+            ]
+          },
+          "convention_note": "answered frames only; see answer_rate",
+          "note": "measured on val_test; not a guarantee"
+        }
+      },
+      "acceptance": {
+        "median_accepted_fraction": 0.9921875,
+        "min_accepted": 0,
+        "n_frames_none_accepted": 15,
+        "median_solved_fraction": 1.0
+      },
+      "runtime_per_frame": {
+        "n_frames": 4454,
+        "p50_ms": 39.34552049759077,
+        "p90_ms": 67.93129649813636,
+        "p99_ms": 79.73622563986282,
+        "max_ms": 108.62252400693251,
+        "total_s": 218.087120389122
+      },
+      "wall_s": 16.1631709889989,
+      "workers": 16
+    }
+  },
+  "level_a_comparison": {
+    "source": "results/level_a/keypoint_a2_predicted_crop_synthetic.json",
+    "source_sha256": "42f63ae2622f166a24ca3c811cb6ffb4a682946e537944f89f69c3652a3f2cef",
+    "note": "medians over answered val_test frames at equal alpha and convention; linearised and sampled medians exclude their n_nan frames (see linearised / sampled)",
+    "rows": [
+      {
+        "convention": "abstain_allowed",
+        "alpha": 0.01,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 6.295367419150941,
+            "trans_frac_median": 0.029849319914547867,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 7.784989914621056,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.03481131085045985,
+            "lateral_frac_median": 0.0064298706554970055
+          },
+          "A3": {
+            "rot_deg_median": 4.560259386075874,
+            "trans_frac_median": 0.021622350570708555,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 5.028439523209635,
+              "trans_frac_median": 0.06085981320924849
+            },
+            "linearised_outer": {
+              "rot_deg_median": 17.094712238961378,
+              "trans_frac_median": 0.20788821588117004
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 5.396758662156544,
+              "trans_frac_median": 0.06349360083541612
+            },
+            "linearised_outer": {
+              "rot_deg_median": 18.382434512024275,
+              "trans_frac_median": 0.21644706652184478
+            }
+          }
+        }
+      },
+      {
+        "convention": "abstain_allowed",
+        "alpha": 0.02,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 4.628695254817224,
+            "trans_frac_median": 0.02194683745188349,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 5.500755289185801,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.024597141985312262,
+            "lateral_frac_median": 0.004543248662477859
+          },
+          "A3": {
+            "rot_deg_median": 3.6940507358622314,
+            "trans_frac_median": 0.017515244918015312,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 3.655793138161983,
+              "trans_frac_median": 0.044154057501174376
+            },
+            "linearised_outer": {
+              "rot_deg_median": 12.681230654901153,
+              "trans_frac_median": 0.1538984688970974
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 3.7701238266403165,
+              "trans_frac_median": 0.04408469188506153
+            },
+            "linearised_outer": {
+              "rot_deg_median": 13.134307471156017,
+              "trans_frac_median": 0.1542671166827428
+            }
+          }
+        }
+      },
+      {
+        "convention": "abstain_allowed",
+        "alpha": 0.05,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 3.151217796823506,
+            "trans_frac_median": 0.014941416739499483,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 3.8977296941069364,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.017429063040633234,
+            "lateral_frac_median": 0.0032192588632810617
+          },
+          "A3": {
+            "rot_deg_median": 2.6731128162499034,
+            "trans_frac_median": 0.012674494482592528,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 2.481344161242584,
+              "trans_frac_median": 0.029591066926780662
+            },
+            "linearised_outer": {
+              "rot_deg_median": 8.898282613059084,
+              "trans_frac_median": 0.10759850482552566
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 2.2097765447873736,
+              "trans_frac_median": 0.0255537601730393
+            },
+            "linearised_outer": {
+              "rot_deg_median": 8.209605326186342,
+              "trans_frac_median": 0.09560762891083985
+            }
+          }
+        }
+      },
+      {
+        "convention": "abstain_allowed",
+        "alpha": 0.1,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 2.328081286522388,
+            "trans_frac_median": 0.011038536511321098,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 2.829788476371994,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.012653663957486279,
+            "lateral_frac_median": 0.0023372122616774817
+          },
+          "A3": {
+            "rot_deg_median": 2.13189055941288,
+            "trans_frac_median": 0.010108303311596388,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 1.7124347200304741,
+              "trans_frac_median": 0.019944831921282272
+            },
+            "linearised_outer": {
+              "rot_deg_median": 6.461919212775419,
+              "trans_frac_median": 0.07725107675050957
+            },
+            "sampled": {
+              "rot_deg_median": 3.188493384389507,
+              "trans_frac_median": 0.03410952014955603
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 1.508417438462484,
+              "trans_frac_median": 0.017036518950092713
+            },
+            "linearised_outer": {
+              "rot_deg_median": 6.003836770980093,
+              "trans_frac_median": 0.06926212162989298
+            },
+            "sampled": {
+              "rot_deg_median": 2.93094540811855,
+              "trans_frac_median": 0.030569677434022526
+            }
+          }
+        }
+      },
+      {
+        "convention": "abstain_allowed",
+        "alpha": 0.15,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 1.9166002393194081,
+            "trans_frac_median": 0.009087509891433762,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 2.28065145526081,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.010198146384432692,
+            "lateral_frac_median": 0.0018836625388630101
+          },
+          "A3": {
+            "rot_deg_median": 1.801067382487722,
+            "trans_frac_median": 0.008539713873409484,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 1.3467527446454668,
+              "trans_frac_median": 0.015235368243325682
+            },
+            "linearised_outer": {
+              "rot_deg_median": 5.293083133936451,
+              "trans_frac_median": 0.06262522207136646
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 1.1917785466086894,
+              "trans_frac_median": 0.013213857011287652
+            },
+            "linearised_outer": {
+              "rot_deg_median": 4.9874604027163345,
+              "trans_frac_median": 0.05712555060704445
+            }
+          }
+        }
+      },
+      {
+        "convention": "abstain_allowed",
+        "alpha": 0.2,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 1.6394063027810684,
+            "trans_frac_median": 0.007773202093459088,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 1.9481667589223888,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.008711409953917879,
+            "lateral_frac_median": 0.0016090528584608345
+          },
+          "A3": {
+            "rot_deg_median": 1.6177184967364595,
+            "trans_frac_median": 0.007670369928508579,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 1.1674444636420696,
+              "trans_frac_median": 0.0129252575296845
+            },
+            "linearised_outer": {
+              "rot_deg_median": 4.6899686963278135,
+              "trans_frac_median": 0.05524031378313403
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 1.0221465857485048,
+              "trans_frac_median": 0.011218063726603963
+            },
+            "linearised_outer": {
+              "rot_deg_median": 4.445004038545218,
+              "trans_frac_median": 0.050715490414787553
+            }
+          }
+        }
+      },
+      {
+        "convention": "abstain_allowed",
+        "alpha": 0.3,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 1.2807478931337437,
+            "trans_frac_median": 0.006072632627562873,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 1.5070141099568237,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.006738754605090542,
+            "lateral_frac_median": 0.001244690861427145
+          },
+          "A3": {
+            "rot_deg_median": 1.3261138031282467,
+            "trans_frac_median": 0.006287733902910379,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 0.9088830449519024,
+              "trans_frac_median": 0.009803976962196145
+            },
+            "linearised_outer": {
+              "rot_deg_median": 3.8492664161618215,
+              "trans_frac_median": 0.04485196303292843
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 0.810493259110711,
+              "trans_frac_median": 0.008655081320452913
+            },
+            "linearised_outer": {
+              "rot_deg_median": 3.719517611439284,
+              "trans_frac_median": 0.04222375937496551
+            }
+          }
+        }
+      },
+      {
+        "convention": "abstain_allowed",
+        "alpha": 0.5,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 0.8756699948300293,
+            "trans_frac_median": 0.004151966370658201,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 1.0090444325956904,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.004512036597381292,
+            "lateral_frac_median": 0.0008334018744268944
+          },
+          "A3": {
+            "rot_deg_median": 0.9539832661707934,
+            "trans_frac_median": 0.004523286697839444,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 0.6197931586821696,
+              "trans_frac_median": 0.006094093985795956
+            },
+            "linearised_outer": {
+              "rot_deg_median": 2.7831883506302124,
+              "trans_frac_median": 0.03189687691514683
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 0.5547329481946717,
+              "trans_frac_median": 0.005484594565530382
+            },
+            "linearised_outer": {
+              "rot_deg_median": 2.781940047313854,
+              "trans_frac_median": 0.03113359998346561
+            }
+          }
+        }
+      },
+      {
+        "convention": "answer_required",
+        "alpha": 0.01,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": "inf",
+            "trans_frac_median": "inf",
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": "inf",
+            "trans_frac_median": null,
+            "boresight_frac_median": "inf",
+            "lateral_frac_median": "inf"
+          },
+          "A3": {
+            "rot_deg_median": "inf",
+            "trans_frac_median": "inf",
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            },
+            "linearised_outer": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            },
+            "linearised_outer": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            }
+          }
+        }
+      },
+      {
+        "convention": "answer_required",
+        "alpha": 0.02,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": "inf",
+            "trans_frac_median": "inf",
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": "inf",
+            "trans_frac_median": null,
+            "boresight_frac_median": "inf",
+            "lateral_frac_median": "inf"
+          },
+          "A3": {
+            "rot_deg_median": "inf",
+            "trans_frac_median": "inf",
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            },
+            "linearised_outer": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            },
+            "linearised_outer": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            }
+          }
+        }
+      },
+      {
+        "convention": "answer_required",
+        "alpha": 0.05,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": "inf",
+            "trans_frac_median": "inf",
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": "inf",
+            "trans_frac_median": null,
+            "boresight_frac_median": "inf",
+            "lateral_frac_median": "inf"
+          },
+          "A3": {
+            "rot_deg_median": "inf",
+            "trans_frac_median": "inf",
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            },
+            "linearised_outer": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            },
+            "linearised_outer": {
+              "rot_deg_median": "inf",
+              "trans_frac_median": "inf"
+            }
+          }
+        }
+      },
+      {
+        "convention": "answer_required",
+        "alpha": 0.1,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 3.991823761198862,
+            "trans_frac_median": 0.01892712792712404,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 4.8284858518729035,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.02159102629162197,
+            "lateral_frac_median": 0.00398799996274
+          },
+          "A3": {
+            "rot_deg_median": 3.267436838764675,
+            "trans_frac_median": 0.01549246628626797,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 3.1590346534165388,
+              "trans_frac_median": 0.038005194398439815
+            },
+            "linearised_outer": {
+              "rot_deg_median": 11.070181048187415,
+              "trans_frac_median": 0.13419452202471
+            },
+            "sampled": {
+              "rot_deg_median": 5.461335089766594,
+              "trans_frac_median": 0.05913567424475171
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 3.1632457676647174,
+              "trans_frac_median": 0.03683045306367855
+            },
+            "linearised_outer": {
+              "rot_deg_median": 11.219533645200398,
+              "trans_frac_median": 0.13137806538512825
+            },
+            "sampled": {
+              "rot_deg_median": 5.48854229501526,
+              "trans_frac_median": 0.057880609069374894
+            }
+          }
+        }
+      },
+      {
+        "convention": "answer_required",
+        "alpha": 0.15,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 2.5764187284942186,
+            "trans_frac_median": 0.012216021995270403,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 3.1327490404924045,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.014008380468193493,
+            "lateral_frac_median": 0.002587437022707949
+          },
+          "A3": {
+            "rot_deg_median": 2.3213616903179624,
+            "trans_frac_median": 0.011006675721720111,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 1.9658883394107183,
+              "trans_frac_median": 0.023284879228299762
+            },
+            "linearised_outer": {
+              "rot_deg_median": 7.2939299584636625,
+              "trans_frac_median": 0.08774063642246359
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 1.7559782814864524,
+              "trans_frac_median": 0.020013945555950194
+            },
+            "linearised_outer": {
+              "rot_deg_median": 6.781239974208583,
+              "trans_frac_median": 0.07856529151903295
+            }
+          }
+        }
+      },
+      {
+        "convention": "answer_required",
+        "alpha": 0.2,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 2.071915566598673,
+            "trans_frac_median": 0.009823933452271257,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 2.4959539489253872,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.011160891630866525,
+            "lateral_frac_median": 0.0020614877128518937
+          },
+          "A3": {
+            "rot_deg_median": 1.919133110736735,
+            "trans_frac_median": 0.009099519434992445,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 1.4792680275036387,
+              "trans_frac_median": 0.01695607136881395
+            },
+            "linearised_outer": {
+              "rot_deg_median": 5.72389470293863,
+              "trans_frac_median": 0.06798571393077055
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 1.3017066043941519,
+              "trans_frac_median": 0.01453515721079699
+            },
+            "linearised_outer": {
+              "rot_deg_median": 5.350974688904798,
+              "trans_frac_median": 0.0615021736712221
+            }
+          }
+        }
+      },
+      {
+        "convention": "answer_required",
+        "alpha": 0.3,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 1.5040706800931634,
+            "trans_frac_median": 0.0071315117792199465,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 1.7883060403531184,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.007996577792550377,
+            "lateral_frac_median": 0.0014770188090184914
+          },
+          "A3": {
+            "rot_deg_median": 1.5177253599753948,
+            "trans_frac_median": 0.007196255086639236,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 1.072730815204412,
+              "trans_frac_median": 0.011809094739928031
+            },
+            "linearised_outer": {
+              "rot_deg_median": 4.396302499604177,
+              "trans_frac_median": 0.05162113639362197
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 0.9429133757658821,
+              "trans_frac_median": 0.01030583187665539
+            },
+            "linearised_outer": {
+              "rot_deg_median": 4.177534768373833,
+              "trans_frac_median": 0.047599883277350326
+            }
+          }
+        }
+      },
+      {
+        "convention": "answer_required",
+        "alpha": 0.5,
+        "level_a": {
+          "A1": {
+            "rot_deg_median": 0.9917531662148407,
+            "trans_frac_median": 0.004702371690738447,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          },
+          "A2": {
+            "rot_deg_median": 1.1593033772481298,
+            "trans_frac_median": null,
+            "boresight_frac_median": 0.005183933528234634,
+            "lateral_frac_median": 0.0009575055135507091
+          },
+          "A3": {
+            "rot_deg_median": 1.0688170006500666,
+            "trans_frac_median": 0.0050677678455206335,
+            "boresight_frac_median": null,
+            "lateral_frac_median": null
+          }
+        },
+        "level_b": {
+          "B1": {
+            "linearised_inner": {
+              "rot_deg_median": 0.705409494898314,
+              "trans_frac_median": 0.007133141251165048
+            },
+            "linearised_outer": {
+              "rot_deg_median": 3.1018144228109623,
+              "trans_frac_median": 0.03572271204314883
+            }
+          },
+          "B2": {
+            "linearised_inner": {
+              "rot_deg_median": 0.634865091913468,
+              "trans_frac_median": 0.006453630345418114
+            },
+            "linearised_outer": {
+              "rot_deg_median": 3.079465127129909,
+              "trans_frac_median": 0.03466594718413514
+            }
+          }
+        }
+      }
+    ]
+  },
+  "provenance": {
+    "poseconf_git_sha": "c4e3b475c7d88597e99bf589a8501202401096c5",
+    "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
+    "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
+    "dump": "dumps/keypoint_a2/synthetic_predicted_crop.npz",
+    "dump_sha256": "07dc09268b4305904aa7ac43f641d001007f958993b262b75c372a39e544368f",
+    "dump_poseconf_git_sha": "f9ee848a20cb5fe4c64ca6cddba8e0763094c909",
+    "labels": "dumps/keypoint_a2/synthetic_labels.npz",
+    "labels_sha256": "c0996245e55f8d7dd457c5e010c7dd08556629133a2940dd099f73e6777cfe47",
+    "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
+    "config_sha256": "af93dbac7bb597840c7f1a65bce181c55eb473840ad6906720c15c3a48d66bf0",
+    "created_at": "2026-10-07T14:58:34Z",
+    "pnp_config": {
+      "method": "EPNP",
+      "reprojection_threshold_px": 5.0,
+      "min_inliers": 6,
+      "iterations": 1000,
+      "confidence": 0.99,
+      "refine": true,
+      "use_keypoint_confidence": true,
+      "confidence_min": 0.2
+    },
+    "level_b_result": "results/level_b/keypoint_a2_predicted_crop_synthetic.json"
+  }
+}

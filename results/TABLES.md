@@ -1261,10 +1261,10 @@ From `results/latency/frame_budget.json`: 64 `synthetic_val_test` frames, predic
 
 | pipeline | preprocess p50 / p99 | detect p50 / p99 | crop p50 / p99 | keypoints p50 / p99 | pnp p50 / p99 | postprocess p50 / p99 | uncertainty p50 / p99 | total p50 / p99 |
 |---|---|---|---|---|---|---|---|---|
-| onnxruntime_cuda_fp32_head_off | 4.09 / 4.57 | 2.69 / 4.54 | 3.23 / 8.96 | 3.33 / 10.67 | 0.79 / 47.82 | 0.06 / 0.13 | — | 15.85 / 65.43 |
-| onnxruntime_cuda_fp32_head_on | 4.16 / 4.57 | 2.70 / 4.52 | 3.28 / 9.14 | 3.96 / 10.75 | 0.81 / 48.69 | 0.06 / 0.12 | 0.95 / 1.19 | 17.81 / 69.63 |
-| onnxruntime_cuda_fp16_head_off | 4.09 / 4.45 | 3.50 / 4.55 | 3.07 / 8.87 | 6.16 / 8.37 | 0.78 / 47.67 | 0.06 / 0.12 | — | 18.19 / 66.17 |
-| onnxruntime_cuda_fp16_head_on | 4.12 / 4.57 | 3.62 / 4.57 | 3.25 / 9.09 | 6.92 / 8.88 | 0.80 / 48.03 | 0.06 / 0.12 | 0.93 / 1.14 | 20.10 / 68.57 |
+| onnxruntime_cuda_fp32_head_off | 4.22 / 4.87 | 2.58 / 4.91 | 2.90 / 8.91 | 3.18 / 11.15 | 0.82 / 49.45 | 0.06 / 0.18 | — | 14.64 / 65.26 |
+| onnxruntime_cuda_fp32_head_on | 4.19 / 4.69 | 2.61 / 4.79 | 2.85 / 8.85 | 3.78 / 13.65 | 0.82 / 48.70 | 0.06 / 0.14 | 0.97 / 1.17 | 16.28 / 66.05 |
+| onnxruntime_cuda_fp16_head_off | 4.15 / 4.60 | 3.31 / 5.46 | 2.81 / 8.65 | 5.22 / 9.09 | 0.82 / 48.95 | 0.06 / 0.13 | — | 17.36 / 65.74 |
+| onnxruntime_cuda_fp16_head_on | 4.20 / 4.62 | 3.34 / 5.88 | 2.87 / 8.91 | 5.95 / 11.38 | 0.83 / 48.35 | 0.06 / 0.14 | 0.98 / 1.20 | 19.55 / 67.65 |
 
 —: the stage does not run in that pipeline (head off has no uncertainty stage).
 

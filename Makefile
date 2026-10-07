@@ -17,8 +17,8 @@ verify-p1: ; $(PY) scripts/verify_p1_checkpoints.py --config configs/conformal.y
 splits: ; $(PY) scripts/make_splits.py --config configs/conformal.yaml
 level-a: ; $(PY) scripts/run_level_a.py --config configs/conformal.yaml --run keypoint_a2 --crop-source predicted_crop
 dump:
-	@echo "Run this yourself (GPU, ~minutes per domain):"
-	@echo "  $(PY) scripts/dump_predictions.py --run keypoint_a2 --all-domains --all-arms"
+	@echo "GPU, ~minutes per domain x arm; TF32 off; writes dumps_root/keypoint_a2/ (gitignored):"
+	@echo "  $(PY) scripts/dump_predictions.py --run keypoint_a2 --all-domains --all-arms --device cuda --tf32 off"
 parity-p1: ; $(PY) scripts/check_p1_parity.py --run keypoint_a2
 level-b:   ; $(PY) scripts/run_level_b.py --config configs/conformal.yaml
 train-var-smoke: ; $(PY) scripts/train_variance_head.py --config configs/variance_head.yaml --overfit-batch --max-steps 400

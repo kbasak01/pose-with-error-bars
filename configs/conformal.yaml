@@ -39,6 +39,24 @@ level_a:                    # Phase 2: in-distribution only, synthetic val_test;
     ks_min_p: 0.01                       # KS against the atom-aware re-split law
     mean_band_se: 3                      # mean within this many MC s.e.
 
+dump:                       # Phase 3: per-frame prediction dump + P1 parity gate
+  run: keypoint_a2
+  domains: [synthetic, lightbox, sunlamp]
+  arms: [predicted_crop, gt_crop]        # gt_crop = P1's pipeline_gt_crop path; oracle on HIL
+  batch_size: 48                         # P1 keypoint_a2 train.batch_size: both P1 eval stages batch by it
+  solve_workers: 16                      # P1 runtime.num_workers: sets P1's PnP chunk seeding
+  solve_seed: 1337                       # P1 runtime.seed
+  decode_threads: 8
+  subset_size: 256                       # frames whose heatmaps + decoder features are kept
+  subset_seed: 1337
+  tf32: false
+  moment_mean_tol_crop_px: 1.0e-3        # heatmap-moment mean vs P1 coordinate, non-empty channels
+  parity_gate:
+    flag_agreement_min: 0.999            # per domain x arm
+    median_abs_de_r_max_rad: 1.0e-6      # on frames both solved
+    solved_count_exact: true             # "solve rates match P1's JSON to the reported precision"
+  max_disagreements_listed: 10
+
 repeated_splits:
   n_resplits: 1000          # random re-splits of val_cal ∪ val_test for coverage distributions
   seed: 1337

@@ -348,3 +348,24 @@ def test_unconstrained_keypoints_leave_the_joint_max() -> None:
         SCORES["B2"].set_fn(f["y_hat"], v, q, cov=bad, unconstrained=unc)
     with pytest.raises(ValueError, match="unconstrained"):
         SCORES["B2"].set_fn(f["y_hat"], v, q, cov=cov, unconstrained=unc[:, :3])
+
+
+def test_b1_shares_the_unconstrained_rule() -> None:
+    """B1 uses the same empty-channel rule as B2 (user decision before Phase 6)."""
+    f = _keypoint_frame(51)
+    v, inc = f["valid"], f["include"]
+    unc = np.random.default_rng(52).uniform(size=inc.shape) < 0.2
+    y_gt = f["y_gt"].copy()
+    y_gt[unc] = np.nan
+    for convention in CONVENTIONS:
+        s = score_b1(
+            f["y_hat"], y_gt, inc, v, d_hat=f["d_hat"], unconstrained=unc, convention=convention
+        )
+        ref = score_b1(
+            f["y_hat"], f["y_gt"], inc & ~unc, v, d_hat=f["d_hat"], convention=convention
+        )
+        np.testing.assert_array_equal(s, ref)
+    q = conformal_quantile(s[v], 0.2)
+    st = SCORES["B1"].set_fn(f["y_hat"], v, q, d_hat=f["d_hat"], unconstrained=unc)
+    np.testing.assert_array_equal(st.contains(y_gt, inc)[v], s[v] <= q)
+    assert np.all(np.isinf(st.radius_px[v & unc.any(axis=1)]))

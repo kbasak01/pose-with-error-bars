@@ -124,7 +124,9 @@ def test_unit_radius_and_set_size() -> None:
     frames, _ = lb.join_dump(dump, labels, names, GEOM, ORDER)
     radius = lb.unit_radius_px("B1", frames)
     assert np.all(np.isnan(radius[~frames.valid]))
-    assert radius[frames.valid] == pytest.approx(frames.d_hat[frames.valid])
+    bounded = frames.valid & ~frames.unconstrained.any(axis=1)
+    assert radius[bounded] == pytest.approx(frames.d_hat[bounded])
+    assert np.all(np.isinf(radius[frames.valid & frames.unconstrained.any(axis=1)]))
     kset = lb.keypoint_set("B2", frames, 1.0)
     report = lb.set_size_report(kset, frames.valid)
     assert report["n_frames_with_unconstrained_keypoint"] == int(

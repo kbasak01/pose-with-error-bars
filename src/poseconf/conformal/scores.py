@@ -661,9 +661,10 @@ def score_b1(
     valid: ArrayLike,
     *,
     d_hat: ArrayLike,
+    unconstrained: ArrayLike | None = None,
     convention: str,
 ) -> NDArray[np.float64]:
-    """B1 = max_k ||y_hat_k - y_k|| / d_hat over included keypoints.
+    """B1 = max_k ||y_hat_k - y_k|| / d_hat over included, constrained keypoints.
 
     Args:
         y_hat: (n, K, 2) predicted keypoints, full-frame px.
@@ -672,14 +673,24 @@ def score_b1(
             calibration and evaluation. A frame with no included keypoint scores 0.
         valid: (n,) bool, frame has a point estimate.
         d_hat: (n,) predicted (detector) box diagonal, px.
+        unconstrained: Optional (n, K) bool, prediction-side: keypoints whose set is the whole
+            image (an empty heatmap channel), left out of the max, as for B2.
         convention: PnP-failure convention.
     """
-    return _keypoint_score(y_hat, y_gt, include, valid, d_hat, None, None, convention)
+    return _keypoint_score(y_hat, y_gt, include, valid, d_hat, None, unconstrained, convention)
 
 
-def set_b1(y_hat: ArrayLike, valid: ArrayLike, q: float, *, d_hat: ArrayLike) -> KeypointSet:
-    """B1 set: K discs centred on y_hat_k, radius q d_hat."""
-    return _keypoint_set(y_hat, valid, q, d_hat, None)
+def set_b1(
+    y_hat: ArrayLike,
+    valid: ArrayLike,
+    q: float,
+    *,
+    d_hat: ArrayLike,
+    unconstrained: ArrayLike | None = None,
+) -> KeypointSet:
+    """B1 set: K discs centred on y_hat_k, radius q d_hat; an unconstrained keypoint's set is the
+    whole image."""
+    return _keypoint_set(y_hat, valid, q, d_hat, None, unconstrained)
 
 
 def score_mahalanobis(

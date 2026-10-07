@@ -9,7 +9,7 @@ Data roles (CLAUDE.md invariants 3-5):
 
 The valid mask is P1's PnP success, as for Level A, so Levels A and B share one answer rate
 (docs/DECISIONS.md 2026-10-06). An empty heatmap channel is an *unconstrained* keypoint (its set
-is the whole image; docs/DECISIONS.md 2026-10-07).
+is the whole image) in both B1 and B2 (docs/DECISIONS.md 2026-10-07).
 """
 
 from __future__ import annotations
@@ -208,7 +208,7 @@ def join_dump(
 
 def _kwargs(score_id: str, frames: KeypointFrames) -> dict[str, Any]:
     if score_id == "B1":
-        return {"d_hat": frames.d_hat}
+        return {"d_hat": frames.d_hat, "unconstrained": frames.unconstrained}
     if score_id == "B2":
         return {"cov": frames.cov, "unconstrained": frames.unconstrained}
     raise ValueError(f"not a Level B score: {score_id!r}; expected one of {LEVEL_B_SCORES}")

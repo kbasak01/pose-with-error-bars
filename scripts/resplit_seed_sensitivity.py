@@ -10,6 +10,8 @@ never replaces them. Gate and protocol are unchanged.
 
     python scripts/resplit_seed_sensitivity.py \
         --head vhead_a2_s2026=dumps/seed_2026 --head vhead_a2_s1337=dumps \
+        --committed results/level_c/seed_2026/keypoint_a2_predicted_crop_synthetic.json \
+                    results/level_c/keypoint_a2_predicted_crop_synthetic.json \
         --out results/level_c/seed_2026/resplit_seed_sensitivity.json
 """
 

@@ -1,13 +1,20 @@
 # pose-with-error-bars
 
-Distribution-free error bars for a monocular spacecraft pose pipeline, and a measurement of what
-happens to them when the imagery stops being synthetic. A guidance, navigation and control (GNC)
-loop that consumes a pose needs to know when to trust it. Split-conformal prediction gives a pose
-set with a finite-sample marginal coverage guarantee, but only while calibration and deployment
-frames are exchangeable. This repository wraps the frozen pipeline from
-[`spacecraft-pose-baseline`](https://github.com/kbasak01/spacecraft-pose-baseline) ("P1"). It
-calibrates seven kinds of pose and keypoint sets on synthetic SPEED+ and then measures how their
-coverage holds up on the hardware-in-the-loop (HIL) `lightbox` and `sunlamp` domains.
+**A pose estimate with error bars.** Around each PnP pose from a frozen spacecraft pose pipeline,
+this repository builds a rotation-and-translation set. On frames exchangeable with the
+calibration set, the system either abstains or returns a set containing the true pose, with
+probability at least 90 %. The set is calibrated on synthetic SPEED+ images (A1, α = 0.10,
+`abstain_allowed`; intervals and n below). It covers 89.4 % of synthetic test frames. On the
+hardware-in-the-loop (HIL) `lightbox` domain the same set covers 66.0 %. The guarantee does not
+survive the sim-to-hardware shift, and this repository measures by how much.
+
+The pipeline is [`spacecraft-pose-baseline`](https://github.com/kbasak01/spacecraft-pose-baseline)
+("P1"), used read-only as a git submodule and never modified. A guidance, navigation and control
+(GNC) loop that consumes a pose needs to know when to trust it. Split-conformal prediction
+provides that, but only while calibration and deployment frames are exchangeable. Here seven
+score variants are calibrated on synthetic SPEED+: pose-space sets (A1–A3), keypoint sets
+(B1–B2) and learned-uncertainty sets (C1–C2). Their coverage is then measured on the HIL
+`lightbox` and `sunlamp` domains.
 
 The headline is **the coverage gap under shift**, not a coverage number. The sets are calibrated
 for 90 % (A1, `split`, α = 0.10, `abstain_allowed`).
@@ -28,7 +35,19 @@ coverage with its 95 % Clopper–Pearson interval, and the dashed line is the no
 each panel the quantile and the set are identical in all three rows (q = 3.3645 for
 `abstain_allowed`, 5.7690 for `answer_required`): one synthetic calibration, applied unchanged.*
 
-![The same synthetic-calibrated set on seeded synthetic, lightbox and sunlamp frames](assets/shift_domain_tour.gif)
+> **In one sentence:** the ≥ 90 % guarantee is marginal and finite-sample, and it holds only on
+> synthetic `val_test`, exchangeable with the calibration set. Every HIL number is measured, not
+> guaranteed, and the system is not "certified" or "safe". The full box is
+> [below](#what-the-guarantee-says-and-what-it-does-not).
+
+**Relative to Yang & Pavone (CVPR 2023) and Wang et al. (ICCV 2025).** Both papers build
+conformal keypoint sets and propagate them to pose uncertainty, on object-pose benchmarks (Wang
+et al. also on the original SPEED). This repository does not offer a tighter set. It measures
+what happens to such sets under a real sim-to-HIL shift on SPEED+, reported with Clopper–Pearson
+intervals, answer rates and silent-failure rates. No numeric comparison against either paper was
+run; see [*Relative to prior work*](#relative-to-prior-work).
+
+![One synthetic-calibrated pose set: it covers on synthetic frames, misses silently on lightbox, and abstains on most sunlamp frames](assets/shift_domain_tour.gif)
 
 *The same A1 pose set (α = 0.10, `abstain_allowed`) on seeded frames from each domain. Blue is
 the estimate plus 24 poses sampled on the set boundary, and orange dashed is the true pose. Each
@@ -96,7 +115,7 @@ How to read it:
 >   containing the true pose is ≥ 1 − α.
 > - Under `answer_required`, where a PnP failure counts as a miss, the probability that the set
 >   contains the true pose is ≥ 1 − α. For α ≤ 0.05 this holds only because q = +∞ (the whole
->   space).
+>   space), so it is vacuous there.
 >
 > Both statements are *marginal*: averaged over frames and over the draw of the calibration set.
 > Both hold in *finite samples*. Both rest on one assumption: that `val_cal` and `val_test` are
@@ -195,7 +214,7 @@ Hollow markers are ∞ sets.*
 
 ### Gallery
 
-![α sweep: the set grows as α shrinks, while measured coverage tracks nominal only on synthetic](assets/alpha_sweep.gif)
+![As α shrinks the set grows; measured coverage tracks nominal on synthetic but reaches 0.90 on lightbox only at nominal 0.99](assets/alpha_sweep.gif)
 
 *α runs from 0.50 to 0.01. One seeded synthetic frame and one lightbox frame are shown with the A1
 set at each α's quantile. Each was chosen because its score lies inside the sweep's q range, so
@@ -276,7 +295,7 @@ failure.
 
 | | Uncertainty object | Evaluated on |
 |---|---|---|
-| Yang & Pavone, CVPR 2023 | conformal keypoint sets → pose uncertainty set (PURSE); RANSAG average pose; SDP worst-case bounds | object-pose benchmarks (see the paper) |
+| Yang & Pavone, CVPR 2023 | conformal keypoint sets → pose uncertainty set (PURSE); RANSAG average pose; SDP worst-case bounds | LineMOD-Occlusion (per the paper's abstract) |
 | Wang et al., ICCV 2025 | conformal keypoint regions → ellipsoidal pose confidence regions via the implicit function theorem | LineMOD-Occlusion and the original SPEED |
 | This repository | pose-space sets (A), keypoint sets / PURSE (B) and learned-Σ̂ normalisers (C), side by side on one frozen pipeline | SPEED+ synthetic → `lightbox` / `sunlamp` HIL |
 
@@ -337,7 +356,8 @@ miss is inherited.
 
 ## Reproducing this
 
-**Without the dataset or a GPU.** This is the clean-clone gate that CI runs:
+**Quick start: no dataset, no GPU, no download beyond pip.** This is the clean-clone gate that CI
+runs on `ubuntu-latest` with Python 3.11; it was also run locally under WSL2 (Ubuntu), Python 3.11:
 
 ```bash
 git clone --recurse-submodules https://github.com/kbasak01/pose-with-error-bars.git
@@ -348,7 +368,7 @@ pip install -e external/spacecraft-pose-baseline --no-deps            # P1, read
 pip install -r requirements-extra.txt -c external/spacecraft-pose-baseline/requirements-ci.txt
 pip install -e . --no-deps
 
-make lint && make smoke      # conformal core, adapter, head, fixtures: no dataset, no GPU
+make lint && make smoke      # conformal core, adapter, head, fixtures: no dataset, no GPU, no download
 make tables                  # regenerates results/TABLES.md from the JSON (CI checks it is byte-identical)
 ```
 

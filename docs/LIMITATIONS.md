@@ -128,13 +128,13 @@ seeds give a range, not a variance estimate. On `val_test`, from
 | Re-split verdicts (VALID / DEGENERATE / DEVIATES) | 26 / 6 / 0 | 25 / 6 / 1 |
 
 Answer rate is 0.9285 for both, n = 4,797. Every Phase 5 conclusion holds for both seeds: the head
-beats heatmap moments by about 2 nats, ranks error better than confidence, and is not a calibrated
+beats heatmap moments by about 2.4 nats (5.432 vs 3.054 and 3.073), ranks error better than confidence, and is not a calibrated
 Gaussian (`uncertainty-head-diagnostician`, TRUSTWORTHY for both).
 
-**One re-split cell of seed 2026 fails the per-cell gate. It belongs to the permutation set, not to
-the cell.** The cell is C1 `answer_required` α = 0.5:
+**One re-split cell of seed 2026 fails the per-cell gate. It is attributable to the shared
+permutation set: at much higher power the cell shows no detectable deviation.** The cell is C1 `answer_required` α = 0.5:
 - law KS p = 0.0059 against the 0.01 gate;
-- mean +2.43 MC s.e. *above* the exact law, which is the safe direction;
+- mean +2.43 MC s.e. *above* the exact law, which is the conservative direction;
 - mean inside the plan band, sd ratio 0.99.
 
 The committed verdict stays DEVIATES. Every cell and both heads share one set of 1,000
@@ -156,8 +156,9 @@ retraining. The s2026 record stores them (`head`).
 
 **The fp32 variance parity gate is not met, and it stays unmet (G2).** In
 [`results/export/onnx_parity.json`](../results/export/onnx_parity.json) `gate_status`, `cov_chol`
-max |Δ| is 2.857e-3 against the 1e-4 gate (TF32 off on both sides). A CPU-to-CPU control also
-misses it, at 7.02e-4. The shipped quantity, the C1 set radius, agrees to 6.95e-5 relative. The
+max |Δ| is 2.857e-3 against the 1e-4 gate (TF32 off on both sides), and the assembled Σ̂ (`cov`)
+misses it at 0.2328 px². A CPU-to-CPU control also misses, at 7.02e-4 (`cov_chol`) and 0.0764
+(`cov`). The shipped quantity, the C1 set radius, agrees to 6.95e-5 relative. The
 mechanism is a hypothesis (`docs/DECISIONS.md`, ONNX parity). Loosening the gate, or gating on the
 relative number instead, would be moving a gate to pass it (invariant 11).
 
@@ -203,7 +204,7 @@ are not critical findings.
 | A1 | `⌈(n+1)(1−α)⌉`-th order statistic, brute force at n ∈ {1,2,9,10,99,4798} | ✅ | `split.py:77-126` uses an exact `Fraction` index. `tests/test_conformal_split.py:20-67` enumerates the definition at those n × 20 α and pins float traps (n = 9, α = 0.1 → k = 9) |
 | A2 | `+∞` when k > n; never clips | ✅ | `split.py:124-125`; `test_index_past_n_gives_inf_not_the_max`, `test_empty_calibration_gives_inf`. No `np.quantile` touches calibration scores |
 | A3 | NaN raises; ±∞ per convention | ✅ | `as_scores` raises on NaN (`split.py:101`); `metrics.outcomes` raises on a convention mismatch; `test_infinite_scores_sort_and_are_not_dropped` |
-| A4 | Agrees with MAPIE and TorchCP | ⚠️ | MAPIE 1.5.0 agrees at rel 1e-12 on 40 cases (`tests/test_conformal_oracles.py`), and since this sweep it runs in CI (no longer `slow`). TorchCP is absent: it is not installable beside P1's numpy pin, and exact brute force replaces it (`docs/DECISIONS.md` 2026-10-06 ×2) |
+| A4 | Agrees with MAPIE and TorchCP | ⚠️ | MAPIE 1.5.0 agrees at rel 1e-12 on 40 cases, plus 4 small-n refusal cases, 44 in all (`tests/test_conformal_oracles.py`), and since this sweep it runs in CI (no longer `slow`). TorchCP is absent: it is not installable beside P1's numpy pin, and exact brute force replaces it (`docs/DECISIONS.md` 2026-10-06 ×2) |
 | A5 | ≥ 2,000 resamples inside the Beta 99 % band, three noise models | ✅ | `results/validity/conformal_core_synthetic.json`: 16/16 VALID, R = 2,000, KS p ≥ 0.033; reproduced into scratch by the auditor |
 | A6 | Weighted CP: test mass at `+∞`; known shift restored; ESS | ✅ | `weighted.py:68`; `test_test_point_mass_sits_at_inf`; same JSON: 0.9050 weighted vs 0.7502 split at α = 0.10, ESS 192.7 of 500 |
 | A7 | Small Mondrian groups → `∞`, never borrow | ✅ | `mondrian.py:47`; `test_missing_group_is_inf_not_borrowed`, `test_small_group_threshold` |
@@ -256,7 +257,7 @@ are not critical findings.
 | E6 | Repeated-split coverage vs Beta law | ✅ | Levels A/B/C (selected head): 39/9/0, 26/6/0, 26/6/0 VALID/DEGENERATE/DEVIATES against the exact re-split law. Plain-Beta KS rejection explained by finite m (`docs/DECISIONS.md` Phase 2). Seed 2026's one DEVIATES is explained and does not recur under independent permutations (`results/level_c/seed_2026/resplit_seed_sensitivity.json`) |
 | E7 | Conditional slices for every domain | ✅ | `results/TABLES.md` "Conditional coverage slices": range, confidence, IoU × 3 domains × 2 conventions |
 | E8 | Sunlamp always with n answered and CI | ✅ | Headline 175 / 1,396 with CI; every α-grid and slice cell now gives n answered; PROGRESS Mondrian and oracle sunlamp lines carry the answer rate, n answered and CI |
-| E9 | Same PnP config in every row | ✅ | 66 of 76 result JSONs carry it, all identical (EPnP, 5.0 px, 6 inliers, 1,000 iterations, 0.99) and equal to the pinned P1 config |
+| E9 | Same PnP config in every row | ✅ | 67 of 82 committed result JSONs carry it (55 in `provenance`, 12 in the calibration artifacts' `payload.context`), all identical (EPnP, 5.0 px, 6 inliers, 1,000 iterations, 0.99) and equal to the pinned P1 config |
 
 ### F. Propagation and geometry
 
@@ -292,9 +293,9 @@ are not critical findings.
 
 | # | Item | | Evidence |
 |---|---|---|---|
-| I1 | `make smoke` green on a clean clone (CI) | ✅ | CI run 37697251527 on `3e1b8d0`: CPU-only, `submodules: recursive`, no dataset, runs `make smoke`; locally 461 passed, 61 deselected |
+| I1 | `make smoke` green on a clean clone (CI) | ✅ | CI (CPU-only, `submodules: recursive`, no dataset, runs `make smoke`) on the pushed Phase 8 commits: see `docs/PROGRESS.md`, Phase 8. A clean clone of the Phase 8 tree with no `paths.local.yaml` gives 523 passed, 18 deselected |
 | I2 | Licences; SPEED+ attributed, not redistributed; HIL imagery terms | ✅ | `LICENSE` MIT; `SOURCES.md:11`; both image figures carry "SPEED+ imagery, CC BY-NC-SA 4.0" on the figure and show synthetic frames only |
-| I3 | No dumps, checkpoints, ONNX, large binaries | ✅ | Largest tracked files are two PNGs (2.7 MB, 1.9 MB) and the ~370 KB re-split `.npz` results; no `.pt`/`.onnx` in any commit. `src/poseconf.egg-info/` (build output) untracked at this sweep |
+| I3 | No dumps, checkpoints, ONNX, large binaries | ✅ | Largest tracked files are two PNGs (2.7 MB, 1.9 MB); every results file is under 0.6 MB (oracle shift JSONs ~570 KB, re-split `.npz` ~370 KB); no `.pt`/`.onnx` in any commit. `src/poseconf.egg-info/` (build output) untracked at this sweep |
 | I4 | Release assets with `SHA256SUMS.txt` | ❌ | No release (Phase 9) |
 
 ### J. Ship-deck reusability

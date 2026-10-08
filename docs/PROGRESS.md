@@ -10,7 +10,7 @@
 | 5 Variance head | **complete** 2026-10-07 | P1 coordinates bit-identical with the head (tests + sidecar dumps, 6/6 cells); `uncertainty-head-diagnostician` TRUSTWORTHY. C1/C2 × 2 conventions × 8 α: 26 VALID, 6 DEGENERATE (answer_required α ≤ 0.05, q = ∞), 0 DEVIATES, R = 1,000. `val_test` NLL learned Σ̂ 3.054 vs heatmap moment 5.432 nats/keypoint; set size mixed (C1 vs B2 at α = 0.10: 20.0 vs 16.4 px abstain_allowed, 25.6 vs 30.8 px answer_required) ([`results/level_c/`](../results/level_c/)). `conformal-validity-auditor` SOUND | `phase-5-complete` |
 | 6 Coverage under shift ⭐ | **complete** 2026-10-07 | 54 domain × crop × arm cells: 38 written (4,256 rows), 16 explained, 0 unexplained ([`results/shift/index.json`](../results/shift/index.json)). A1, `split`, α = 0.10, `abstain_allowed`, predicted_crop: synthetic 0.8941 [0.8850, 0.9027] (n = 4,797), lightbox 0.6596 [0.6434, 0.6756] (n = 3,370), sunlamp 0.8918 [0.8744, 0.9076] (n = 1,396; answer rate 0.125, coverage given answered 0.137) ([`results/shift/`](../results/shift/)). Weighted CP: AUC 0.983 / 0.998, ESS 1.04 / 1.60 of 4,798, sets ∞. `split-leakage-auditor` clean, `conformal-validity-auditor` SOUND | `phase-6-complete` |
 | 7 Head, ONNX, latency | **complete** 2026-10-07 | `ConformalPoseHead`: 12 hash-locked artifacts (A1–A3, B1, C1, C2 × 2 conventions, α = 0.10); a `val_test` replay reproduces every committed row's n_covered and n_answered ([`results/calibration/index.json`](../results/calibration/index.json)). ONNX opset 17, no forbidden ops ([`results/export/onnx_export.json`](../results/export/onnx_export.json)). Parity, fp32 with TF32 off: `cov_chol` max abs Δ 2.86e-3, so the 1e-4 gate is **unmet** and reported; C1 set radius relative max 6.95e-5; fp16 not faithful ([`results/export/onnx_parity.json`](../results/export/onnx_parity.json)). Frame budget, ORT CUDA fp32: total p50 14.64 → 16.28 ms with uncertainty ([`results/latency/frame_budget.json`](../results/latency/frame_budget.json)). `conformal-validity-auditor` SOUND, `onnx-parity-auditor` EXPORT VALID | `phase-7-complete` |
-| 8 Validation sweep | not started | | |
+| 8 Validation sweep | **complete** 2026-10-08 | all 58 `VALIDATION_CHECKLIST.md` lines have a verdict: 48 ✅ / 4 ⚠️ / 6 ❌ (41 / 9 / 8 before fixes); open ❌ = G2 fp32 variance parity (real, gate not moved) + H1/H3/H4/H5/I4 (Phase 9) ([`docs/LIMITATIONS.md`](LIMITATIONS.md)). Second variance-head seed: `val_test` NLL 3.054 / 3.073, C1 `abstain_allowed` α = 0.10 coverage 0.9079 / 0.9087, s1337 vs s2026 ([`results/level_c/variance_head_seed_spread.json`](../results/level_c/variance_head_seed_spread.json)). Seven `-dirty` + two mixed-sha records re-produced identically at a clean tree ([`results/reproducibility/rerun_check.json`](../results/reproducibility/rerun_check.json)). `split-leakage-auditor` no critical, `conformal-validity-auditor` SOUND, `p1-parity-auditor` REPRODUCED, `eval-reproducibility-auditor` no critical open, `uncertainty-head-diagnostician` TRUSTWORTHY (s2026) | `phase-8-complete` |
 | 9 Publication | not started | | |
 
 Update at the end of each phase via `/phase-gate N`.
@@ -444,3 +444,64 @@ Update at the end of each phase via `/phase-gate N`.
   - The empty-channel export path has not been exercised on a real empty channel.
   - The fp16 frame-budget keypoint stage is slower than fp32, and the cause is not established.
 
+## Phase 8 — Validation sweep (complete, 2026-10-08)
+
+- **Protocol.**
+  - Four audits ran in order on `3e1b8d0`: `split-leakage-auditor`, `conformal-validity-auditor`,
+    `p1-parity-auditor`, `eval-reproducibility-auditor`.
+  - First-pass verdicts and an 18-item ranked fix list went into
+    [`docs/LIMITATIONS.md`](LIMITATIONS.md) (commit `0bfe555`) before anything was fixed.
+  - Then every fix was made, and the changed areas were re-audited.
+  - Finally `conformal-validity-auditor` and `eval-reproducibility-auditor` ran once more on the
+    final tree.
+- **Outcome.**
+  - Every one of the 58 lines has a verdict: **48 ✅ / 4 ⚠️ / 6 ❌**, against 41 / 9 / 8 before
+    fixes.
+  - Open ❌:
+    - **G2**, the fp32 variance tensor parity (`results/export/onnx_parity.json`): real and
+      root-caused; the gate is not moved.
+    - **H1, H3, H4, H5 and I4**: README and release, owned by Phase 9.
+  - ⚠️ (accepted, documented): A4 (no TorchCP), D3 (s1337 clamp values only via the config hash),
+    G4 (frame budget p50/p99 only), J1 (P1-named lock slots).
+  - No critical finding is open, no leakage was found, and no coverage number changed.
+- **Critical findings closed.** Both were claims stronger than their evidence:
+  - a `keypoint_a1` "check" that does not exist;
+  - "the Beta-law test measures" the P1 selection effect, which no test on validation frames can
+    do.
+- **Second variance-head seed** ([`results/level_c/variance_head_seed_spread.json`](../results/level_c/variance_head_seed_spread.json),
+  `val_test`, s1337 → s2026):
+  - NLL 3.054 → 3.073 nats/keypoint.
+  - Spearman(σ̂, ‖r‖) 0.520 → 0.509.
+  - C1 `abstain_allowed` α = 0.10 coverage 0.9079 → 0.9087.
+  - C2 0.8981 → 0.9014.
+  - Re-split verdicts 26/6/0 → 25/6/1.
+  - s1337 stays the selected head; the diagnostician rates s2026 TRUSTWORTHY.
+  - The s2026 DEVIATES cell (C1 `answer_required` α = 0.5, law KS p 0.0059, over-coverage) is
+    kept as produced.
+  - Under independent permutation seeds it does not recur: 0 DEVIATES in 11 runs, one at
+    R = 20,000 ([`results/level_c/seed_2026/resplit_seed_sensitivity.json`](../results/level_c/seed_2026/resplit_seed_sensitivity.json)).
+- **Reproducibility.** The seven records stamped `12033fa…-dirty` and the two mixed-commit P1
+  records were re-produced at a clean tree. All 10 are identical outside provenance
+  ([`results/reproducibility/rerun_check.json`](../results/reproducibility/rerun_check.json)).
+  `results/TABLES.md` regenerates byte-identically.
+- **New.**
+  - [`docs/RECALIBRATION_EXAMPLE.md`](RECALIBRATION_EXAMPLE.md) (J2): C1 recalibrated for a
+    6-marker synthetic deck. Mean coverage over 200 fresh draws is 0.9000 at nominal 0.90,
+    against 0.3609 for the uncalibrated Gaussian on answered frames
+    ([`results/validity/recalibration_example.json`](../results/validity/recalibration_example.json)).
+  - `make splits-check`.
+  - Exact HIL oracle-tag allow-list.
+  - Train ∩ `val_*` asserted.
+  - A real empty channel through ORT.
+  - MAPIE oracle in CI.
+  - `TABLES.md` cells carry n answered and the silent-failure rate.
+- **Checks.**
+  - `make lint` clean.
+  - `make test`: 541 passed (GPU and dataset tests included).
+  - `make smoke`: 523 passed, 18 deselected.
+  - `make splits-check` byte-identical.
+  - P1 submodule clean at `0f81b426`.
+- **Carried into Phase 9.**
+  - README with the guarantee box, prior art and limitations (H1, H3–H5).
+  - Release assets with `SHA256SUMS.txt` (I4).
+  - Optional: a multiplicity-aware re-split gate, fixed *before* any future run.

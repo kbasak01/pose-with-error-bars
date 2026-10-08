@@ -95,6 +95,11 @@ committed calibration, so it was not done (`docs/LIMITATIONS.md`, J1).
   coverage is 0.9000 (MC s.e. 0.0006). Draws range from 0.8734 to 0.9204, around a nominal 0.90
   and a continuous-score upper bound of 0.9005 (`repeated_draws`). The CI above covers test noise
   only, given this calibration set.
+- **"Given answered" is a slice, not a guaranteed quantity.** Under `abstain_allowed` the guarantee
+  is on the marginal row, with abstentions counted covered. Coverage given answered is only about
+  1 − α / (answer rate) in expectation: 1 − 0.1 / 0.9476 ≈ 0.894 here. So 0.8850 is not a
+  shortfall against 0.90. Under `answer_required` (finite q) an unanswered frame is uncovered. So
+  marginal coverage ≥ 1 − α implies coverage given answered ≥ (1 − α) / (answer rate).
 - **The set is a per-keypoint ellipse.** Its median largest radius is 21.3 px on answered frames.
 
 ## What it does not show

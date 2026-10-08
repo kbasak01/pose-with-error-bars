@@ -1022,7 +1022,11 @@ replay check, the CPU control and the tests that pin the head to the evaluation 
 As in Phases 3 and 7, the user chose at the start of Phase 8 to have the GPU jobs run here rather
 than printed. I ran, on an idle card and a clean tree:
 - `train_variance_head.py --config configs/variance_head_s2026.yaml --results-dir results/level_c/seed_2026`;
-- `dump_variance.py --domain synthetic --crop-source predicted_crop --dumps-root dumps/seed_2026`.
+- `dump_variance.py --variance-head runs/vhead_a2_s2026/best.pt --domain synthetic --crop-source predicted_crop --dumps-root dumps/seed_2026 --device cuda --tf32 off`.
+
+s2026 was trained at `846c1f2`, before `assert_train_disjoint` existed (`518cd14`). For that run,
+train/validation disjointness rests on the dataset test (47,966 train frames, overlap 0), not on
+the guard having fired.
 
 The dumps root holds symlinks to the Phase 3 synthetic dump, labels and subset, plus the new
 sidecar. Level C provenance records the dump and label SHA-256, so the symlinks cannot drift
@@ -1073,8 +1077,8 @@ would be moving a gate (invariant 11).
 - **s2026, permutation seed 9001 at R = 20,000.** 0 DEVIATES, cell p 0.6236.
 - **s1337, the same five seeds.** 0 DEVIATES every time.
 
-The flagged cell does not recur, so it is a property of the shared permutation set, not of the
-cell or the head.
+The flagged cell does not recur. At much higher power it shows no detectable deviation, so it is
+attributable to the shared permutation set, not to the cell or the head.
 **Alternatives.** Bonferroni or FDR across cells. Rejected: changing the gate after seeing a
 failure is the anti-pattern. Any multiplicity-aware gate would have to be set before a future run.
 

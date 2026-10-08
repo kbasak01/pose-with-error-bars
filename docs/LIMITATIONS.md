@@ -293,7 +293,7 @@ are not critical findings.
 
 | # | Item | | Evidence |
 |---|---|---|---|
-| I1 | `make smoke` green on a clean clone (CI) | ✅ | CI (CPU-only, `submodules: recursive`, no dataset, runs `make smoke`) on the pushed Phase 8 commits: see `docs/PROGRESS.md`, Phase 8. A clean clone of the Phase 8 tree with no `paths.local.yaml` gives 523 passed, 18 deselected |
+| I1 | `make smoke` green on a clean clone (CI) | ✅ | CI run 37780089363 on `59788fb`, the Phase 8 tree (CPU-only, `submodules: recursive`, no dataset): unit tests and `make smoke` each 523 passed, 18 deselected |
 | I2 | Licences; SPEED+ attributed, not redistributed; HIL imagery terms | ✅ | `LICENSE` MIT; `SOURCES.md:11`; both image figures carry "SPEED+ imagery, CC BY-NC-SA 4.0" on the figure and show synthetic frames only |
 | I3 | No dumps, checkpoints, ONNX, large binaries | ✅ | Largest tracked files are two PNGs (2.7 MB, 1.9 MB); every results file is under 0.6 MB (oracle shift JSONs ~570 KB, re-split `.npz` ~370 KB); no `.pt`/`.onnx` in any commit. `src/poseconf.egg-info/` (build output) untracked at this sweep |
 | I4 | Release assets with `SHA256SUMS.txt` | ❌ | No release (Phase 9) |

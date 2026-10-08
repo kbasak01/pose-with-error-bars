@@ -501,6 +501,8 @@ Update at the end of each phase via `/phase-gate N`.
   - `make smoke`: 523 passed, 18 deselected.
   - `make splits-check` byte-identical.
   - P1 submodule clean at `0f81b426`.
+  - CI run 37780089363 on `59788fb`: green; unit tests and `make smoke` each 523 passed, 18
+    deselected.
 - **Carried into Phase 9.**
   - README with the guarantee box, prior art and limitations (H1, H3–H5).
   - Release assets with `SHA256SUMS.txt` (I4).

@@ -259,6 +259,7 @@ def main(argv: list[str] | None = None) -> int:
             **record["provenance"],
             "source_result": str(source),
             "source_result_sha256": sha256_file(source),
+            "source_poseconf_git_sha": record["provenance"]["poseconf_git_sha"],
             "poseconf_git_sha": poseconf_git_sha(),
             "created_at": utc_now_iso(),
         },

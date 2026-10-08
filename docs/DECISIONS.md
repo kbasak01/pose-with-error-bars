@@ -1126,3 +1126,55 @@ access. `split-leakage-auditor` judged both fine.
   re-benchmark or retrain to add fields is not justified, and P1 recorded why repeat benchmarks
   mislead on this card.
 - **`src/poseconf.egg-info/` untracked.** It was build output and listed the deleted `aci.py`.
+
+## 2026-10-08 — Phase 9 showcase figures
+
+**Decision.** `make figures` gains three entries. None of them changes a number: each one reads
+committed rows and refuses to draw if the frames disagree with them.
+- **`headline_outcomes`** is the hero image above the README fold. It splits every evaluated
+  frame into three outcomes: answered and covered, no pose, and answered and missed (a silent
+  failure). This is done per domain and per convention, for A1 `split` at α = 0.10.
+  - The split is computed from `n_total`, `n_answered` and `n_covered`. It must reproduce the
+    row's `coverage` and `silent_failure_rate` exactly, or the figure raises.
+  - It was chosen over `shift_coverage_vs_nominal` for the hero because it puts sunlamp's
+    abstentions on the page. A coverage-only chart makes sunlamp look recovered.
+- **`shift_domain_tour.gif`** shows the synthetic-calibrated A1 set on 6 seeded frames per domain.
+  - The frames are allocated across outcomes by largest remainder, in proportion to the measured
+    rates, with at least one frame per outcome. Each GIF frame says it is not a coverage sample.
+  - It recomputes A1 on all frames and requires `n_covered` to equal the committed row.
+- **`alpha_sweep.gif`** sweeps α from 0.50 to 0.01 on one synthetic and one lightbox frame, beside
+  measured vs nominal coverage. It requires the per-α split q to be identical across domains (one
+  synthetic calibration) and each row's `n_covered` to reproduce.
+- **`shift_size_vs_coverage`**: the "ans …" point labels overlapped. The answer rate is shared by
+  every non-weighted arm of a domain, so it moves into the legend; the code checks that it is
+  shared. Only the weighted arm's points keep a label.
+
+**HIL imagery.** Both GIFs show `lightbox` / `sunlamp` poolB images and true poses. Labels come
+only through `shift.evaluation_labels`, which is poolB only, so this is evaluation under
+invariant 4(a). Images are read from `speedplus_root` and never written. Every GIF frame carries
+"SPEED+ imagery, CC BY-NC-SA 4.0" (checklist I2). P1 shipped HIL imagery in its README under the
+same notice.
+**Colours.** These use the reference palette's slots. Yellow (slot 4) is the silent-failure colour
+in both the chart and the GIFs, and it is always hatched. The neutral grey means no pose. Orange
+stays the truth colour in the imagery, and slots 3 and 7 are the α-sweep series on the dark
+surface. There is no `node` on the workstation, so the palette validator was not run; these are
+the pre-validated slots.
+
+## 2026-10-08 — Phase 9 release assets
+
+**Decision.** The `phase-9-complete` release ships 15 files plus `SHA256SUMS.txt`, staged by
+`scripts/build_release.py`:
+- the 12 `ConformalPoseHead` artifacts and `index.json`;
+- `vhead_a2_s1337_best.pt`;
+- `vhead_a2_s1337.onnx` (fp32).
+The script refuses to build unless two hashes already agree with committed records. The checkpoint
+hash must equal every C1/C2 artifact's `variance_head_sha256` lock, and the ONNX hash must equal
+`results/export/onnx_export.json`. The manifest is committed as `results/release/SHA256SUMS.txt`,
+alongside `release.json`. `tests/test_release.py` checks it against `results/calibration/` and the
+export record without needing any binary, so it runs in CI.
+**Excluded.**
+- The fp16 variance graph: its variance outputs are not faithful (`onnx_parity.json`).
+- The s2026 head: it is a robustness seed and sits behind no artifact.
+- P1's detector and keypoint graphs: these are P1's own release.
+**Licence.** The weights and the graph are derived from SPEED+, so the release notes state the
+CC BY-NC-SA 4.0 terms. The MIT licence covers the code only.

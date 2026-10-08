@@ -1,0 +1,98 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "release",
+  "tag": "phase-9-complete",
+  "n_assets": 15,
+  "assets": {
+    "index.json": {
+      "sha256": "252d9e49a836033df5a8cd17fe1dcf878870d0f0b19d9f8ee8aa0c02a6025233",
+      "size_bytes": 8008,
+      "source": "results/calibration/index.json"
+    },
+    "keypoint_a2_predicted_crop_A1_abstain_allowed_a0.10.json": {
+      "sha256": "f81eaa511c73096d77be96fb964467b8d4495fd1e17d34576318b49c57078c00",
+      "size_bytes": 1720,
+      "source": "results/calibration/keypoint_a2_predicted_crop_A1_abstain_allowed_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_A1_answer_required_a0.10.json": {
+      "sha256": "da65ab8148d50b19ec382a98d0f933dbd2f7c52b6a379638523c3aa6c8e7b1cf",
+      "size_bytes": 1720,
+      "source": "results/calibration/keypoint_a2_predicted_crop_A1_answer_required_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_A2_abstain_allowed_a0.10.json": {
+      "sha256": "c4dbee47d54a260db1b7b9d1e92f2bf6b5874c0c62f141750a3b4100988cabcb",
+      "size_bytes": 1756,
+      "source": "results/calibration/keypoint_a2_predicted_crop_A2_abstain_allowed_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_A2_answer_required_a0.10.json": {
+      "sha256": "783c2679c60127bf0b22ece0eeaa6bd6393785f4260d08f1096317047f8f1c04",
+      "size_bytes": 1756,
+      "source": "results/calibration/keypoint_a2_predicted_crop_A2_answer_required_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_A3_abstain_allowed_a0.10.json": {
+      "sha256": "06f27bf59cfe036ea35765d1dd602fda2c8e54290a74ea19dc981003df6fd90f",
+      "size_bytes": 5609,
+      "source": "results/calibration/keypoint_a2_predicted_crop_A3_abstain_allowed_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_A3_answer_required_a0.10.json": {
+      "sha256": "f04a1ae099dbfb83ea76112981d5ade32387f7066c9376b3c824e879528ee4c2",
+      "size_bytes": 5609,
+      "source": "results/calibration/keypoint_a2_predicted_crop_A3_answer_required_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_B1_abstain_allowed_a0.10.json": {
+      "sha256": "42c027fc93f64bd2cb09354f02e7db436a732c21ff189e916ae819996d3713bb",
+      "size_bytes": 1648,
+      "source": "results/calibration/keypoint_a2_predicted_crop_B1_abstain_allowed_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_B1_answer_required_a0.10.json": {
+      "sha256": "f40c22552c9df5bdc1468412f181fff2938ccf75883f2bcdc44516c7bfeb2525",
+      "size_bytes": 1647,
+      "source": "results/calibration/keypoint_a2_predicted_crop_B1_answer_required_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_C1_abstain_allowed_a0.10.json": {
+      "sha256": "523c86cad50bf62f5ea30ae4f4b8cb024890f7a298fd4c1a1157b5cf286bf294",
+      "size_bytes": 1707,
+      "source": "results/calibration/keypoint_a2_predicted_crop_C1_abstain_allowed_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_C1_answer_required_a0.10.json": {
+      "sha256": "fb2fd06ea0c7e36bd94e8b1de47cae092ceebd17d883f711641ce9a5b28ee08c",
+      "size_bytes": 1707,
+      "source": "results/calibration/keypoint_a2_predicted_crop_C1_answer_required_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_C2_abstain_allowed_a0.10.json": {
+      "sha256": "f1cf1d71f9f7be3837c7c4b7c7aae11ac441f5667ca66a5d83294860dac00173",
+      "size_bytes": 3075,
+      "source": "results/calibration/keypoint_a2_predicted_crop_C2_abstain_allowed_a0.10.json"
+    },
+    "keypoint_a2_predicted_crop_C2_answer_required_a0.10.json": {
+      "sha256": "0e63cee68275a2dd48e52bc7f17e07ec47ffab30ead9af89134b6bf040be5659",
+      "size_bytes": 3074,
+      "source": "results/calibration/keypoint_a2_predicted_crop_C2_answer_required_a0.10.json"
+    },
+    "vhead_a2_s1337.onnx": {
+      "sha256": "5f54b3b997fb1aa6daed309355bb44f4504315f89ee7aeb0498a37fcd91a198a",
+      "size_bytes": 62129745,
+      "source": "exports/vhead_a2_s1337.onnx"
+    },
+    "vhead_a2_s1337_best.pt": {
+      "sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
+      "size_bytes": 602239,
+      "source": "runs/vhead_a2_s1337/best.pt"
+    }
+  },
+  "cross_checks": {
+    "variance_head_sha256_equals_calibration_locks": true,
+    "onnx_sha256_equals_export_record": true,
+    "export_record": "results/export/onnx_export.json"
+  },
+  "excluded": {
+    "vhead_a2_s1337_fp16.onnx": "variance outputs not faithful in fp16 (results/export/onnx_parity.json)",
+    "vhead_a2_s2026": "robustness seed; not selected, behind no calibration artifact",
+    "P1 detector / keypoint_a2 graphs and checkpoints": "P1's own phase-9-complete release"
+  },
+  "licence_note": "Weights and graphs were trained on SPEED+ and carry its CC BY-NC-SA 4.0 NonCommercial and ShareAlike terms; the code is MIT.",
+  "provenance": {
+    "poseconf_git_sha": "ba31619df5be402b629a0d2ad26f514949c9a934",
+    "created_at": "2026-10-08T13:16:29Z"
+  }
+}

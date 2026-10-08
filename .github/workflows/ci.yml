@@ -47,3 +47,8 @@ jobs:
 
       - name: Smoke (no dataset, no GPU)
         run: make smoke
+
+      - name: Tables regenerate byte-identically from the committed JSON
+        run: |
+          python scripts/make_tables.py --out "$RUNNER_TEMP/TABLES.md"
+          cmp "$RUNNER_TEMP/TABLES.md" results/TABLES.md

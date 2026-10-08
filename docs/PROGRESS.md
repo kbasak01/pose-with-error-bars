@@ -196,8 +196,10 @@ Update at the end of each phase via `/phase-gate N`.
   - The PnP estimate lies inside its own PURSE on 0.906 (B1) and 0.900 (B2) of answered frames
     under `abstain_allowed`. That residual is why the linearisation is residual-aware.
 - **Runtime per frame** (CPU, p50):
-  - Linearised: 0.33–0.34 ms.
-  - Sampled, M = 256: 34.5–40.6 ms, with p99 ≤ 80.8 ms. A full pass takes 14–17 s on 16 workers.
+  - Linearised: 0.33 ms.
+  - Sampled, M = 256: 36.0–42.3 ms, with p99 ≤ 81.8 ms. A full pass takes 14.9–18.1 s on 16 workers.
+  - *(Corrected at Phase 8: an earlier version quoted 34.5–40.6 ms, p99 ≤ 80.8 ms and 14–17 s from a
+    superseded run of the same file. These are wall-clock timings and move between runs.)*
   - Sampled is offline only.
 - **Measured pose-ball coverage** (no guarantee; answered frames, with CI, in the propagation JSON):
   - B2 `abstain_allowed`: linearised inner 0.877, sampled 0.990 on frames with an accepted sample.
@@ -312,7 +314,9 @@ Update at the end of each phase via `/phase-gate N`.
   - Synthetic `split` rows reproduce the Phases 2/4/5 `val_test` coverages.
 - **Headline: A1, `split`, α = 0.10, `predicted_crop`**
   ([`results/shift/keypoint_a2_<domain>_predicted_crop_split.json`](../results/shift/)).
-  Synthetic is the only domain where the marginal coverage guarantee applies.
+  Synthetic is the only domain where the marginal coverage guarantee applies to a
+  synthetic-calibrated arm. (The oracle poolA → poolB arms below hold under exchangeability within a
+  HIL domain.)
 
   | Domain (n) | Convention | Coverage [95 % CI] | Answer rate | Silent-failure rate | Coverage given answered |
   |---|---|---|---|---|---|
@@ -327,7 +331,12 @@ Update at the end of each phase via `/phase-gate N`.
     frames are answered, and their coverage is 0.137.
   - Measured HIL coverage carries no guarantee.
 - **Arms on HIL** (A1, α = 0.10, `abstain_allowed`, predicted_crop).
-  - **`mondrian`.** Lightbox 0.7561 [0.7412, 0.7705], sunlamp 0.9112 [0.8950, 0.9256].
+  - **`mondrian`.**
+    - Lightbox 0.7561 [0.7412, 0.7705], answer rate 0.531 (1,790 / 3,370 answered), silent
+      failure 0.244.
+    - Sunlamp 0.9112 [0.8950, 0.9256], answer rate 0.125 (175 / 1,396 answered), silent failure
+      0.089, coverage given answered 0.291.
+    - Source: `results/shift/keypoint_a2_<domain>_predicted_crop_mondrian.json`.
     - Under `answer_required` the rows are identical by construction: the failure group gets the
       whole-space set (footnoted in TABLES.md).
   - **`weighted_unlabeled_target`.** The domain classifier separates the domains almost perfectly.
@@ -336,13 +345,15 @@ Update at the end of each phase via `/phase-gate N`.
     - Every answered set is ∞. The 1.0000 / 0.9979 coverage reflects ∞ sets and abstentions, not
       recovery.
     - Source: `index.json` `classifiers` and the `*_weighted_unlabeled_target.json` files.
-  - **`oracle_target_labels_n*`** (oracle, poolA labels; mean (min–max) over 5 draws):
+  - **`oracle_target_labels_n*`** (oracle, poolA labels; mean (min–max) over 5 draws; CI = envelope
+    of the per-draw Clopper–Pearson intervals; answered = mean over draws, of 3,370 lightbox and
+    1,396 sunlamp poolB frames):
 
-    | n | lightbox | sunlamp |
-    |---|---|---|
-    | 25 | 0.9458 (0.8932–0.9671) | 0.9646 (0.8804–1.0000) |
-    | 250 | 0.9271 (0.9110–0.9409) | 0.9192 (0.9090–0.9291) |
-    | 1000 | 0.9101 (0.9062–0.9145) | 0.9097 (0.9033–0.9169) |
+    | n | lightbox | CI | answered | sunlamp | CI | answered |
+    |---|---|---|---|---|---|---|
+    | 25 | 0.9458 (0.8932–0.9671) | [0.8823, 0.9728] | 1,790 | 0.9646 (0.8804–1.0000) | [0.8622, 1.0000] | 105 |
+    | 250 | 0.9271 (0.9110–0.9409) | [0.9009, 0.9487] | 1,790 | 0.9192 (0.9090–0.9291) | [0.8927, 0.9420] | 175 |
+    | 1000 | 0.9101 (0.9062–0.9145) | [0.8959, 0.9238] | 1,790 | 0.9097 (0.9033–0.9169) | [0.8866, 0.9309] | 175 |
 
     - Every draw is at or above 0.90 at n = 250 and n = 1000, but not at n = 500 (minimum 0.8902
       on lightbox and 0.8782 on sunlamp).

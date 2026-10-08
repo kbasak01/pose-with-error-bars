@@ -52,7 +52,10 @@ the stated convention, so two conventions cannot be mixed in one evaluation.
 calibration set and the test frame. It requires calibration and test frames to be exchangeable,
 and it is finite-sample. It is not conditional coverage and not a bound on error. Between `val_cal`
 and `val_test` exchangeability holds only approximately, because P1 selected its checkpoint on all
-of synthetic validation (IMPLEMENTATION_PLAN §0(4)). The Phase 2 Beta-law test measures that. On
+of synthetic validation (IMPLEMENTATION_PLAN §0(4)). No test on validation frames can measure
+that effect: the frames stay exchangeable with each other, and what selection may break is
+exchangeability with a fresh synthetic draw (`docs/DECISIONS.md`, Phase 2, "Limits of this
+test"). It remains an assumption. On
 `lightbox`/`sunlamp` exchangeability does not hold, and coverage there is a *measured* number with
 a Clopper–Pearson interval and n. It is never a guarantee.
 

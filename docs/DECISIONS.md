@@ -39,6 +39,8 @@ implementations are worth more as cross-checks than as dependencies.
 used no HIL data. Result: α = 0.05 `answer_required` gives `∞` (7.0 % failures); α = 0.10 gives a
 3.89° × 1.9 %-of-range set; `abstain_allowed` α = 0.05 gives 3.16° × 1.5 %. Mean keypoint
 confidence has Spearman 0.41 with `E_R` on solved frames.
+*These are pre-study pilot numbers with no committed file (noted at Phase 8). They informed the plan
+only; no table, README or summary may quote them. The committed Phase 2 results supersede them.*
 **Reason.** HIL coverage must not inform any design choice before Phase 6.
 
 ## 2026-10-06 — TorchCP dropped as a test oracle; MAPIE remains
@@ -325,8 +327,8 @@ numbers), so cells are correlated with each other; each cell's test is valid on 
   law agreement, the sd ratio is null when degenerate, and an abstain_allowed Monte Carlo test
   covers a mixed q = −∞ branch.
 - **The committed `val_cal → val_test` split runs low for A3.** `fixed_split_law_cdf` is 0.039
-  (abstain_allowed, α = 0.10), 0.025 (abstain_allowed, 0.15), 0.064 (answer_required, 0.15) and
-  0.043 (answer_required, 0.20); their Clopper–Pearson intervals lie below 1 − α. The cells share
+  (abstain_allowed, α = 0.10), 0.024 (abstain_allowed, 0.15), 0.063 (answer_required, 0.15) and
+  0.043 (answer_required, 0.20) *(0.024 and 0.063 corrected at Phase 8 from a double rounding)*; their Clopper–Pearson intervals lie below 1 − α. The cells share
   one split, so they are correlated, and are consistent with the re-split law. Any README sentence
   quoting a fixed-split coverage cites `fixed_split_law_cdf` beside it. The split is not changed
   (invariant 3).
@@ -689,7 +691,8 @@ not a calibrated Gaussian.**
 - **Caveats it attached.** These are carried into the Phase 5 report.
   - Raw ellipse reliability on `val_tune` is 0.529 / 0.891 at 1σ / 2σ, against the 2-D Gaussian
     0.393 / 0.865. It is reported as measured.
-  - The selected epoch (15) is a flat-minimum pick: epochs 13–20 are within about 0.01 nats of it.
+  - The selected epoch (15) is a flat-minimum pick: epochs 13 and 15–20 are within 0.015 nats of it, and epoch 14 is 0.039 above it
+    *(corrected at Phase 8; it previously said "epochs 13–20 within about 0.01 nats")*.
   - Train NLL is about 0.85 nats above `val_tune`. The gap is stable, so it is not overfitting; A2 is
     the plausible cause, but this was not verified.
 - **Values.** The values are in [`results/level_c/variance_head_training.json`](../results/level_c/variance_head_training.json)

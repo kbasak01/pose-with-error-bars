@@ -1,0 +1,299 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "validity",
+  "stage": "resplit_seed_sensitivity",
+  "run": "keypoint_a2",
+  "domain": "synthetic",
+  "crop_source": "predicted_crop",
+  "arm": "split",
+  "oracle": false,
+  "cell": {
+    "score": "C1",
+    "convention": "answer_required",
+    "alpha": 0.5
+  },
+  "definitions": {
+    "what": "Level C re-split validity re-run with independent permutation seeds; the committed rows (permutation seed 1337) are quoted, not replaced. Same scores, pool, gate (law KS p >= 0.01 and mean within 3 MC s.e. of the plan band) and law.",
+    "multiplicity": "The gate is per cell with no multiplicity correction. With 26 non-degenerate cells per run at 0.01, about 0.26 false rejections are expected per run; cells share one permutation set, so their verdicts are correlated.",
+    "z_mc_se": "(mean re-split coverage - exact law mean) / Monte Carlo standard error"
+  },
+  "runs": [
+    {
+      "permutation_seed": 1337,
+      "committed": "results/level_c/seed_2026/keypoint_a2_predicted_crop_synthetic.json",
+      "variance_head": "vhead_a2_s2026",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 25,
+        "DEGENERATE": 6,
+        "DEVIATES": 1
+      },
+      "deviates_cells": [
+        [
+          "C1",
+          "answer_required",
+          0.5
+        ]
+      ],
+      "cell": {
+        "verdict": "DEVIATES",
+        "ks_law_pvalue": 0.005913775862512359,
+        "mean_coverage": 0.5008799249530956,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 2.425627216920601,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 0.9907876346384864
+      }
+    },
+    {
+      "permutation_seed": 11,
+      "variance_head": "vhead_a2_s2026",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.9310115543647239,
+        "mean_coverage": 0.5002028351052741,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 0.30823386665728203,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 0.9914999906884473
+      }
+    },
+    {
+      "permutation_seed": 22,
+      "variance_head": "vhead_a2_s2026",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.5736343660100401,
+        "mean_coverage": 0.5003318740879716,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 0.6979218621409512,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 1.0106932036077143
+      }
+    },
+    {
+      "permutation_seed": 33,
+      "variance_head": "vhead_a2_s2026",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.4007817185246947,
+        "mean_coverage": 0.5002887221179904,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 0.5919387653482658,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 0.9658048402547714
+      }
+    },
+    {
+      "permutation_seed": 44,
+      "variance_head": "vhead_a2_s2026",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.7048116936145061,
+        "mean_coverage": 0.5006039191161143,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 1.5358027304246493,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 1.0080707096964368
+      }
+    },
+    {
+      "permutation_seed": 55,
+      "variance_head": "vhead_a2_s2026",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.12217587742240044,
+        "mean_coverage": 0.4999566395663957,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": -0.4526013816788964,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 1.0099739863793684
+      }
+    },
+    {
+      "permutation_seed": 9001,
+      "variance_head": "vhead_a2_s2026",
+      "R": 20000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.623620442962685,
+        "mean_coverage": 0.5000431936627059,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": -0.8475433039851616,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 0.9970929234314982
+      }
+    },
+    {
+      "permutation_seed": 1337,
+      "committed": "results/level_c/keypoint_a2_predicted_crop_synthetic.json",
+      "variance_head": "vhead_a2_s1337",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.02011020549824123,
+        "mean_coverage": 0.5006856368563686,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 1.8041486869080916,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 0.9984568001519574
+      }
+    },
+    {
+      "permutation_seed": 11,
+      "variance_head": "vhead_a2_s1337",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.8361523182001154,
+        "mean_coverage": 0.500217427558891,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 0.36042722277659617,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 0.9733510864341023
+      }
+    },
+    {
+      "permutation_seed": 22,
+      "variance_head": "vhead_a2_s1337",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.9111615804057972,
+        "mean_coverage": 0.5002180529497603,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 0.3472600542390661,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 1.0158373397820162
+      }
+    },
+    {
+      "permutation_seed": 33,
+      "variance_head": "vhead_a2_s1337",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.35579258041753814,
+        "mean_coverage": 0.5002040858870127,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 0.3258269785002207,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 0.9498565128849223
+      }
+    },
+    {
+      "permutation_seed": 44,
+      "variance_head": "vhead_a2_s1337",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.6985810998366422,
+        "mean_coverage": 0.5004281842818429,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 0.9884671296329728,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 1.0154713111738203
+      }
+    },
+    {
+      "permutation_seed": 55,
+      "variance_head": "vhead_a2_s1337",
+      "R": 1000,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "deviates_cells": [],
+      "cell": {
+        "verdict": "VALID",
+        "ks_law_pvalue": 0.746724404399399,
+        "mean_coverage": 0.5002574525745258,
+        "law_mean": 0.5001041883725776,
+        "z_mc_se": 0.4738899286605471,
+        "in_plan_band": true,
+        "sd_ratio_observed_to_law": 1.0019674484664443
+      }
+    }
+  ],
+  "provenance": {
+    "poseconf_git_sha": "ed4d94a33edbae6981ee86747d96378151105308",
+    "created_at": "2026-10-08T12:36:57Z",
+    "config_sha256": "6b4745df4fe7b7c527509262ec65cf2146dd0cbcda8e8ce10f8f4a6c46687975",
+    "committed_results": {
+      "results/level_c/seed_2026/keypoint_a2_predicted_crop_synthetic.json": "fea8b935a45a4055415a71abeabdb25fe7d9f996c7661bed258ab137d28b8038",
+      "results/level_c/keypoint_a2_predicted_crop_synthetic.json": "8a797295980e300c6226be75a41b7636989872b44d9cc9b78b1698dd47ab15e0"
+    }
+  }
+}

@@ -9,9 +9,9 @@
   "domain": "synthetic_ship_deck_example",
   "oracle": false,
   "definitions": {
-    "what": "Mechanics demonstration on invented synthetic data: a 6-marker deck target and a 1280x720 camera, not SPEED+. Predicted covariances are 1.6x too small and the errors Student-t(4). Coverage is split-conformal on exchangeable simulated frames; it says nothing about a real deck.",
+    "what": "Mechanics demonstration on invented synthetic data: a 6-marker deck target and a 1280x720 camera, not SPEED+. The predicted sigma is 1.6x too small (2.56x in covariance) and the errors are Student-t(4). Coverage is split-conformal on exchangeable simulated frames; it says nothing about a real deck.",
     "repeated_draws": "Fresh calibration and test draws, recalibrated each time. The split-conformal guarantee is on this mean (>= 1 - alpha; < 1 - alpha + 1/(n_cal + 1) for continuous scores, which the abstention atoms are not); one draw, like `test`, can sit below 1 - alpha.",
-    "naive_gaussian": "Bonferroni chi-square(2) ellipses from the uncalibrated covariance, on answered frames: what trusting the variance head as a Gaussian would give."
+    "naive_gaussian": "Bonferroni chi-square(2) ellipses from the uncalibrated covariance, on answered frames: what trusting the variance head as a Gaussian would give. Compare it with test.coverage_given_answered (same frames), not with the marginal coverage, which counts abstentions as covered."
   },
   "n_keypoints": 6,
   "n_cal": 2000,
@@ -28,6 +28,11 @@
     ],
     "answer_rate": 0.9476,
     "silent_failure_rate": 0.109,
+    "coverage_given_answered": 0.884972562262558,
+    "coverage_given_answered_ci95": [
+      0.8755440918836714,
+      0.8939236371438188
+    ],
     "radius_px_median": 21.339798247495267
   },
   "naive_gaussian": {
@@ -53,8 +58,8 @@
   },
   "refuses_retrained_model": true,
   "provenance": {
-    "poseconf_git_sha": "9b617651376482893a62765b2bfa6cf3bdd9e667",
-    "created_at": "2026-10-08T12:17:09Z",
+    "poseconf_git_sha": "ed4d94a33edbae6981ee86747d96378151105308",
+    "created_at": "2026-10-08T12:33:19Z",
     "seed": 20261008
   }
 }

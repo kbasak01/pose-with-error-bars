@@ -88,6 +88,45 @@ def test_export_outputs_are_p1_outputs_plus_covariance(export_net):
     assert out[3].dtype == torch.bool and out[3].shape == (2, 11)
 
 
+def test_a_real_empty_channel_survives_export(tmp_path):
+    """Phase 7 carry: the empty-channel path on a channel that is actually empty, through ORT.
+
+    Channel 3 of P1's final heatmap conv is forced to a constant -1, so it has no positive
+    activation anywhere; ORT must flag it exactly as torch does, and C1 must give it no finite
+    radius (its set is the whole image).
+    """
+    root = tmp_path / "p1"
+    p1_adapter.write_random_init_checkpoints(root, run=RUN)
+    model, _ = p1_adapter.load_keypoint_model(RUN, paths=p1_adapter.P1Paths(root, root, root, root))
+    final = model.decoder[-1]
+    with torch.no_grad():
+        final.weight[3].zero_()
+        final.bias[3] = -1.0
+    net = VarianceExportNet(VarianceKeypointNet(model, VarianceHead(HEAD))).eval()
+    path = p1_adapter.onnx_export(
+        net,
+        output_path=tmp_path / "vhead_empty.onnx",
+        input_shape=(1, 1, 256, 256),
+        output_names=VARIANCE_OUTPUTS,
+        half_precision=False,
+    )
+    images = torch.randn(2, 1, 256, 256, generator=torch.Generator().manual_seed(4))
+    with torch.no_grad():
+        ref = net(images)[3].numpy()
+    session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+    out = dict(
+        zip(
+            VARIANCE_OUTPUTS,
+            session.run(list(VARIANCE_OUTPUTS), {"images": images.numpy()}),
+            strict=True,
+        )
+    )
+    assert ref[:, 3].all() and out["keypoint_empty"][:, 3].all()
+    np.testing.assert_array_equal(out["keypoint_empty"], ref)
+    radius = parity.c1_radius(out["cov_chol"], out["keypoint_empty"], 3.0)
+    assert np.isinf(radius).all()
+
+
 @pytest.mark.gpu
 def test_fp16_export_keeps_fp32_outputs(tmp_path):
     if not torch.cuda.is_available():

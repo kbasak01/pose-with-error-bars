@@ -349,7 +349,7 @@ def verify(config: dict[str, Any], paths: Any, written: list, git_sha: str) -> d
             "detector_checkpoint_sha256": det_sha,
             "variance_head_checkpoint": str(vhead_file),
             "variance_head_checkpoint_sha256": vhead_sha,
-            "dump": str(dump_path),
+            "dump": _rel(dump_path),
             "dump_sha256": sha256_file(dump_path),
             "dump_poseconf_git_sha": meta["provenance"]["poseconf_git_sha"],
             "split_manifest_sha256": written[0][1]["provenance"]["split_manifest_sha256"],

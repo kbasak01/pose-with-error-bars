@@ -1,4 +1,4 @@
-.PHONY: lint test smoke splits level-a dump parity-p1 level-b train-var-smoke train-var dump-var level-c shift-matrix tables figures calibration export parity-onnx bench verify-p1
+.PHONY: lint test smoke splits splits-check level-a dump parity-p1 level-b train-var-smoke train-var dump-var level-c shift-matrix tables figures calibration export parity-onnx bench verify-p1
 
 # Use the project venv when it exists, otherwise whatever is on PATH (CI has no .venv).
 VENV   := $(wildcard .venv/bin)
@@ -15,6 +15,8 @@ smoke:  ; $(PYTEST) -q tests -m "not slow and not gpu and not dataset"
 verify-p1: ; $(PY) scripts/verify_p1_checkpoints.py --config configs/conformal.yaml --paths configs/paths.local.yaml --out results/p1_checkpoints.json
 
 splits: ; $(PY) scripts/make_splits.py --config configs/conformal.yaml
+# Regenerate into a temp dir and compare bytes; never rewrites splits/ (Phase 8).
+splits-check: ; $(PY) scripts/make_splits.py --config configs/conformal.yaml --check
 level-a: ; $(PY) scripts/run_level_a.py --config configs/conformal.yaml --run keypoint_a2 --crop-source predicted_crop
 dump:
 	@echo "GPU, ~minutes per domain x arm; TF32 off; writes dumps_root/keypoint_a2/ (gitignored):"

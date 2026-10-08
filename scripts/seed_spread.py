@@ -17,6 +17,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from poseconf.provenance import (
     RESULT_SCHEMA,
     poseconf_git_sha,
@@ -25,6 +27,8 @@ from poseconf.provenance import (
     write_result_json,
 )
 
+#: Where the variance-head configs live (for records that predate the `seed` field).
+CONFIG_DIR = Path(__file__).resolve().parents[1] / "configs"
 #: The α the project quotes C1/C2 at (headline α of the calibration artifacts).
 HEADLINE_ALPHA = 0.10
 #: Default inputs, selected seed first.
@@ -81,6 +85,21 @@ def _comparison(level_c: dict[str, Any], pair: str, convention: str) -> dict[str
     return rows[0]
 
 
+def _seed(training: dict[str, Any]) -> int:
+    """The run's seed: recorded since Phase 8; for older records, read from the config file whose
+    SHA-256 the record carries (refusing if no committed config matches)."""
+    if "seed" in training:
+        return int(training["seed"])
+    want = training["provenance"]["config_sha256"]
+    for path in sorted(CONFIG_DIR.glob("variance_head*.yaml")):
+        if sha256_file(path) == want:
+            config = yaml.safe_load(path.read_text(encoding="utf-8"))
+            if config["run_name"] != training["run_name"]:
+                raise ValueError(f"{path} is for {config['run_name']}, not {training['run_name']}")
+            return int(config["seed"])
+    raise ValueError(f"{training['run_name']}: no seed recorded and no config matches {want}")
+
+
 def seed_values(level_c: dict[str, Any], training: dict[str, Any]) -> dict[str, Any]:
     """The quoted numbers for one seed, each copied from its result file."""
     head = level_c["variance_head"]
@@ -91,7 +110,7 @@ def seed_values(level_c: dict[str, Any], training: dict[str, Any]) -> dict[str, 
     learned = level_c["head_quality"]["val_test"]["learned"]
     values: dict[str, Any] = {
         "run_name": training["run_name"],
-        "seed": training.get("seed"),
+        "seed": _seed(training),
         "checkpoint_sha256": head["checkpoint_sha256"],
         "best_epoch": training["best_epoch"],
         "val_tune_nll_best": training["best_val_tune_nll"],

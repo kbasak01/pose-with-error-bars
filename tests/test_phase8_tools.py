@@ -134,3 +134,14 @@ def test_seed_spread_refuses_a_level_c_from_another_checkpoint():
     spread_mod = _script("seed_spread")
     with pytest.raises(ValueError, match="not the training best.pt"):
         spread_mod.seed_values(_level_c("s1", "aa", 0.0), _training("s1", "zz", 1337))
+
+
+def test_seed_is_recovered_from_the_hashed_config_for_older_records():
+    spread_mod = _script("seed_spread")
+    from poseconf.provenance import sha256_file
+
+    sha = sha256_file(REPO_ROOT / "configs" / "variance_head.yaml")
+    old = {"run_name": "vhead_a2_s1337", "provenance": {"config_sha256": sha}}
+    assert spread_mod._seed(old) == 1337
+    with pytest.raises(ValueError, match="no config matches"):
+        spread_mod._seed({"run_name": "x", "provenance": {"config_sha256": "0" * 64}})

@@ -254,14 +254,14 @@ def _grid(
     cells: dict[tuple, dict[float, dict[str, Any]]] = defaultdict(dict)
     for r in sel:
         cells[_key(r)][r["alpha"]] = r
-    header = "| score | domain | crop | arm | " + " | ".join(f"α = {a}" for a in alphas) + " |"
+    header = "| score | domain | crop | arm | n | " + " | ".join(f"α = {a}" for a in alphas) + " |"
     lines = [
-        "Cell: coverage [95 % CI] · answer rate; **set ∞** marks a row whose median answered set "
-        "is unbounded (the whole space covers everything: read it as no information, not as "
-        "coverage).",
+        "Cell: coverage [95 % CI] · answer rate (n answered) · silent-failure rate; n is the "
+        "evaluated frames per row; **set ∞** marks a row whose median answered set is unbounded "
+        "(the whole space covers everything: read it as no information, not as coverage).",
         "",
         header,
-        "|" + "---|" * (4 + len(alphas)),
+        "|" + "---|" * (5 + len(alphas)),
     ]
     for key in sorted(cells):
         first = next(iter(cells[key].values()))
@@ -269,10 +269,13 @@ def _grid(
         for a in alphas:
             r = cells[key][a]
             flag = " · **set ∞**" if _infinite_set(r) else ""
-            parts.append(f"{_cov(r)} · ans {_num(r['answer_rate'], 3)}{flag}")
+            parts.append(
+                f"{_cov(r)} · ans {_num(r['answer_rate'], 3)} ({r['n_answered']}) · "
+                f"sf {_num(r['silent_failure_rate'], 3)}{flag}"
+            )
         lines.append(
             f"| {first['score']} | {first['domain']} | {_crop_cell(first, notes)} | "
-            f"{_arm_cell(first, notes)} | " + " | ".join(parts) + " |"
+            f"{_arm_cell(first, notes)} | {first['n_total']} | " + " | ".join(parts) + " |"
         )
     return lines
 
@@ -358,7 +361,7 @@ def _slices(
             continue
         out += [
             f"#### `{slicing}` — {which}, `split`, α = {alpha} "
-            "(cell: coverage [95 % CI] · answer rate · n)",
+            "(cell: coverage [95 % CI] · answer rate (n answered / n) · silent-failure rate)",
             "",
             "| score | domain | crop | " + " | ".join(f"bin {b}" for b in bins) + " |",
             "|" + "---|" * (3 + len(bins)),
@@ -375,7 +378,8 @@ def _slices(
                     lo, hi = s["coverage_ci95"]
                     cells.append(
                         f"{_num(s['coverage'], 3)} [{_num(lo, 3)}, {_num(hi, 3)}] · ans "
-                        f"{_num(s['answer_rate'], 3)} · {s['n_total']}"
+                        f"{_num(s['answer_rate'], 3)} ({s['n_answered']} / {s['n_total']}) · "
+                        f"sf {_num(s['silent_failure_rate'], 3)}"
                     )
             out.append(
                 f"| {r['score']} | {r['domain']} | {_crop_cell(r, notes)} | "

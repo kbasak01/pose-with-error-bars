@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -489,3 +490,24 @@ def test_committed_tables_never_mix_oracle_and_non_oracle_rows() -> None:
     mixed = [s for s, statuses in seen.items() if len(statuses) > 1]
     assert not mixed, mixed
     assert any(statuses == {"oracle"} for statuses in seen.values())
+
+
+def test_committed_coverage_cells_carry_answered_n_and_silent_failure() -> None:
+    """Checklist E1/E3/E8: every α-grid and slice coverage cell states n answered and silent failure."""
+    path = REPO_ROOT / "results" / "TABLES.md"
+    if not path.is_file():
+        pytest.skip("results/TABLES.md not generated yet")
+    section, checked = "", 0
+    for line in path.read_text("utf-8").splitlines():
+        if line.startswith("## "):
+            section = line
+        if not section.startswith(("## α grid", "## Conditional coverage slices")):
+            continue
+        if line.startswith("| score"):
+            assert "| n |" in line or section.startswith("## Conditional"), line
+        elif line.startswith("| "):
+            for cell in line.split("|")[4:-1]:
+                if re.search(r"\[\d", cell):
+                    assert "· ans " in cell and "(" in cell and "· sf " in cell, cell
+                    checked += 1
+    assert checked > 0

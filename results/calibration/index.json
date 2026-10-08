@@ -216,16 +216,16 @@
     }
   ],
   "provenance": {
-    "poseconf_git_sha": "16d49c0aef0bd26a8171722ac08b2cfcdff05d93",
+    "poseconf_git_sha": "67c0260965e12ef3e97b603e9f6fe237ddb613bf",
     "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
     "p1_checkpoint_sha256": "f1ccb23d1f6d70da542012965e5707eed342c0674ca8c7bb40ef09e2b2ce3793",
     "detector_checkpoint_sha256": "d254f0174de72b999c9da5dbfabc37509de0d42a41c3511518d531c0d1521e31",
     "variance_head_checkpoint": "runs/vhead_a2_s1337/best.pt",
     "variance_head_checkpoint_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
-    "dump": "/home/kbasak/projects_02/pose-with-error-bars/dumps/keypoint_a2/synthetic_predicted_crop.npz",
+    "dump": "dumps/keypoint_a2/synthetic_predicted_crop.npz",
     "dump_sha256": "07dc09268b4305904aa7ac43f641d001007f958993b262b75c372a39e544368f",
     "dump_poseconf_git_sha": "f9ee848a20cb5fe4c64ca6cddba8e0763094c909",
     "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
-    "created_at": "2026-10-07T20:05:27Z"
+    "created_at": "2026-10-08T12:18:15Z"
   }
 }

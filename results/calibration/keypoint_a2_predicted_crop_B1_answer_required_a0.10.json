@@ -40,7 +40,7 @@
     "source_result_sha256": "985401064ead13d0ba55b674059b68820e232225bc59b04e16d5b7e2ffc13d12",
     "split_manifest_sha256": "3c985e59e7575367dff23a3390c2d911f7e81ad9614b1c73494569578691cbb4",
     "p1_commit": "0f81b426e0a7a7ec26369fb31ad1ea19161434a1",
-    "poseconf_git_sha": "16d49c0aef0bd26a8171722ac08b2cfcdff05d93",
-    "created_at": "2026-10-07T20:05:15Z"
+    "poseconf_git_sha": "67c0260965e12ef3e97b603e9f6fe237ddb613bf",
+    "created_at": "2026-10-08T12:18:02Z"
   }
 }

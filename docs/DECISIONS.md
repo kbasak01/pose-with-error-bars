@@ -1016,3 +1016,109 @@ As in Phase 3: the user asked for the GPU commands to be generated *and then run
 `make parity-onnx` and `make bench` print the commands; I ran them in that order on a clean tree.
 The phase came to about 3,300 lines of src, scripts and tests, well beyond the 200–800 guide. Most of that is the
 replay check, the CPU control and the tests that pin the head to the evaluation path.
+
+## 2026-10-08 — Phase 8: I run the seed-2026 GPU jobs myself, on the user's instruction
+
+As in Phases 3 and 7, the user chose at the start of Phase 8 to have the GPU jobs run here rather
+than printed. I ran, on an idle card and a clean tree:
+- `train_variance_head.py --config configs/variance_head_s2026.yaml --results-dir results/level_c/seed_2026`;
+- `dump_variance.py --domain synthetic --crop-source predicted_crop --dumps-root dumps/seed_2026`.
+
+The dumps root holds symlinks to the Phase 3 synthetic dump, labels and subset, plus the new
+sidecar. Level C provenance records the dump and label SHA-256, so the symlinks cannot drift
+silently.
+
+## 2026-10-08 — Second variance-head seed: a robustness check, not a selection
+
+**Decision.**
+- `vhead_a2_s2026` is trained with a config identical to `variance_head.yaml` except `seed` and
+  `run_name`. A test pins this.
+- It is evaluated with the same Level C protocol and the same R = 1,000 permutations.
+- The range of each quoted number goes in `results/level_c/variance_head_seed_spread.json`.
+- `vhead_a2_s1337` remains the head behind every calibration, shift and export result.
+
+**Alternatives.** Pick the better seed on `val_tune`; average the two heads.
+**Reason.** Phase 5 chose s1337 before s2026 existed. Choosing between seeds after seeing their
+`val_test` numbers would be selection on test data. Averaging creates a third model nobody
+calibrated. Two seeds give a range, not a variance, and the record says so.
+**Diagnostician (`uncertainty-head-diagnostician`): TRUSTWORTHY**, with the same standing as
+s1337: a ranking signal and a conformal normaliser, not a calibrated Gaussian. No Phase 5
+conclusion changes.
+
+## 2026-10-08 — The seed-2026 DEVIATES cell is recorded; a permutation-seed sensitivity sits beside it
+
+**What happened.** Seed 2026's Level C gives 25 VALID / 6 DEGENERATE / 1 DEVIATES. The DEVIATES
+cell is C1 `answer_required` α = 0.5:
+- law KS p = 0.0059 against the 0.01 gate;
+- mean +2.43 MC s.e. above the exact law, inside the plan band;
+- sd ratio 0.99.
+
+Seed 1337's lowest p is the same cell (0.0201).
+**Decision.**
+- The committed result is kept as produced, and the gate is unchanged.
+- `scripts/resplit_seed_sensitivity.py` re-runs Level C with independent permutation seeds into a
+  temporary directory. It writes `results/level_c/seed_2026/resplit_seed_sensitivity.json` beside
+  the committed result, quoting the committed rows rather than replacing them.
+
+**Reason.** Every cell, score, convention and head shares one permutation set (common random
+numbers), so the same cell being weakest under both heads is one permutation set seen twice, not
+two confirmations. The per-cell gate has no multiplicity correction. 26 non-degenerate cells at
+0.01 expect about 0.26 false rejections per run, so across the project's roughly 120 gated cells
+about one is expected. The sensitivity record is what distinguishes a cell property from a
+permutation-set property. Re-running until a cell passes, or replacing the committed verdict,
+would be moving a gate (invariant 11).
+**Result** ([`results/level_c/seed_2026/resplit_seed_sensitivity.json`](../results/level_c/seed_2026/resplit_seed_sensitivity.json)):
+- **s2026, independent permutation seeds 11, 22, 33, 44 and 55 (R = 1,000 each).** 26 VALID /
+  6 DEGENERATE / 0 DEVIATES every time. The cell's KS p ranges from 0.1222 to 0.931.
+- **s2026, permutation seed 9001 at R = 20,000.** 0 DEVIATES, cell p 0.6236.
+- **s1337, the same five seeds.** 0 DEVIATES every time.
+
+The flagged cell does not recur, so it is a property of the shared permutation set, not of the
+cell or the head.
+**Alternatives.** Bonferroni or FDR across cells. Rejected: changing the gate after seeing a
+failure is the anti-pattern. Any multiplicity-aware gate would have to be set before a future run.
+
+## 2026-10-08 — Dirty and mixed-SHA records: reproduced, not regenerated in place
+
+**What happened.** Seven records carry `12033fa…-dirty`: Level A and the A1–A3 validity files.
+`dump_summary.json` and `p1_checkpoints.json` come from different commits.
+**Decision.**
+- Re-produce each at a clean tree into a scratch directory.
+- Compare exactly, outside `provenance`/`created_at`/`figure`, with `scripts/check_rerun.py`.
+- Commit the comparison (`results/reproducibility/rerun_check.json`) and leave the records as
+  they are.
+
+All 10 are identical, including 240,008 re-split array values. The record also lists the input
+provenance keys that differ. Only `config_sha256` does, on three files: `configs/conformal.yaml`
+gained the Phase 6–7 blocks after those files were written, and their outputs are unchanged.
+**Alternative rejected.** Regenerating in place. The Level A file's SHA-256 is recorded by Level
+B propagation, Level C, ten validity files and six calibration artifacts. In-place regeneration
+would cascade, and the propagation runtimes, which are wall-clock, would move. A cascade of
+re-stamped files is harder to audit than one comparison.
+
+## 2026-10-08 — HIL label guard: an exact allow-list
+
+`p1_adapter.ORACLE_TAGS = {"oracle_gt_box", "oracle_target_labels"}` replaces "any tag starting
+`oracle_`". `hil_label_access_allowed` also refuses an empty frame list rather than allowing it
+vacuously. A new oracle arm now needs an edit where review sees it. `engine/shift.py`'s
+`require_label_free_dump` and the dump's `oracle` meta flag still use the prefix. That check
+blocks the opposite direction, an oracle dump reaching a non-oracle arm, and grants no label
+access. `split-leakage-auditor` judged both fine.
+
+## 2026-10-08 — Small Phase 8 removals and non-changes
+
+- **`conformal/aci.py` deleted.** It was a one-line docstring stub for the §1.7 stretch arm
+  `aci_online` and read as working code. The `aci_online` block in `configs/conformal.yaml` stays
+  as inert config, because editing that file would break the `config_sha256` link from every
+  committed result. `REPO_SETUP.md` still lists the file; it is a root planning doc and is not
+  edited.
+- **MAPIE oracle no longer `slow`.** It runs in about 1.5 s, so CI now keeps one library oracle.
+  Checklist A4 stays ⚠️ because TorchCP is absent (2026-10-06 entries).
+- **Lock slots are not renamed (J1).** Renaming `p1_checkpoint_sha256` or relaxing
+  `context.crop_source` needs an artifact schema bump and re-hashes all 12 artifacts.
+  `docs/RECALIBRATION_EXAMPLE.md` maps the slots for a port instead.
+- **Not re-measured.** `frame_budget.json` gives p50/p99 only and has no `pnp_config` block. The
+  s1337 training record stores clamp hit fractions but not the clamp values; s2026's does. A
+  re-benchmark or retrain to add fields is not justified, and P1 recorded why repeat benchmarks
+  mislead on this card.
+- **`src/poseconf.egg-info/` untracked.** It was build output and listed the deleted `aci.py`.

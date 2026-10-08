@@ -628,7 +628,7 @@ def write_labels(path: Path, labels: p1.EvalLabels, meta: dict[str, Any]) -> Pat
 def load_dump_labels(
     dumps_root: Path, run: str, domain: str, pool: str, *, tag: str | None
 ) -> tuple[dict[str, NDArray[Any]], dict[str, Any]]:
-    """Read a label file, refusing HIL poolA without an `oracle_*` tag (CLAUDE.md invariant 4).
+    """Read a label file, refusing HIL poolA without an oracle tag (CLAUDE.md invariant 4).
 
     Args:
         dumps_root: The dumps root.
@@ -641,11 +641,12 @@ def load_dump_labels(
         `(arrays, meta)`.
 
     Raises:
-        p1_adapter.HILLabelAccessError: On HIL poolA without an `oracle_*` tag.
+        p1_adapter.HILLabelAccessError: On HIL poolA without a tag in `p1_adapter.ORACLE_TAGS`.
     """
     path = labels_file(dumps_root, run, domain, pool)
-    if domain in p1.HIL_DOMAINS and pool == "poolA" and not (tag or "").startswith("oracle_"):
+    if domain in p1.HIL_DOMAINS and pool == "poolA" and tag not in p1.ORACLE_TAGS:
         raise p1.HILLabelAccessError(
-            f"{path.name}: HIL poolA labels are readable only by an oracle_* arm (tag={tag!r})"
+            f"{path.name}: HIL poolA labels are readable only by an oracle arm "
+            f"{sorted(p1.ORACLE_TAGS)} (tag={tag!r})"
         )
     return load_dump(path)

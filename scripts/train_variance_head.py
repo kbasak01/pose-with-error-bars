@@ -107,6 +107,26 @@ def _subset(dataset: Any, limit: int | None, seed: int) -> Any:
     return torch.utils.data.Subset(dataset, rows.tolist())
 
 
+#: Every synthetic-validation subset: none may appear in the training data.
+_VALIDATION_SPLITS = ("synthetic_val_tune", *_FORBIDDEN_SPLITS)
+
+
+def assert_train_disjoint(names: Any) -> None:
+    """Refuse a training set that shares a frame with any synthetic-validation subset.
+
+    SPEED+ ships `train` and `validation` as separate official splits, so this holds by
+    construction; the assertion makes it a checked fact (VALIDATION_CHECKLIST B6, Phase 8).
+
+    Raises:
+        RuntimeError: If any training filename is in `val_tune`, `val_cal` or `val_test`.
+    """
+    train = {str(n) for n in names}
+    for split in _VALIDATION_SPLITS:
+        shared = train & set(load_split(split))
+        if shared:
+            raise RuntimeError(f"training data shares {len(shared)} frames with {split}")
+
+
 def val_tune_dataset(run: str, *, paths: p1.P1Paths, seed: int) -> tuple[Any, dict[str, int]]:
     """P1's a0 validation crops restricted to `val_tune`; refuses if any other frame slips in.
 
@@ -202,13 +222,11 @@ def main(argv: list[str] | None = None) -> int:
     provenance = _provenance(args.config, run, paths)
     debug = args.limit_train is not None or args.limit_val is not None
 
-    train_set = _subset(
-        p1.keypoint_crop_dataset(
-            run, train_cfg["split"], paths=paths, augmentation=train_cfg["augmentation"], seed=seed
-        ),
-        args.limit_train,
-        seed,
+    train_full = p1.keypoint_crop_dataset(
+        run, train_cfg["split"], paths=paths, augmentation=train_cfg["augmentation"], seed=seed
     )
+    assert_train_disjoint(p1.crop_dataset_filenames(train_full))
+    train_set = _subset(train_full, args.limit_train, seed)
 
     if args.overfit_batch:
         batch_size = int(config["overfit"]["batch_size"])

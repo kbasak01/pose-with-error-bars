@@ -380,6 +380,8 @@ def test_hil_access_rule():
     assert p1_adapter.hil_label_access_allowed("lightbox", pool_b[:5], None)
     assert not p1_adapter.hil_label_access_allowed("lightbox", [*pool_b[:5], pool_a[0]], None)
     assert not p1_adapter.hil_label_access_allowed("lightbox", None, None)
+    assert not p1_adapter.hil_label_access_allowed("lightbox", [], None)
+    assert not p1_adapter.hil_label_access_allowed("lightbox", pool_a[:5], "oracle_x")
     assert p1_adapter.hil_label_access_allowed("lightbox", pool_a[:5], "oracle_gt_box")
     assert p1_adapter.hil_label_access_allowed("synthetic", None, None)
 
@@ -407,8 +409,11 @@ def test_dump_labels_pool_a_needs_oracle_tag(tmp_path):
         dump_module.load_dump_labels(tmp_path, RUN, "lightbox", "poolA", tag=None)
     with pytest.raises(p1_adapter.HILLabelAccessError):
         dump_module.load_dump_labels(tmp_path, RUN, "lightbox", "poolA", tag="split")
-    with pytest.raises(FileNotFoundError):  # allowed, so it gets as far as the (absent) file
+    with pytest.raises(p1_adapter.HILLabelAccessError):  # an allow-list, not a prefix
         dump_module.load_dump_labels(tmp_path, RUN, "lightbox", "poolA", tag="oracle_x")
+    for tag in sorted(p1_adapter.ORACLE_TAGS):
+        with pytest.raises(FileNotFoundError):  # allowed, so it gets as far as the (absent) file
+            dump_module.load_dump_labels(tmp_path, RUN, "lightbox", "poolA", tag=tag)
     assert dump_module.arm_tag("lightbox", "gt_crop") == "oracle_gt_box"
     assert dump_module.arm_tag("synthetic", "gt_crop") == "gt_crop"
     assert dump_module.arm_tag("sunlamp", "predicted_crop") == "predicted_crop"

@@ -39,6 +39,7 @@ EXPECTED_SIZES = {
 
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 import make_splits  # noqa: E402
+import train_variance_head  # noqa: E402
 
 # --- the rule ---------------------------------------------------------------------------------------
 
@@ -163,3 +164,20 @@ def test_synthetic_union_equals_validation_labels(local_paths) -> None:
 @pytest.mark.dataset
 def test_make_splits_check_mode_against_dataset() -> None:
     assert make_splits.main(["--check"]) == 0
+
+
+@pytest.mark.dataset
+def test_synthetic_train_is_disjoint_from_every_validation_subset(local_paths) -> None:
+    """Carried Phase 5 item: training frames never appear in val_tune / val_cal / val_test."""
+    from poseconf.p1_adapter import load_synthetic_labels
+
+    train = set(load_synthetic_labels("train", paths=local_paths).filenames.tolist())
+    assert len(train) == 47966
+    for split in ("synthetic_val_tune", "synthetic_val_cal", "synthetic_val_test"):
+        assert not train & set(load_split(split)), split
+
+
+def test_variance_training_refuses_a_validation_frame() -> None:
+    train_variance_head.assert_train_disjoint(["not_a_validation_frame.jpg"])
+    with pytest.raises(RuntimeError, match="synthetic_val_cal"):
+        train_variance_head.assert_train_disjoint([load_split("synthetic_val_cal")[0]])

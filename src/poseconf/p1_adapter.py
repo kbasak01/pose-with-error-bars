@@ -40,6 +40,7 @@ __all__ = [
     "CROP_SOURCES",
     "DOMAINS",
     "HIL_DOMAINS",
+    "ORACLE_TAGS",
     "P1_RESULT_LABEL_FREE_KEYS",
     "P1_ROOT",
     "SIDECAR_LABEL_FREE_COLUMNS",
@@ -137,8 +138,9 @@ SIDECAR_LABEL_FREE_COLUMNS = (
     "confidence_mean",
 )
 
-#: Tag prefix that licenses reading HIL labels outside poolB (CLAUDE.md invariant 4).
-_ORACLE_PREFIX = "oracle_"
+#: The arm tags that license reading HIL labels outside poolB (CLAUDE.md invariant 4). An exact
+#: allow-list, not a prefix: a new oracle arm must be added here, where review sees it.
+ORACLE_TAGS = frozenset({"oracle_gt_box", "oracle_target_labels"})
 
 #: `solve_many` solves sequentially below this many frames; mirrored by `solve_chunks`.
 _P1_PARALLEL_MIN_FRAMES = 256
@@ -366,14 +368,15 @@ def hil_label_access_allowed(domain: str, frames: Sequence[str] | None, tag: str
         tag: The calling arm's tag, or None.
 
     Returns:
-        True for synthetic; for HIL, True iff the tag starts with `oracle_` or every frame is in
-        the committed `<domain>_poolB` manifest.
+        True for synthetic; for HIL, True iff the tag is in `ORACLE_TAGS` or `frames` is a
+        non-empty list of committed `<domain>_poolB` names (an empty list is refused rather than
+        vacuously allowed).
     """
     if domain not in HIL_DOMAINS:
         return True
-    if tag is not None and tag.startswith(_ORACLE_PREFIX):
+    if tag in ORACLE_TAGS:
         return True
-    if frames is None:
+    if frames is None or len(frames) == 0:
         return False
     pool_b = set(load_split_manifest(f"{domain}_poolB"))
     return all(str(name) in pool_b for name in frames)

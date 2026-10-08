@@ -70,8 +70,17 @@ def rational_alpha(alpha: float) -> Fraction:
 
     Returns:
         The fraction; e.g. 0.1 -> 1/10, not 3602879701896397/36028797018963968.
+
+    Raises:
+        ValueError: Unless 0 < alpha < 1, or if alpha is so close to 0 or 1 that it rounds to
+            either (alpha -> 1 would otherwise return the largest score as the quantile).
     """
-    return Fraction(check_alpha(alpha)).limit_denominator(_ALPHA_MAX_DENOMINATOR)
+    fraction = Fraction(check_alpha(alpha)).limit_denominator(_ALPHA_MAX_DENOMINATOR)
+    if not 0 < fraction < 1:
+        raise ValueError(
+            f"alpha {alpha} rounds to {fraction} at denominator <= {_ALPHA_MAX_DENOMINATOR}"
+        )
+    return fraction
 
 
 def quantile_index(n: int, alpha: float) -> int:

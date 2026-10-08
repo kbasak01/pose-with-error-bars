@@ -17,7 +17,7 @@ import pytest
 
 from poseconf.conformal.split import conformal_quantile, quantile_index
 
-pytestmark = pytest.mark.slow
+# Not `slow`: the module runs in ~1.5 s, so CI keeps a library oracle (Phase 8, checklist A4).
 
 ALPHAS = (0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5)
 N_VALUES = (99, 100, 250, 1000, 4798)

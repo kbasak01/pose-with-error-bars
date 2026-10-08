@@ -124,3 +124,10 @@ def test_bad_alpha_raises(alpha: float) -> None:
 def test_non_1d_scores_raise() -> None:
     with pytest.raises(ValueError, match="1-D"):
         conformal_quantile(np.zeros((3, 2)), 0.1)
+
+
+@pytest.mark.parametrize("alpha", [1e-9, 4e-7, 1 - 4e-7, 0.9999999])
+def test_alpha_rounding_to_zero_or_one_raises(alpha: float) -> None:
+    """Phase 1 item S4: alpha -> 1 must not return the largest score as the quantile."""
+    with pytest.raises(ValueError, match="rounds to"):
+        conformal_quantile([1.0, 2.0, 5.0], alpha)

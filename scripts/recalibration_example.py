@@ -97,7 +97,8 @@ def simulate(n: int, rng: np.random.Generator) -> dict[str, np.ndarray]:
     t = rng.standard_t(STUDENT_DOF, (n, k, 2)) * math.sqrt((STUDENT_DOF - 2) / STUDENT_DOF)
     y_hat = y_gt + TRUE_SCALE * np.einsum("nkij,nkj->nki", chol, t)
     valid = rng.uniform(size=n) >= FAILURE_RATE
-    # A pose estimate for the frame record; C1 never reads it.
+    # The frame record's pose estimate is the true pose: harmless for C1, which never reads it,
+    # but a pose-level score (A1-A3, C2) reusing this simulation must perturb it first.
     q_hat = np.roll(Rotation.from_matrix(rotation).as_quat(), 1, axis=1)
     return {
         "y_hat": y_hat,
@@ -161,6 +162,7 @@ def serve(head: hd.ConformalPoseHead, frames: dict[str, np.ndarray]) -> dict[str
             answered.append(False)
     covered_arr, answered_arr = np.array(covered), np.array(answered)
     m, k = len(covered_arr), int(covered_arr.sum())
+    n_ans, k_ans = int(answered_arr.sum()), int((covered_arr & answered_arr).sum())
     return {
         "n_total": m,
         "n_answered": int(answered_arr.sum()),
@@ -169,6 +171,8 @@ def serve(head: hd.ConformalPoseHead, frames: dict[str, np.ndarray]) -> dict[str
         "coverage_ci95": list(clopper_pearson(k, m)),
         "answer_rate": float(answered_arr.mean()),
         "silent_failure_rate": float((answered_arr & ~covered_arr).mean()),
+        "coverage_given_answered": k_ans / n_ans,
+        "coverage_given_answered_ci95": list(clopper_pearson(k_ans, n_ans)),
         "radius_px_median": float(np.median(radius)),
     }
 
@@ -277,8 +281,8 @@ def main(argv: list[str] | None = None) -> int:
         "definitions": {
             "what": (
                 "Mechanics demonstration on invented synthetic data: a 6-marker deck target and "
-                "a 1280x720 camera, not SPEED+. Predicted covariances are 1.6x too small and the "
-                "errors Student-t(4). Coverage is split-conformal on exchangeable simulated "
+                "a 1280x720 camera, not SPEED+. The predicted sigma is 1.6x too small (2.56x in "
+                "covariance) and the errors are Student-t(4). Coverage is split-conformal on exchangeable simulated "
                 "frames; it says nothing about a real deck."
             ),
             "repeated_draws": (
@@ -289,7 +293,9 @@ def main(argv: list[str] | None = None) -> int:
             ),
             "naive_gaussian": (
                 "Bonferroni chi-square(2) ellipses from the uncalibrated covariance, on answered "
-                "frames: what trusting the variance head as a Gaussian would give."
+                "frames: what trusting the variance head as a Gaussian would give. Compare it "
+                "with test.coverage_given_answered (same frames), not with the marginal coverage, "
+                "which counts abstentions as covered."
             ),
         },
         "n_keypoints": len(DECK_MARKERS),

@@ -81,7 +81,7 @@ def _level_c(run: str, sha: str, shift: float) -> dict:
                 "score": score, "convention": convention, "alpha": 0.1,
                 "coverage": 0.9 + shift, "coverage_ci95": [0.89, 0.91], "n_total": 100,
                 "n_answered": 93, "answer_rate": 0.93, "silent_failure_rate": 0.05,
-                "quantile": 3.0 + shift,
+                "quantile": 3.0 + shift, "resplits": {"verdict": "VALID"},
             })  # fmt: skip
         comparison.append({
             "pair": "C1_vs_B2", "convention": convention, "alpha": 0.1,
@@ -145,3 +145,22 @@ def test_seed_is_recovered_from_the_hashed_config_for_older_records():
     assert spread_mod._seed(old) == 1337
     with pytest.raises(ValueError, match="no config matches"):
         spread_mod._seed({"run_name": "x", "provenance": {"config_sha256": "0" * 64}})
+
+
+def test_rerun_record_shows_changed_inputs_and_refuses_a_dirty_rerun(tmp_path):
+    rerun = _script("check_rerun")
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    prov = {"poseconf_git_sha": "abc-dirty", "config_sha256": "1", "dump_sha256": "d"}
+    a.write_text(json.dumps({"v": 1, "provenance": prov}), encoding="utf-8")
+    b.write_text(
+        json.dumps(
+            {"v": 1, "provenance": {**prov, "poseconf_git_sha": "def", "config_sha256": "2"}}
+        ),
+        encoding="utf-8",
+    )
+    pair = rerun.compare(a, b)
+    assert pair["identical"] and pair["rerun_poseconf_git_sha"] == "def"
+    assert pair["provenance_keys_differing"] == {"config_sha256": {"committed": "1", "rerun": "2"}}
+    out = tmp_path / "out.json"
+    with pytest.raises(SystemExit, match="clean tree"):
+        rerun.main(["--pair", str(b), str(a), "--what", "t", "--out", str(out)])

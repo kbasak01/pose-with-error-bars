@@ -98,20 +98,43 @@ def npz_differences(a: Path, b: Path) -> tuple[int, list[str]]:
     return n, diffs
 
 
+#: Provenance keys expected to differ between a committed file and its re-run.
+EXPECTED_PROVENANCE_CHANGES = frozenset(
+    {"poseconf_git_sha", "created_at", "source_poseconf_git_sha", "source_result"}
+)
+
+
 def compare(committed: Path, rerun: Path) -> dict[str, Any]:
-    """One pair's record."""
+    """One pair's record: the numerical comparison, plus both sides' provenance.
+
+    For JSON, `provenance_keys_differing` lists every provenance key (other than the commit and
+    timestamp, which are expected to move) whose value differs: an input hash or config hash that
+    changed is shown, not hidden by the comparison ignoring `provenance`.
+    """
+    old_prov: dict[str, Any] = {}
+    new_prov: dict[str, Any] = {}
     if committed.suffix == ".npz":
         n, diffs = npz_differences(committed, rerun)
-        committed_sha = None
     else:
         old = json.loads(committed.read_text(encoding="utf-8"))
         new = json.loads(rerun.read_text(encoding="utf-8"))
         n, diffs = json_differences(old, new)
-        committed_sha = old.get("provenance", {}).get("poseconf_git_sha")
+        old_prov, new_prov = old.get("provenance", {}), new.get("provenance", {})
+    differing = sorted(
+        k
+        for k in set(old_prov) | set(new_prov)
+        if k not in EXPECTED_PROVENANCE_CHANGES and old_prov.get(k) != new_prov.get(k)
+    )
     return {
         "committed": str(committed),
         "committed_sha256": sha256_file(committed),
-        "committed_poseconf_git_sha": committed_sha,
+        "committed_poseconf_git_sha": old_prov.get("poseconf_git_sha"),
+        "rerun": str(rerun),
+        "rerun_sha256": sha256_file(rerun),
+        "rerun_poseconf_git_sha": new_prov.get("poseconf_git_sha"),
+        "provenance_keys_differing": {
+            k: {"committed": old_prov.get(k), "rerun": new_prov.get(k)} for k in differing
+        },
         "leaves_compared": n,
         "identical": not diffs,
         "n_differences": len(diffs),
@@ -123,6 +146,9 @@ def main(argv: list[str] | None = None) -> int:
     """Write the comparison record; return 1 if any pair differs."""
     args = parse_args(argv)
     pairs = [compare(committed, rerun) for committed, rerun in args.pair]
+    dirty = [p["rerun"] for p in pairs if str(p["rerun_poseconf_git_sha"]).endswith("-dirty")]
+    if dirty:
+        raise SystemExit(f"re-runs must come from a clean tree; dirty: {dirty}")
     result = {
         "schema": RESULT_SCHEMA,
         "kind": "rerun_check",

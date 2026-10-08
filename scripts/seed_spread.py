@@ -120,6 +120,11 @@ def seed_values(level_c: dict[str, Any], training: dict[str, Any]) -> dict[str, 
         "val_test_coverage_2sigma": learned["coverage_2sigma"],
         "val_test_spearman_sigma_vs_error": learned["spearman_sigma_vs_error"],
         "verdict_counts": level_c["verdict_counts"],
+        "deviates_cells": [
+            {"score": r["score"], "convention": r["convention"], "alpha": r["alpha"]}
+            for r in level_c["rows"]
+            if r["resplits"]["verdict"] == "DEVIATES"
+        ],
     }
     for convention in ("abstain_allowed", "answer_required"):
         for score in ("C1", "C2"):
@@ -143,7 +148,15 @@ def seed_values(level_c: dict[str, Any], training: dict[str, Any]) -> dict[str, 
 
 def spread(per_seed: list[dict[str, Any]]) -> dict[str, Any]:
     """`max - min` across seeds for every numeric leaf; identifiers and counts are left out."""
-    skip = {"run_name", "seed", "checkpoint_sha256", "best_epoch", "verdict_counts", "n_total"}
+    skip = {
+        "run_name",
+        "seed",
+        "checkpoint_sha256",
+        "best_epoch",
+        "verdict_counts",
+        "deviates_cells",
+        "n_total",
+    }
 
     def walk(items: list[Any]) -> Any:
         first = items[0]

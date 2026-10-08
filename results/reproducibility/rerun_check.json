@@ -1,0 +1,107 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "rerun_check",
+  "what": "Phase 8: files whose provenance is a -dirty SHA (Level A, A1-A3 validity) or from different commits (dump_summary, p1_checkpoints), re-produced at a clean tree by make level-a, scripts/coverage_check.py, make parity-p1 and make verify-p1 into a scratch directory, then compared here",
+  "ignored_keys": [
+    "created_at",
+    "figure",
+    "provenance"
+  ],
+  "all_identical": true,
+  "pairs": [
+    {
+      "committed": "results/level_a/keypoint_a2_predicted_crop_synthetic.json",
+      "committed_sha256": "42f63ae2622f166a24ca3c811cb6ffb4a682946e537944f89f69c3652a3f2cef",
+      "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
+      "leaves_compared": 2980,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    },
+    {
+      "committed": "results/level_a/keypoint_a2_predicted_crop_synthetic_resplits.npz",
+      "committed_sha256": "88aa70893ea688aa7d8217ca536b0eefe834af180fa7bbb42ca854f2575a79aa",
+      "committed_poseconf_git_sha": null,
+      "leaves_compared": 240008,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    },
+    {
+      "committed": "results/validity/A1_abstain_allowed.json",
+      "committed_sha256": "00f5f2b0448f6f27db390e1e5931110251f26e8ff3b373546cf7f8c070533fda",
+      "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
+      "leaves_compared": 231,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    },
+    {
+      "committed": "results/validity/A1_answer_required.json",
+      "committed_sha256": "0b99c9b2f2793458a25c2060f133d733ae0a5098bc0e1039818b7040246b76dc",
+      "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
+      "leaves_compared": 231,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    },
+    {
+      "committed": "results/validity/A2_abstain_allowed.json",
+      "committed_sha256": "7f5da11b07f7fc0a71bc4db4d3c86240b50324f5488474e58d234d56526eb89e",
+      "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
+      "leaves_compared": 263,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    },
+    {
+      "committed": "results/validity/A2_answer_required.json",
+      "committed_sha256": "6b08493b06e6d6bb2e966f4458090382d93d06e490cc6ed51bb293adefb00b48",
+      "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
+      "leaves_compared": 263,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    },
+    {
+      "committed": "results/validity/A3_abstain_allowed.json",
+      "committed_sha256": "399371843409695cb8c76a4fc635338ab1f98dc91e08e9b3f3c2a4ec439b573b",
+      "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
+      "leaves_compared": 231,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    },
+    {
+      "committed": "results/validity/A3_answer_required.json",
+      "committed_sha256": "2379723897bd09aafaa2d5b8846145eaf74dc09fe9e26e6328735c0d4bbc0e6d",
+      "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
+      "leaves_compared": 231,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    },
+    {
+      "committed": "results/dump_summary.json",
+      "committed_sha256": "64863028025b62d256164f974d56dd7e3a135c69da72756499016224c4691826",
+      "committed_poseconf_git_sha": "6736c858e62a120118bc6fe06d945974c9605ce8",
+      "leaves_compared": 248,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    },
+    {
+      "committed": "results/p1_checkpoints.json",
+      "committed_sha256": "31db742a7648e3f0189b33930ed7ff3100da1eb74488ba67c48b3864de92065d",
+      "committed_poseconf_git_sha": "976894bda997c742c122d277f1cb712f749379a9",
+      "leaves_compared": 33,
+      "identical": true,
+      "n_differences": 0,
+      "differences": []
+    }
+  ],
+  "provenance": {
+    "poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
+    "created_at": "2026-10-08T12:17:50Z"
+  }
+}

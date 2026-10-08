@@ -1,7 +1,7 @@
 {
   "schema": "poseconf.result.v1",
   "kind": "rerun_check",
-  "what": "Phase 8: files whose provenance is a -dirty SHA (Level A, A1-A3 validity) or from different commits (dump_summary, p1_checkpoints), re-produced at a clean tree (9f11958) by scripts/run_level_a.py, scripts/coverage_check.py, scripts/check_p1_parity.py and scripts/verify_p1_checkpoints.py into a scratch directory, then compared here",
+  "what": "Phase 8: files whose provenance is a -dirty SHA (Level A, A1-A3 validity) or from different commits (dump_summary, p1_checkpoints), re-produced at a clean tree (9f11958) by scripts/run_level_a.py, scripts/coverage_check.py, scripts/check_p1_parity.py and scripts/verify_p1_checkpoints.py into a temporary directory (<rerun-root>), then compared here; the re-run files are identified by rerun_sha256",
   "ignored_keys": [
     "created_at",
     "figure",
@@ -13,7 +13,7 @@
       "committed": "results/level_a/keypoint_a2_predicted_crop_synthetic.json",
       "committed_sha256": "42f63ae2622f166a24ca3c811cb6ffb4a682946e537944f89f69c3652a3f2cef",
       "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/level_a/keypoint_a2_predicted_crop_synthetic.json",
+      "rerun": "<rerun-root>/level_a/keypoint_a2_predicted_crop_synthetic.json",
       "rerun_sha256": "cf99154e2d01823de7213c7c698046c40d371be6eed3898b259e93ae4abf1dbe",
       "rerun_poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
       "provenance_keys_differing": {
@@ -31,7 +31,7 @@
       "committed": "results/level_a/keypoint_a2_predicted_crop_synthetic_resplits.npz",
       "committed_sha256": "88aa70893ea688aa7d8217ca536b0eefe834af180fa7bbb42ca854f2575a79aa",
       "committed_poseconf_git_sha": null,
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/level_a/keypoint_a2_predicted_crop_synthetic_resplits.npz",
+      "rerun": "<rerun-root>/level_a/keypoint_a2_predicted_crop_synthetic_resplits.npz",
       "rerun_sha256": "88aa70893ea688aa7d8217ca536b0eefe834af180fa7bbb42ca854f2575a79aa",
       "rerun_poseconf_git_sha": null,
       "provenance_keys_differing": {},
@@ -44,7 +44,7 @@
       "committed": "results/validity/A1_abstain_allowed.json",
       "committed_sha256": "00f5f2b0448f6f27db390e1e5931110251f26e8ff3b373546cf7f8c070533fda",
       "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/validity/A1_abstain_allowed.json",
+      "rerun": "<rerun-root>/validity/A1_abstain_allowed.json",
       "rerun_sha256": "fb2219c8a14f43b5de6b77dcf5e03039cf6d316d89f292c5e2a69c491e4c1837",
       "rerun_poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
       "provenance_keys_differing": {},
@@ -57,7 +57,7 @@
       "committed": "results/validity/A1_answer_required.json",
       "committed_sha256": "0b99c9b2f2793458a25c2060f133d733ae0a5098bc0e1039818b7040246b76dc",
       "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/validity/A1_answer_required.json",
+      "rerun": "<rerun-root>/validity/A1_answer_required.json",
       "rerun_sha256": "3ba3b71c5aebd926a1913b263803cffbcdb3ec86d078aed9a03e7934e5ee88ba",
       "rerun_poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
       "provenance_keys_differing": {},
@@ -70,7 +70,7 @@
       "committed": "results/validity/A2_abstain_allowed.json",
       "committed_sha256": "7f5da11b07f7fc0a71bc4db4d3c86240b50324f5488474e58d234d56526eb89e",
       "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/validity/A2_abstain_allowed.json",
+      "rerun": "<rerun-root>/validity/A2_abstain_allowed.json",
       "rerun_sha256": "1cf3ef1e59124e361a998fd4ba0cd26c7161db9d52b0b0f4e0616bf710aad0a2",
       "rerun_poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
       "provenance_keys_differing": {},
@@ -83,7 +83,7 @@
       "committed": "results/validity/A2_answer_required.json",
       "committed_sha256": "6b08493b06e6d6bb2e966f4458090382d93d06e490cc6ed51bb293adefb00b48",
       "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/validity/A2_answer_required.json",
+      "rerun": "<rerun-root>/validity/A2_answer_required.json",
       "rerun_sha256": "ecc2709fa439dd6eded1d483fd77a4eb094900e8fe8a3190932b281856846e1a",
       "rerun_poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
       "provenance_keys_differing": {},
@@ -96,7 +96,7 @@
       "committed": "results/validity/A3_abstain_allowed.json",
       "committed_sha256": "399371843409695cb8c76a4fc635338ab1f98dc91e08e9b3f3c2a4ec439b573b",
       "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/validity/A3_abstain_allowed.json",
+      "rerun": "<rerun-root>/validity/A3_abstain_allowed.json",
       "rerun_sha256": "c3d283c8345f34d6a038534f3ceecfe1193a7599fe83ed2cca35f3a01e52212a",
       "rerun_poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
       "provenance_keys_differing": {},
@@ -109,7 +109,7 @@
       "committed": "results/validity/A3_answer_required.json",
       "committed_sha256": "2379723897bd09aafaa2d5b8846145eaf74dc09fe9e26e6328735c0d4bbc0e6d",
       "committed_poseconf_git_sha": "12033fa4f29803804687e279831629587b16cb59-dirty",
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/validity/A3_answer_required.json",
+      "rerun": "<rerun-root>/validity/A3_answer_required.json",
       "rerun_sha256": "75ce8efc6a135b315c2da22ed80bdfb1a871ba6c2f8c86e723f741f49d6ac803",
       "rerun_poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
       "provenance_keys_differing": {},
@@ -122,7 +122,7 @@
       "committed": "results/dump_summary.json",
       "committed_sha256": "64863028025b62d256164f974d56dd7e3a135c69da72756499016224c4691826",
       "committed_poseconf_git_sha": "6736c858e62a120118bc6fe06d945974c9605ce8",
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/dump_summary.json",
+      "rerun": "<rerun-root>/dump_summary.json",
       "rerun_sha256": "b06345c402a1cacd67c20d2339e7947f74a9410e183ba947769757eda5215f91",
       "rerun_poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
       "provenance_keys_differing": {
@@ -140,7 +140,7 @@
       "committed": "results/p1_checkpoints.json",
       "committed_sha256": "31db742a7648e3f0189b33930ed7ff3100da1eb74488ba67c48b3864de92065d",
       "committed_poseconf_git_sha": "976894bda997c742c122d277f1cb712f749379a9",
-      "rerun": "/tmp/claude-1000/-home-kbasak-projects-02-pose-with-error-bars/dbca320e-dbc3-4415-9371-dbef7d3efe97/scratchpad/rerun/p1_checkpoints.json",
+      "rerun": "<rerun-root>/p1_checkpoints.json",
       "rerun_sha256": "87243180dba0bc359a2be9dfc555791a302ef5edff76ee9095eb5521e4dd1da4",
       "rerun_poseconf_git_sha": "9f11958033cbd816221764a9a02f7797af90cbb8",
       "provenance_keys_differing": {
@@ -156,7 +156,7 @@
     }
   ],
   "provenance": {
-    "poseconf_git_sha": "ed4d94a33edbae6981ee86747d96378151105308",
-    "created_at": "2026-10-08T12:33:19Z"
+    "poseconf_git_sha": "94f91c7337208701f75c09f0885c6badefd455d8",
+    "created_at": "2026-10-08T12:49:52Z"
   }
 }

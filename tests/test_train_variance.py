@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import numpy as np
 import pytest
 import torch
+import yaml
 from scipy.stats import multivariate_normal
 
 from poseconf import p1_adapter
@@ -159,3 +161,14 @@ def test_selection_reads_val_tune_only(local_paths):
     names = p1_adapter.crop_dataset_filenames(subset.dataset)[subset.indices]
     assert set(names) <= set(load_split("synthetic_val_tune"))
     assert counts["served"] == len(names) and counts["manifest"] == 2399
+
+
+def test_second_seed_config_differs_only_in_seed_and_run_name():
+    """The Phase 8 seed spread compares like with like (VALIDATION_CHECKLIST D6)."""
+    base = yaml.safe_load(Path("configs/variance_head.yaml").read_text(encoding="utf-8"))
+    other = yaml.safe_load(Path("configs/variance_head_s2026.yaml").read_text(encoding="utf-8"))
+    assert (base["seed"], other["seed"]) == (1337, 2026)
+    assert other["run_name"] == "vhead_a2_s2026"
+    for config in (base, other):
+        del config["seed"], config["run_name"]
+    assert base == other

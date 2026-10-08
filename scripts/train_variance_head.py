@@ -325,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
                 "stage": "training",
                 "run_name": config["run_name"],
                 "p1_run": run,
+                "seed": seed,
+                "head": config["head"],
                 "device": str(device),
                 "device_name": torch.cuda.get_device_name(device) if device.type == "cuda" else "",
                 "backends": backends,

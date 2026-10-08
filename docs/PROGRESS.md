@@ -11,7 +11,7 @@
 | 6 Coverage under shift ⭐ | **complete** 2026-10-07 | 54 domain × crop × arm cells: 38 written (4,256 rows), 16 explained, 0 unexplained ([`results/shift/index.json`](../results/shift/index.json)). A1, `split`, α = 0.10, `abstain_allowed`, predicted_crop: synthetic 0.8941 [0.8850, 0.9027] (n = 4,797), lightbox 0.6596 [0.6434, 0.6756] (n = 3,370), sunlamp 0.8918 [0.8744, 0.9076] (n = 1,396; answer rate 0.125, coverage given answered 0.137) ([`results/shift/`](../results/shift/)). Weighted CP: AUC 0.983 / 0.998, ESS 1.04 / 1.60 of 4,798, sets ∞. `split-leakage-auditor` clean, `conformal-validity-auditor` SOUND | `phase-6-complete` |
 | 7 Head, ONNX, latency | **complete** 2026-10-07 | `ConformalPoseHead`: 12 hash-locked artifacts (A1–A3, B1, C1, C2 × 2 conventions, α = 0.10); a `val_test` replay reproduces every committed row's n_covered and n_answered ([`results/calibration/index.json`](../results/calibration/index.json)). ONNX opset 17, no forbidden ops ([`results/export/onnx_export.json`](../results/export/onnx_export.json)). Parity, fp32 with TF32 off: `cov_chol` max abs Δ 2.86e-3, so the 1e-4 gate is **unmet** and reported; C1 set radius relative max 6.95e-5; fp16 not faithful ([`results/export/onnx_parity.json`](../results/export/onnx_parity.json)). Frame budget, ORT CUDA fp32: total p50 14.64 → 16.28 ms with uncertainty ([`results/latency/frame_budget.json`](../results/latency/frame_budget.json)). `conformal-validity-auditor` SOUND, `onnx-parity-auditor` EXPORT VALID | `phase-7-complete` |
 | 8 Validation sweep | **complete** 2026-10-08 | all 58 `VALIDATION_CHECKLIST.md` lines have a verdict: 48 ✅ / 4 ⚠️ / 6 ❌ (41 / 9 / 8 before fixes); open ❌ = G2 fp32 variance parity (real, gate not moved) + H1/H3/H4/H5/I4 (Phase 9) ([`docs/LIMITATIONS.md`](LIMITATIONS.md)). Second variance-head seed: `val_test` NLL 3.054 / 3.073, C1 `abstain_allowed` α = 0.10 coverage 0.9079 / 0.9087, s1337 vs s2026 ([`results/level_c/variance_head_seed_spread.json`](../results/level_c/variance_head_seed_spread.json)). Seven `-dirty` + two mixed-sha records re-produced identically at a clean tree ([`results/reproducibility/rerun_check.json`](../results/reproducibility/rerun_check.json)). `split-leakage-auditor` no critical, `conformal-validity-auditor` SOUND, `p1-parity-auditor` REPRODUCED, `eval-reproducibility-auditor` no critical open, `uncertainty-head-diagnostician` TRUSTWORTHY (s2026) | `phase-8-complete` |
-| 9 Publication | not started | | |
+| 9 Publication | **complete** 2026-10-08 | `README.md`: hero outcome chart + headline table above the fold. A1 `split` α = 0.10 `abstain_allowed`: synthetic 0.8941 [0.8850, 0.9027] (n = 4,797), lightbox 0.6596 [0.6434, 0.6756] (n = 3,370), sunlamp 0.8918 [0.8744, 0.9076] (n = 1,396, answer rate 0.125) ([`results/shift/`](../results/shift/)). `/claim-trace`: 272 / 272 README claims match their JSON. Release: 15 assets + `SHA256SUMS.txt` ([`results/release/SHA256SUMS.txt`](../results/release/SHA256SUMS.txt)). Checklist 53 ✅ / 4 ⚠️ / 1 ❌ (G2) ([`docs/LIMITATIONS.md`](LIMITATIONS.md)). `eval-reproducibility-auditor` CLEAN, `repo-publication-reviewer` SHIP | `phase-9-complete` |
 
 Update at the end of each phase via `/phase-gate N`.
 
@@ -507,3 +507,55 @@ Update at the end of each phase via `/phase-gate N`.
   - README with the guarantee box, prior art and limitations (H1, H3–H5).
   - Release assets with `SHA256SUMS.txt` (I4).
   - Optional: a multiplicity-aware re-split gate, fixed *before* any future run.
+
+## Phase 9 — Publication (complete, 2026-10-08)
+
+- **README.** [`README.md`](../README.md), written in P1's style.
+  - It opens with a plain-language lead. Then come the hero
+    [`assets/headline_outcomes.png`](../assets/headline_outcomes.png) and
+    [`assets/shift_domain_tour.gif`](../assets/shift_domain_tour.gif), a one-sentence guarantee,
+    and the contribution relative to Yang & Pavone 2023 and Wang et al. 2025.
+  - Below that: the headline table (A1, `split`, α = 0.10, both conventions; n, CI, answer rate,
+    silent failure, coverage given answered) and the "what the guarantee says and does not say"
+    box.
+  - Then: HIL arms, with the oracle rows in their own table; a gallery (with
+    [`assets/alpha_sweep.gif`](../assets/alpha_sweep.gif)); the method and in-distribution
+    table; prior work; latency with the A4000 caveat and the unmet G2; reproduction; release;
+    limitations; attribution.
+  - Headline, from [`results/shift/`](../results/shift/), `abstain_allowed`:
+    - synthetic: 0.8941 [0.8850, 0.9027], n = 4,797;
+    - lightbox: 0.6596 [0.6434, 0.6756], n = 3,370, silent-failure rate 0.340;
+    - sunlamp: 0.8918 [0.8744, 0.9076], n = 1,396, with 175 answered and coverage given
+      answered 0.137.
+- **Figures.** `make figures` gained `headline_outcomes`, `shift_domain_tour` and `alpha_sweep`.
+  - Each one refuses to draw unless its frames reproduce the committed row's `n_covered`, or (for
+    the outcome split) the row's coverage and silent-failure rate.
+  - HIL labels come through `shift.evaluation_labels` (poolB only), and every HIL frame carries
+    the CC BY-NC-SA notice.
+  - `shift_size_vs_coverage` labels no longer overlap. No number changed (`docs/DECISIONS.md`).
+- **Claims.** `/claim-trace README.md`: 272 / 272 numeric claims match their JSON at the printed
+  precision.
+  - A reverse pass finds no untraced decimal or comma-grouped number.
+  - Every guarantee-style word is qualified, and "certified" and "safe" appear only negated.
+  - The first `eval-reproducibility-auditor` pass returned FIXES REQUIRED, with no number
+    mismatch: 2 critical, 1 guarantee-wording, 10 must and 10 should items. All were applied.
+    The re-check returned CLEAN.
+- **Review.** `repo-publication-reviewer`: SHIP AFTER FIXES, then **SHIP** at `eed6448` after the
+  lead, one-line guarantee and prior-art summary were moved above the fold. The unapplied
+  suggestion (restructure; latency below limitations) was accepted as not a ship condition.
+- **Release.** `phase-9-complete` ships 15 assets plus `SHA256SUMS.txt`:
+  - the 12 calibration artifacts and their index;
+  - `vhead_a2_s1337_best.pt`;
+  - `vhead_a2_s1337.onnx` (fp32).
+
+  `scripts/build_release.py` refuses unless the checkpoint hash equals every C1/C2 lock and the
+  ONNX hash equals `results/export/onnx_export.json`. The manifest is committed at
+  [`results/release/SHA256SUMS.txt`](../results/release/SHA256SUMS.txt), and
+  `tests/test_release.py` checks it in CI.
+- **CI.** A new step regenerates `results/TABLES.md` and compares it byte for byte.
+- **Checklist** ([`docs/LIMITATIONS.md`](LIMITATIONS.md)): **53 ✅ / 4 ⚠️ / 1 ❌**. H1, H3, H4, H5
+  and I4 are closed. G2, the fp32 variance parity, stays unmet: it is real and the gate was not
+  moved.
+- **Checks.** `make lint` clean; `make test` 545 passed (GPU and dataset tests included). CI is green on the
+  pushed tree before the tag.
+

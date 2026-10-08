@@ -14,11 +14,12 @@ every fix was made, and the changed areas were re-audited. The follow-up audits 
 | | ✅ | ⚠️ | ❌ |
 |---|---|---|---|
 | Before fixes (`3e1b8d0`) | 41 | 9 | 8 |
-| **After fixes** | **48** | **4** | **6** |
+| After fixes (Phase 8) | 48 | 4 | 6 |
+| **After Phase 9** (README + release) | **53** | **4** | **1** |
 
-Of the six ❌ that remain, one is real and five are owned by Phase 9:
-- **G2** is the fp32 variance parity gate. It is root-caused and deliberately not loosened.
-- **H1, H3, H4, H5 and I4** need a README and a release, which are Phase 9 by plan.
+One ❌ remains, and it is real: **G2**, the fp32 variance parity gate. It is root-caused and
+deliberately not loosened. Phase 9 closed H1, H3, H4, H5 and I4 with the README and the
+`phase-9-complete` release.
 
 No leakage was found and no coverage number is invalid. `results/TABLES.md` regenerates
 byte-identically from the JSON.
@@ -186,10 +187,12 @@ pipeline can fill both, and [`docs/RECALIBRATION_EXAMPLE.md`](RECALIBRATION_EXAM
 mapping on a 6-marker deck target. It cannot rename them without a schema bump, and that bump
 would re-hash all 12 committed artifacts.
 
-### Publication (owned by Phase 9)
+### Publication (Phase 9)
 
-There is no `README.md` and no GitHub release yet, so H1, H3, H4, H5 and I4 are ❌ by plan and
-are not critical findings.
+`README.md` and the `phase-9-complete` release close H1, H3, H4, H5 and I4 (rows below). The
+release link and the manifest are only as good as the hashes. `results/release/SHA256SUMS.txt`
+is committed, and `tests/test_release.py` checks it against `results/calibration/` and
+`results/export/onnx_export.json` in CI.
 
 ---
 
@@ -283,11 +286,11 @@ are not critical findings.
 
 | # | Item | | Evidence |
 |---|---|---|---|
-| H1 | README numbers trace to `results/` | ❌ | No README (Phase 9). `docs/` traced number by number; mismatches are fixes 6–7 |
-| H2 | No "guaranteed / certified / provably / safe" on HIL | ✅ | Grep over `docs/`, `results/`, `src/`, `scripts/`, `configs/`: every "guarantee" qualified, HIL always "measured"; "safe" only in code comments about label-free reads. README re-checked in Phase 9 |
-| H3 | "What the guarantee says and does not say" box | ❌ | No README (Phase 9). The content exists in `docs/SCORES.md` and `results/TABLES.md:5` |
-| H4 | Prior art cited, contribution stated relative to it | ❌ | `SOURCES.md` only; no README (Phase 9) |
-| H5 | README limitations section | ❌ | This file has them; README is Phase 9 |
+| H1 | README numbers trace to `results/` | ✅ | `/claim-trace README.md`: 272 / 272 claims match their JSON at the printed precision, with a reverse pass finding no untraced decimal. `eval-reproducibility-auditor` re-verified it CLEAN (Phase 9) |
+| H2 | No "guaranteed / certified / provably / safe" on HIL | ✅ | Grep over `docs/`, `results/`, `src/`, `scripts/`, `configs/`: every "guarantee" qualified, HIL always "measured"; "safe" only in code comments about label-free reads. README re-checked in Phase 9: "certified" / "safe" appear only negated, and every HIL number is "measured, not guaranteed" |
+| H3 | "What the guarantee says and does not say" box | ✅ | README box gives the event per convention (abstain or contain under `abstain_allowed`; contain under `answer_required`, vacuous at q = +∞), marginal / finite-sample / exchangeability, the oracle within-HIL case, and five "does not say" items. There is also a one-sentence version under the hero chart |
+| H4 | Prior art cited, contribution stated relative to it | ✅ | README "Relative to Yang & Pavone … and Wang et al." under the hero chart and "Relative to prior work" table + list. No numeric comparison claimed |
+| H5 | README limitations section | ✅ | README *Limitations*: single model, HIL ≠ flight, exchangeability / P1 selection caveat, sunlamp 175 / 1,396 answered, weighted degenerate, G2 unmet + inherited P1 miss, two seeds, A4000 ≠ Jetson, out-of-scope items |
 
 ### I. Repository quality
 
@@ -296,7 +299,7 @@ are not critical findings.
 | I1 | `make smoke` green on a clean clone (CI) | ✅ | CI run 37780089363 on `59788fb`, the Phase 8 tree (CPU-only, `submodules: recursive`, no dataset): unit tests and `make smoke` each 523 passed, 18 deselected |
 | I2 | Licences; SPEED+ attributed, not redistributed; HIL imagery terms | ✅ | `LICENSE` MIT; `SOURCES.md:11`; both image figures carry "SPEED+ imagery, CC BY-NC-SA 4.0" on the figure and show synthetic frames only |
 | I3 | No dumps, checkpoints, ONNX, large binaries | ✅ | Largest tracked files are two PNGs (2.7 MB, 1.9 MB); every results file is under 0.6 MB (oracle shift JSONs ~570 KB, re-split `.npz` ~370 KB); no `.pt`/`.onnx` in any commit. `src/poseconf.egg-info/` (build output) untracked at this sweep |
-| I4 | Release assets with `SHA256SUMS.txt` | ❌ | No release (Phase 9) |
+| I4 | Release assets with `SHA256SUMS.txt` | ✅ | GitHub release `phase-9-complete`: 12 calibration artifacts + index, `vhead_a2_s1337_best.pt`, `vhead_a2_s1337.onnx` and `SHA256SUMS.txt`, staged by `scripts/build_release.py`. The checkpoint hash equals every C1/C2 lock and the ONNX hash equals `onnx_export.json`, or the build refuses. Manifest committed as `results/release/SHA256SUMS.txt`, and the downloaded assets were checked with `sha256sum -c` |
 
 ### J. Ship-deck reusability
 
@@ -309,9 +312,9 @@ are not critical findings.
 
 | | A | B | C | D | E | F | G | H | I | J | Total | Before fixes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| ✅ | 8 | 8 | 4 | 6 | 9 | 4 | 4 | 1 | 3 | 1 | **48** | 41 |
+| ✅ | 8 | 8 | 4 | 6 | 9 | 4 | 4 | 5 | 4 | 1 | **53** | 41 |
 | ⚠️ | 1 | 0 | 0 | 1 | 0 | 0 | 1 | 0 | 0 | 1 | **4** | 9 |
-| ❌ | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 4 | 1 | 0 | **6** | 8 |
+| ❌ | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | **1** | 8 |
 | *items* | *9* | *8* | *4* | *7* | *9* | *4* | *6* | *5* | *4* | *2* | ***58*** | *58* |
 
 The four ⚠️ are accepted limitations, each written up above:
@@ -320,5 +323,5 @@ The four ⚠️ are accepted limitations, each written up above:
 - G4: frame budget p50/p99 only;
 - J1: P1-named lock slots.
 
-The ❌ that stays open on its merits is G2, which is real and root-caused. The other five are the
-README and release that Phase 9 owns.
+The one ❌ is G2, which is real and root-caused. The five Phase 9 items (H1, H3–H5, I4) are
+closed.

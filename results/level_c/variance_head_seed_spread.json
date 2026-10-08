@@ -1,0 +1,216 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "variance_head",
+  "stage": "seed_spread",
+  "run": "keypoint_a2",
+  "domain": "synthetic",
+  "subset": "synthetic_val_test",
+  "crop_source": "predicted_crop",
+  "arm": "split",
+  "oracle": false,
+  "alpha": 0.1,
+  "selected_run": "vhead_a2_s1337",
+  "definitions": {
+    "selection": "The first seed is the head selected in Phase 5 and used by every other result. No selection happens between seeds; the others are a robustness check.",
+    "spread": "max - min across seeds for each quoted number. With two seeds this is a range, not a variance estimate.",
+    "coverage": "Split-conformal coverage on synthetic val_test with each seed's own val_cal quantile; marginal, finite-sample, under exchangeability of val_cal and val_test."
+  },
+  "seeds": [
+    {
+      "run_name": "vhead_a2_s1337",
+      "seed": 1337,
+      "checkpoint_sha256": "61d8524ee2d7e796c69cb3dda213eb4ded9a4dbf57f75cdad98734dce1fe1c3c",
+      "best_epoch": 15,
+      "val_tune_nll_best": 2.9807181739991435,
+      "val_test_nll_mean": 3.054270197619022,
+      "val_test_nll_mean_rescaled": 3.0533000322424972,
+      "val_test_coverage_1sigma": 0.520235050660836,
+      "val_test_coverage_2sigma": 0.880698123889659,
+      "val_test_spearman_sigma_vs_error": 0.5202241452413893,
+      "verdict_counts": {
+        "VALID": 26,
+        "DEGENERATE": 6,
+        "DEVIATES": 0
+      },
+      "C1_abstain_allowed": {
+        "coverage": 0.907859078590786,
+        "coverage_ci95": [
+          0.899320011032315,
+          0.9158978682878264
+        ],
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "silent_failure_rate": 0.0921409214092141,
+        "quantile": 3.469137909085226,
+        "kp_px_median": 19.969797136986955
+      },
+      "C2_abstain_allowed": {
+        "coverage": 0.8980612883051907,
+        "coverage_ci95": [
+          0.8891511136956329,
+          0.9064835556076443
+        ],
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "silent_failure_rate": 0.10193871169480925,
+        "quantile": 3.7455608166663104,
+        "rot_deg_median": 1.4096867677007292,
+        "trans_frac_median": 0.014031870425828718
+      },
+      "C1_answer_required": {
+        "coverage": 0.9020220971440484,
+        "coverage_ci95": [
+          0.8932588113137114,
+          0.9102924836509293
+        ],
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "silent_failure_rate": 0.026474880133416718,
+        "quantile": 4.439387761635582,
+        "kp_px_median": 25.55495784128749
+      },
+      "C2_answer_required": {
+        "coverage": 0.900562851782364,
+        "coverage_ci95": [
+          0.8917449706128542,
+          0.9088896741047354
+        ],
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "silent_failure_rate": 0.027934125495101107,
+        "quantile": 5.397340787141771,
+        "rot_deg_median": 2.0313539843085757,
+        "trans_frac_median": 0.020219879018443094
+      }
+    },
+    {
+      "run_name": "vhead_a2_s2026",
+      "seed": 2026,
+      "checkpoint_sha256": "98d8f049d73d85c13f5d2d2ba57fe399dc4e3f5700855cb63e7a02ee8c559a4f",
+      "best_epoch": 17,
+      "val_tune_nll_best": 2.991830081938869,
+      "val_test_nll_mean": 3.0725431039292865,
+      "val_test_nll_mean_rescaled": 3.0712577393231877,
+      "val_test_coverage_1sigma": 0.49702282177927887,
+      "val_test_coverage_2sigma": 0.8628740995256037,
+      "val_test_spearman_sigma_vs_error": 0.5088614318240192,
+      "verdict_counts": {
+        "VALID": 25,
+        "DEGENERATE": 6,
+        "DEVIATES": 1
+      },
+      "C1_abstain_allowed": {
+        "coverage": 0.908692933083177,
+        "coverage_ci95": [
+          0.9001866886991158,
+          0.9166978431989974
+        ],
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "silent_failure_rate": 0.09130706691682301,
+        "quantile": 3.7163658950324727,
+        "kp_px_median": 19.892319118548535
+      },
+      "C2_abstain_allowed": {
+        "coverage": 0.9013967062747551,
+        "coverage_ci95": [
+          0.892609953074887,
+          0.9096913491194131
+        ],
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "silent_failure_rate": 0.09860329372524494,
+        "quantile": 3.9372154063181055,
+        "rot_deg_median": 1.4336565626995177,
+        "trans_frac_median": 0.014415087673896293
+      },
+      "C1_answer_required": {
+        "coverage": 0.9051490514905149,
+        "coverage_ci95": [
+          0.8965046962959436,
+          0.9132965580139965
+        ],
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "silent_failure_rate": 0.023347925786950177,
+        "quantile": 4.835933739307315,
+        "kp_px_median": 25.88494779457561
+      },
+      "C2_answer_required": {
+        "coverage": 0.9011882426516573,
+        "coverage_ci95": [
+          0.892393690182693,
+          0.9094909476902662
+        ],
+        "n_total": 4797,
+        "n_answered": 4454,
+        "answer_rate": 0.928496977277465,
+        "silent_failure_rate": 0.027308734625807796,
+        "quantile": 5.728903086714077,
+        "rot_deg_median": 2.0860630317958204,
+        "trans_frac_median": 0.020974884975233254
+      }
+    }
+  ],
+  "spread": {
+    "val_tune_nll_best": 0.011111907939725274,
+    "val_test_nll_mean": 0.01827290631026468,
+    "val_test_nll_mean_rescaled": 0.017957707080690444,
+    "val_test_coverage_1sigma": 0.023212228881557107,
+    "val_test_coverage_2sigma": 0.01782402436405528,
+    "val_test_spearman_sigma_vs_error": 0.011362713417370052,
+    "C1_abstain_allowed": {
+      "coverage": 0.0008338544923910396,
+      "n_answered": 0,
+      "answer_rate": 0.0,
+      "silent_failure_rate": 0.0008338544923910812,
+      "quantile": 0.2472279859472466,
+      "kp_px_median": 0.07747801843841984
+    },
+    "C2_abstain_allowed": {
+      "coverage": 0.0033354179695643804,
+      "n_answered": 0,
+      "answer_rate": 0.0,
+      "silent_failure_rate": 0.003335417969564311,
+      "quantile": 0.19165458965179516,
+      "rot_deg_median": 0.023969794998788485,
+      "trans_frac_median": 0.0003832172480675751
+    },
+    "C1_answer_required": {
+      "coverage": 0.0031269543464665928,
+      "n_answered": 0,
+      "answer_rate": 0.0,
+      "silent_failure_rate": 0.0031269543464665407,
+      "quantile": 0.3965459776717326,
+      "kp_px_median": 0.32998995328811986
+    },
+    "C2_answer_required": {
+      "coverage": 0.000625390869293363,
+      "n_answered": 0,
+      "answer_rate": 0.0,
+      "silent_failure_rate": 0.0006253908692933109,
+      "quantile": 0.33156229957230554,
+      "rot_deg_median": 0.0547090474872447,
+      "trans_frac_median": 0.0007550059567901606
+    }
+  },
+  "provenance": {
+    "poseconf_git_sha": "9b617651376482893a62765b2bfa6cf3bdd9e667",
+    "created_at": "2026-10-08T12:17:03Z",
+    "level_c_results": {
+      "results/level_c/keypoint_a2_predicted_crop_synthetic.json": "8a797295980e300c6226be75a41b7636989872b44d9cc9b78b1698dd47ab15e0",
+      "results/level_c/seed_2026/keypoint_a2_predicted_crop_synthetic.json": "fea8b935a45a4055415a71abeabdb25fe7d9f996c7661bed258ab137d28b8038"
+    },
+    "training_results": {
+      "results/level_c/variance_head_training.json": "35a550102b56129952eda3900629b40a7a5b2ae60ab07af4dc72f1745293ec7b",
+      "results/level_c/seed_2026/variance_head_training.json": "759b8dc3e6f5d381c022d7583102617f079dea482915f3ad273696a5e1cffbf3"
+    }
+  }
+}

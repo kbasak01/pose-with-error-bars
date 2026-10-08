@@ -1,0 +1,60 @@
+{
+  "schema": "poseconf.result.v1",
+  "kind": "validity",
+  "stage": "recalibration_example",
+  "score": "C1",
+  "arm": "split",
+  "convention": "abstain_allowed",
+  "alpha": 0.1,
+  "domain": "synthetic_ship_deck_example",
+  "oracle": false,
+  "definitions": {
+    "what": "Mechanics demonstration on invented synthetic data: a 6-marker deck target and a 1280x720 camera, not SPEED+. Predicted covariances are 1.6x too small and the errors Student-t(4). Coverage is split-conformal on exchangeable simulated frames; it says nothing about a real deck.",
+    "repeated_draws": "Fresh calibration and test draws, recalibrated each time. The split-conformal guarantee is on this mean (>= 1 - alpha; < 1 - alpha + 1/(n_cal + 1) for continuous scores, which the abstention atoms are not); one draw, like `test`, can sit below 1 - alpha.",
+    "naive_gaussian": "Bonferroni chi-square(2) ellipses from the uncalibrated covariance, on answered frames: what trusting the variance head as a Gaussian would give."
+  },
+  "n_keypoints": 6,
+  "n_cal": 2000,
+  "quantile": 5.386775338116163,
+  "calibration_id": "5f1d4e9cb0bff8cd391c3a2bfcc38abf0bf15951296c2fece0c3365301a01cba",
+  "test": {
+    "n_total": 5000,
+    "n_answered": 4738,
+    "n_covered": 4455,
+    "coverage": 0.891,
+    "coverage_ci95": [
+      0.882032621674244,
+      0.8995079315564682
+    ],
+    "answer_rate": 0.9476,
+    "silent_failure_rate": 0.109,
+    "radius_px_median": 21.339798247495267
+  },
+  "naive_gaussian": {
+    "q": 2.8615885665909753,
+    "n_answered": 4738,
+    "coverage_given_answered": 0.36091177712114814,
+    "coverage_given_answered_ci95": [
+      0.34722032201507624,
+      0.3747748431051274
+    ]
+  },
+  "repeated_draws": {
+    "repeats": 200,
+    "n_cal": 2000,
+    "n_test": 5000,
+    "mean_coverage": 0.9000499999999999,
+    "sd_coverage": 0.007964639187492096,
+    "mc_se": 0.0005631850379179775,
+    "min_coverage": 0.8734,
+    "max_coverage": 0.9204,
+    "nominal": 0.9,
+    "upper_bound_continuous": 0.9004997501249375
+  },
+  "refuses_retrained_model": true,
+  "provenance": {
+    "poseconf_git_sha": "9b617651376482893a62765b2bfa6cf3bdd9e667",
+    "created_at": "2026-10-08T12:17:09Z",
+    "seed": 20261008
+  }
+}
